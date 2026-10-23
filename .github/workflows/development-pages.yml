@@ -1,0 +1,58 @@
+name: Deploy development GitHub Pages
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: '배포할 main 커밋의 전체 SHA (정식 태그 생성 없음)'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate explicit commit
+        env:
+          DEPLOY_COMMIT: ${{ inputs.commit }}
+        run: '[[ "$DEPLOY_COMMIT" =~ ^[a-f0-9]{40}$ ]]'
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.commit }}
+          fetch-depth: 0
+      - name: Validate commit belongs to main
+        env:
+          DEPLOY_COMMIT: ${{ inputs.commit }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$DEPLOY_COMMIT"
+          git merge-base --is-ancestor HEAD origin/main
+          test -z "$(git status --porcelain)"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm verify
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy development build
+        id: deployment
+        uses: actions/deploy-pages@v4

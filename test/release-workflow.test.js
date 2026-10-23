@@ -37,3 +37,15 @@ test('main·PR은 검사만 수행하고 Pages는 태그·명시한 태그로만
   assert.match(deploy,/tags: \['v\*'\]/); assert.ok(!deploy.includes('branches: [main]'));
   assert.match(deploy,/release_ref:/);assert.match(deploy,/pnpm check:release/);assert.match(deploy,/pnpm verify/);
 });
+
+test('개발 배포는 main에서 명시한 커밋만 검증하고 태그를 만들지 않는다', async () => {
+  const deploy = await readFile('.github/workflows/development-pages.yml','utf8');
+  assert.match(deploy,/workflow_dispatch:/);
+  assert.ok(!/^  push:/m.test(deploy));
+  assert.match(deploy,/github.ref == 'refs\/heads\/main'/);
+  assert.match(deploy,/\^\[a-f0-9\]\{40\}\$/);
+  assert.match(deploy,/git merge-base --is-ancestor HEAD origin\/main/);
+  assert.match(deploy,/pnpm verify/);
+  assert.match(deploy,/group: github-pages/);
+  assert.ok(!deploy.includes('git tag') && !deploy.includes('gh release'));
+});
