@@ -249,16 +249,19 @@ function selectionCharacters(skin) {
 // 결정 도장(12프레임)과 효과음이 끝난 뒤 잠깐 머무른다. 경기 시뮬레이션과는 별개다.
 const CHARACTER_CONFIRM_FRAMES = 36;
 
-function createCharacterSelect({ mode, cpuLevel }) {
+function createCharacterSelect({ mode, cpuLevel, cpuPlayer, cpuCharacters, onBack }) {
+  const randomChoice = { id: 'random-opponent', name: '랜덤', random: true };
+  const choices = skin => cpuPlayer ? [...cpuCharacters, randomChoice] : selectionCharacters(skin);
+  const title = cpuPlayer ? 'CPU 상대 선택' : '캐릭터 선택';
   const humans = mode === 'versus' ? 2 : 1;
-  const cursors = [0, 1];
+  const cursors = [cpuPlayer ? cpuCharacters.length : 0, 1];
   const confirmed = [false, false];
   const pickedAt = [0, 0];
   let frame = 0, completeAt = null;
   return {
     touchColumns: 2,
     touchItems(app) {
-      const characters = selectionCharacters(app.skin);
+      const characters = choices(app.skin);
       const player = mode === 'versus' && confirmed[0] ? 1 : 0;
       return characters.map((character, i) => ({
         label: character.selectable === false ? '준비 중' : character.name,
@@ -271,14 +274,14 @@ function createCharacterSelect({ mode, cpuLevel }) {
     touchLabel(app) {
       if (completeAt !== null) return '결정 완료 · 잠시 후 시작합니다';
       const player = mode === 'versus' && confirmed[0] ? 1 : 0;
-      const characters = selectionCharacters(app.skin);
+      const characters = choices(app.skin);
       const character = characters[cursors[player] % characters.length];
-      return `${mode === 'versus' ? `${player + 1}P ` : ''}캐릭터 선택 · ${character.selectable === false ? '준비 중' : character.name}`;
+      return `${mode === 'versus' ? `${player + 1}P ` : ''}${title} · ${character.selectable === false ? '준비 중' : character.name}`;
     },
     tap(app, { x, y }, viewport) {
       if (viewport?.portrait) return true;
       if (completeAt !== null) return true;
-      const characters = selectionCharacters(app.skin);
+      const characters = choices(app.skin);
       const columns = Math.min(4, characters.length);
       const column = Math.floor((x - 62) / 145), row = Math.floor((y - 127) / 157);
       const index = row * columns + column;
@@ -292,7 +295,7 @@ function createCharacterSelect({ mode, cpuLevel }) {
     update(app) {
       frame += 1;
       const { keyboard, sfx } = app;
-      const characters = selectionCharacters(app.skin);
+      const characters = choices(app.skin);
       if (completeAt !== null && frame - completeAt < CHARACTER_CONFIRM_FRAMES) return;
       if (completeAt === null) {
         for (let p = 0; p < humans; p++) {
@@ -309,13 +312,16 @@ function createCharacterSelect({ mode, cpuLevel }) {
             confirmed[p] = true;
             pickedAt[p] = frame;
             playSfx(sfx, 'confirm');
-            playCharacterVoice(sfx, characters[cursors[p] % characters.length].id, 'select', { channel: p });
+            if (!characters[cursors[p] % characters.length].random) {
+              playCharacterVoice(sfx, characters[cursors[p] % characters.length].id, 'select', { channel: cpuPlayer ? 1 : p });
+            }
           } else if (wasPressed(keyboard, keys.back)) {
             playSfx(sfx, 'cancel');
             if (confirmed[p]) {
               confirmed[p] = false;
             } else if (!confirmed.some(Boolean)) {
-              if (mode === 'cpu') app.setScene(createCpuLevelMenu());
+              if (onBack) onBack(app);
+              else if (mode === 'cpu') app.setScene(createCpuLevelMenu());
               else if (mode === 'versus') app.goToMultiplayer();
               else app.goToSinglePlayer();
               return;
@@ -326,8 +332,19 @@ function createCharacterSelect({ mode, cpuLevel }) {
         return;
       }
       const picks = cursors.slice(0, humans).map((i) => characters[i % characters.length]);
+      if (cpuPlayer) {
+        const opponent = picks[0].random ? pickCpuCharacter(cpuCharacters, cpuPlayer) : picks[0];
+        if (picks[0].random) playCharacterVoice(sfx, opponent.id, 'select', { channel: 1 });
+        withControlsGuide(app, { mode, background: this,
+          next: () => createGameScene({ mode, cpuLevel, characters: [cpuPlayer, opponent] }) });
+        return;
+      }
       if (mode === 'cpu') {
-        picks.push(pickCpuCharacter(characters.filter(character => character.selectable !== false), picks[0]));
+        app.setScene(createCharacterSelect({ mode, cpuLevel, cpuPlayer: picks[0],
+          cpuCharacters: characters.filter(character => character.selectable !== false),
+          onBack: app => { confirmed[0] = false; completeAt = null; app.setScene(this); },
+        }));
+        return;
       }
       withControlsGuide(app, { mode, background: this,
         next: () => createGameScene({ mode, cpuLevel, characters: picks }) });
@@ -335,16 +352,16 @@ function createCharacterSelect({ mode, cpuLevel }) {
     draw(ctx, app) {
       if(isPortraitScreen(ctx)){
         const player=mode==='versus'&&confirmed[0]?1:0;
-        const entries=selectionCharacters(app.skin),character=entries[cursors[player]%entries.length];
-        drawPortraitHero(ctx,app,humans>1?`${player+1}P 캐릭터 선택`:'캐릭터 선택',{
-          character,subtitle:completeAt!==null?'결정 완료!':character.selectable===false?'준비 중':character.name,frame,
+        const entries=choices(app.skin),character=entries[cursors[player]%entries.length];
+        drawPortraitHero(ctx,app,cpuPlayer ? title : humans>1?`${player+1}P 캐릭터 선택`:title,{
+          character, random: character.random, subtitle:completeAt!==null?'결정 완료!':character.selectable===false?'준비 중':character.name,frame,
         });return;
       }
       app.skin.drawBackground(ctx, SCREEN_WIDTH, SCREEN_HEIGHT, 'menu');
       paper(ctx, 38, 60, 884, 405, { radius: 22 });
       ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.font = `bold 28px ${FONT}`; ctx.fillText('캐릭터 선택', 480, 91);
-      const characters = selectionCharacters(app.skin);
+      ctx.font = `bold 28px ${FONT}`; ctx.fillText(title, 480, 91);
+      const characters = choices(app.skin);
       const columns = Math.min(4, characters.length);
       characters.forEach((character, i) => {
         const x = 62 + (i % columns) * 145;
@@ -352,7 +369,9 @@ function createCharacterSelect({ mode, cpuLevel }) {
         paper(ctx, x, y, 132, 144, { fill: '#faf5e9', radius: 12, shadow: false });
         const picked = confirmed.some((c, p) => c && cursors[p] % characters.length === i);
         const pickedBy = confirmed.findIndex((c, p) => c && cursors[p] % characters.length === i);
-        app.skin.drawCharacter(ctx, character.id, picked ? 'happy' : 'idle', x + 17, y + 10, 98,
+        if (character.random) {
+          ctx.fillStyle = INK; ctx.font = `bold 72px ${FONT}`; ctx.fillText('?', x + 66, y + 66);
+        } else app.skin.drawCharacter(ctx, character.id, picked ? 'happy' : 'idle', x + 17, y + 10, 98,
           { frame: picked ? frame - pickedAt[pickedBy] : frame, instance: `card-${i}`, presentation: 'selection', silhouette: character.selectable === false });
         ctx.fillStyle = INK; ctx.font = `bold 15px ${FONT}`; ctx.textAlign = 'center';
         ctx.fillText(character.selectable === false ? '준비 중' : character.name, x + 66, y + 125);
@@ -364,17 +383,24 @@ function createCharacterSelect({ mode, cpuLevel }) {
           ctx.beginPath(); ctx.roundRect(x - 2 - p * 3, y - 2 - p * 3, 136 + p * 6, 148 + p * 6, 14); ctx.stroke();
           paper(ctx, x + 4 + p * 66, y - 9, 55, 20, { fill: p === 0 ? PALETTE.pink : PALETTE.blue, radius: 7, shadow: false });
           ctx.font = `bold 12px ${FONT}`; ctx.fillStyle = INK;
-          ctx.fillText(`${p + 1}P${confirmed[p] ? ' ✓' : ''}`, x + 31 + p * 66, y + 1);
+          ctx.fillText(`${cpuPlayer ? 'CPU' : `${p + 1}P`}${confirmed[p] ? ' ✓' : ''}`, x + 31 + p * 66, y + 1);
         }
       });
       for (let p = 0; p < humans; p++) {
         const character = characters[cursors[p] % characters.length];
         const size = humans === 1 ? 180 : 120;
         const y = humans === 1 ? 170 : 130 + p * 157;
-        app.skin.drawCharacter(ctx, character.id, confirmed[p] ? 'happy' : 'idle', 679, y, size,
+        if (character.random) {
+          ctx.fillStyle = INK; ctx.font = `bold 128px ${FONT}`; ctx.fillText('?', 769, y + size / 2);
+        } else app.skin.drawCharacter(ctx, character.id, confirmed[p] ? 'happy' : 'idle', 679, y, size,
           { frame: confirmed[p] ? frame - pickedAt[p] : frame, instance: `selection-${p}`, presentation: 'selection', silhouette: character.selectable === false });
         ctx.fillStyle = INK; ctx.font = `bold 17px ${FONT}`; ctx.textAlign = 'center';
         ctx.fillText(`${humans > 1 ? `${p + 1}P · ` : ''}${character.selectable === false ? '준비 중' : character.name}`, 769, y + size + 17);
+      }
+      if (cpuPlayer) {
+        ctx.font = `14px ${FONT}`; ctx.fillStyle = INK; ctx.textAlign = 'center';
+        ctx.fillText(`1P · ${cpuPlayer.name}`, 769, 407);
+        if (characters[cursors[0]].random) ctx.fillText('랜덤은 내 캐릭터를 제외합니다', 769, 432);
       }
       const hint = mode === 'versus'
         ? '1P: WASD 선택 · G 결정 · F 취소   2P: 방향키 선택 · . 결정 · , 취소'

@@ -59,7 +59,11 @@ function createBuildSearch(player, table, params, opponent) {
       params = { ...params, targetChain: Math.min(params.targetChain, 4) };
     }
   }
-  const roots = moves(player.board.cells, player.piece, incoming, params);
+  let roots = moves(player.board.cells, player.piece, incoming, params);
+  // 1줄 이상 도착할 때는 다음 쌍의 고득점 때문에 지금 가능한 상쇄를 미루지 않는다.
+  if (incoming >= COLS && roots.some(move => move.chains > 0)) {
+    roots = roots.filter(move => move.chains > 0);
+  }
   for (const move of roots) move.root = { x: move.x, orient: move.orient, field: move.field, chains: move.chains, lethal: move.lethal };
   const beam = shortlist(roots, params.beamWidth, params, incoming);
   // 화면에 보이는 NEXT만 사용하며 현재 쌍과 다음 두 쌍까지만 계산한다.

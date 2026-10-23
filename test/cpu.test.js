@@ -61,10 +61,11 @@ function playMatch(seed, levels, limit) {
   return match;
 }
 
-test('CPU 난이도 목록은 아주 쉬움부터 아주 어려움까지 다섯 단계다', () => {
+test('CPU 난이도 목록은 입문부터 아주 어려움까지 여섯 단계다', () => {
   assert.deepEqual(
     CPU_LEVELS.map(({ id, label }) => [id, label]),
     [
+      ['beginner', '입문'],
       ['easy', '아주 쉬움'],
       ['normal', '쉬움'],
       ['hard', '보통'],

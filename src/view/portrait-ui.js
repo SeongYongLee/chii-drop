@@ -8,7 +8,7 @@ export function drawPortraitSurface(ctx) {
   flower(ctx,48,48,10,PALETTE.pink);flower(ctx,912,48,10,PALETTE.blue);
 }
 
-export function drawPortraitHero(ctx,app,title,{character,characters,subtitle='',frame=app.animationFrame??0}={}) {
+export function drawPortraitHero(ctx,app,title,{character,characters,random=false,subtitle='',frame=app.animationFrame??0}={}) {
   const height=screenHeight(ctx);
   drawPortraitSurface(ctx);
   const titleSize=title.length>14?44:76;
@@ -20,7 +20,8 @@ export function drawPortraitHero(ctx,app,title,{character,characters,subtitle=''
   ctx.font=`bold ${titleSize}px ${UI_FONT}`;ctx.fillText(title,480,titleY,820);
   const roster=characters??[character??app.skin.characters?.[0]].filter(Boolean);
   const width=roster.length*size+(roster.length-1)*12;
-  roster.forEach((entry,i)=>app.skin.drawCharacter(ctx,entry.id,'idle',
+  if (random) { ctx.font=`bold ${size*.75}px ${UI_FONT}`; ctx.fillText('?',480,top+size/2); }
+  else roster.forEach((entry,i)=>app.skin.drawCharacter(ctx,entry.id,'idle',
     480-width/2+i*(size+12),top,size,{frame,instance:`portrait-hero-${i}`,presentation:'selection',silhouette:entry.selectable===false}));
   if(subtitle){
     const subtitleY=Math.min(height-54,top+size+76);

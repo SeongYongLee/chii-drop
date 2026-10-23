@@ -55,7 +55,11 @@ function createUiTransition() {
       ctx.save();
       // 처음 몇 프레임은 결정 도장을 읽고, 나머지 구간에서 빠르게 사라진다.
       ctx.globalAlpha = 1 - t * t * (3 - 2 * t);
-      ctx.drawImage(snapshot, 0, 0, width, height);
+      // 메뉴와 경기의 세로 영역 높이가 달라도 이전 화면의 비율은 유지한다.
+      const snapshotHeight = snapshot.width > 0 && snapshot.height > 0
+        ? width * snapshot.height / snapshot.width : height;
+      ctx.beginPath(); ctx.rect(0, 0, width, height); ctx.clip();
+      ctx.drawImage(snapshot, 0, 0, width, snapshotHeight);
       for (const stamp of stamps) drawConfirmationStamp(ctx, stamp, age);
       ctx.restore();
     },

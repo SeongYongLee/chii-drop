@@ -33,6 +33,19 @@ test('빠른 화면 이동은 새 스냅샷으로 즉시 교체하며 이전 전
   assert.deepEqual(spy.images, [{ source: newer, alpha: 1 }]);
 });
 
+test('세로 메뉴에서 경기로 전환해도 이전 캐릭터 화면을 세로로 늘리지 않는다', () => {
+  const transition = createUiTransition(), calls = [];
+  const snapshot = { width: 740, height: 676 };
+  const ctx = new Proxy({ globalAlpha: 1, drawImage: (...args) => calls.push(args) },
+    { get: (object, key) => object[key] ?? (() => {}) });
+  transition.start(snapshot);
+  for (const height of [540, 900, 1500]) transition.draw(ctx, 960, height);
+  for (const [, x, y, width, height] of calls) {
+    assert.equal(x, 0); assert.equal(y, 0);
+    assert.equal(width / height, snapshot.width / snapshot.height);
+  }
+});
+
 test('움직임 줄이기는 화면 겹침과 도장의 확대·투명도 변화를 생략한다', (t) => {
   const previous = globalThis.window;
   globalThis.window = { matchMedia: () => ({ matches: true }) };

@@ -12,7 +12,7 @@ export async function buildPages(output = 'dist') {
   for (const path of runtimePaths(manifest)) await safeFile(RUNTIME, path);
   await rm(output, { recursive: true, force: true });
   await mkdir(`${output}/${RUNTIME}`, { recursive: true });
-  for (const path of ['index.html','style.css','online.html','online.css','README.md']) await cp(path, `${output}/${path}`);
+  for (const path of ['index.html','style.css','online.html','online.css','README.md','asset-worker.js']) await cp(path, `${output}/${path}`);
   // src 아래에 로컬 개발 문서가 생겨도 사이트에는 복사하지 않는다.
   await cp('src', `${output}/src`, { recursive: true, filter: (path) => !/\.md$/i.test(path) });
   for (const path of ['manifest.json','characters.json']) await cp(`${RUNTIME}/${path}`, `${output}/${RUNTIME}/${path}`);

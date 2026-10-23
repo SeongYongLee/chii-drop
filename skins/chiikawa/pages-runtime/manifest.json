@@ -4726,8 +4726,8 @@
         "lose": {
           "file": "assets/dc77b88530daf0fcdfc4.png",
           "loop": true,
-          "loopFrom": 2,
-          "poster": 2,
+          "loopFrom": 3,
+          "poster": 3,
           "frames": [
             {
               "rect": {
@@ -4739,45 +4739,50 @@
               "scale": 0.7002273957769356,
               "offsetX": -0.7142857142857224,
               "offsetY": -6.308865481676548,
+              "duration": 12
+            },
+            {
+              "rect": {
+                "x": 744,
+                "y": 43,
+                "width": 286,
+                "height": 299
+              },
+              "scale": 0.7025771521386033,
+              "offsetX": 2.3571428571428896,
+              "offsetY": -3.3088654816765484,
+              "duration": 10
+            },
+            {
+              "rect": {
+                "x": 385,
+                "y": 42,
+                "width": 289,
+                "height": 299
+              },
+              "scale": 0.7025771521386033,
+              "offsetX": 4.214285714285666,
+              "offsetY": -5.308865481676548,
               "duration": 8
             },
             {
               "rect": {
-                "x": 48,
-                "y": 1104,
-                "width": 260,
-                "height": 279
+                "x": 31,
+                "y": 43,
+                "width": 288,
+                "height": 298
               },
-              "scale": 0.6555820249052519,
-              "offsetX": -1.0714285714285836,
+              "scale": 0.7002273957769356,
+              "offsetX": -0.7142857142857224,
               "offsetY": -6.308865481676548,
-              "duration": 14
-            },
-            {
-              "rect": {
-                "x": 393,
-                "y": 1119,
-                "width": 280,
-                "height": 269
-              },
-              "scale": 0.6579317812669194,
-              "offsetX": 6.5,
-              "offsetY": -6.308865481676548,
-              "duration": 24
-            },
-            {
-              "rect": {
-                "x": 760,
-                "y": 1140,
-                "width": 286,
-                "height": 248
-              },
-              "scale": 0.6720303194369248,
-              "offsetX": 10.571428571428555,
-              "offsetY": -6.30886548167652,
-              "duration": 24
+              "duration": 180
             }
-          ]
+          ],
+          "blink": {
+            "period": 309,
+            "jitter": 80,
+            "doubleChance": 0.1
+          }
         },
         "chain1": {
           "file": "assets/dc77b88530daf0fcdfc4.png",
@@ -5295,7 +5300,7 @@
           "file": "assets/dc77b88530daf0fcdfc4.png",
           "loop": true,
           "loopFrom": 0,
-          "poster": 1,
+          "poster": 0,
           "frames": [
             {
               "rect": {
@@ -5307,19 +5312,19 @@
               "scale": 0.7002273957769356,
               "offsetX": -0.7142857142857224,
               "offsetY": -6.308865481676548,
-              "duration": 12
+              "duration": 90
             },
             {
               "rect": {
-                "x": 48,
-                "y": 1104,
-                "width": 260,
-                "height": 279
+                "x": 385,
+                "y": 42,
+                "width": 289,
+                "height": 299
               },
-              "scale": 0.6555820249052519,
-              "offsetX": -1.0714285714285836,
+              "scale": 0.7025771521386033,
+              "offsetX": 4.214285714285666,
               "offsetY": -6.308865481676548,
-              "duration": 65
+              "duration": 20
             },
             {
               "rect": {
@@ -5331,9 +5336,14 @@
               "scale": 0.7002273957769356,
               "offsetX": -0.7142857142857224,
               "offsetY": -6.308865481676548,
-              "duration": 70
+              "duration": 80
             }
-          ]
+          ],
+          "blink": {
+            "period": 309,
+            "jitter": 80,
+            "doubleChance": 0.1
+          }
         }
       },
       "selectable": false,
@@ -21079,8 +21089,8 @@
         "win": {
           "file": "assets/cefbe9d1945a16f2ec9a.png",
           "loop": true,
-          "loopFrom": 2,
-          "poster": 3,
+          "loopFrom": 1,
+          "poster": 1,
           "frames": [
             {
               "rect": {
@@ -21092,7 +21102,7 @@
               "scale": 0.8283425414364641,
               "offsetX": -2.5,
               "offsetY": -5.518743667679814,
-              "duration": 8
+              "duration": 10
             },
             {
               "rect": {
@@ -21104,31 +21114,19 @@
               "scale": 0.8620994475138122,
               "offsetX": 13,
               "offsetY": -5.518743667679814,
-              "duration": 12
+              "duration": 40
             },
             {
               "rect": {
-                "x": 362,
-                "y": 751,
-                "width": 362,
-                "height": 291
+                "x": 29,
+                "y": 38,
+                "width": 319,
+                "height": 296
               },
-              "scale": 0.9400000000000001,
-              "offsetX": -4,
+              "scale": 0.8283425414364641,
+              "offsetX": -2.5,
               "offsetY": -5.518743667679814,
-              "duration": 18
-            },
-            {
-              "rect": {
-                "x": 724,
-                "y": 761,
-                "width": 334,
-                "height": 281
-              },
-              "scale": 0.867292817679558,
-              "offsetX": -12,
-              "offsetY": -5.518743667679814,
-              "duration": 30
+              "duration": 50
             }
           ]
         },

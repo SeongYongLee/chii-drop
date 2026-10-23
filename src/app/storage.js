@@ -10,6 +10,7 @@ function defaultRecords() {
     soloBest: 0,
     soloMaxChain: 0,
     cpu: {
+      beginner: { win: 0, lose: 0 },
       easy: { win: 0, lose: 0 },
       normal: { win: 0, lose: 0 },
       hard: { win: 0, lose: 0 },

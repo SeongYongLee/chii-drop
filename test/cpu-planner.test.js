@@ -5,6 +5,7 @@ import { chainPotential, evaluatePlacements } from '../src/cpu/evaluate.js';
 import { createMatch, stepMatch } from '../src/engine/match.js';
 import { columnHeight, fieldFromRows } from '../src/engine/field.js';
 import { COLS } from '../src/engine/rules.js';
+import { advanceBuildSearch, buildSearchResults } from '../src/cpu/planner.js';
 
 function fixture(incoming = 0) {
   const match = createMatch({ seed: 4, playerCount: 1,
@@ -16,7 +17,8 @@ function fixture(incoming = 0) {
   return match;
 }
 function planned(match, opponent, level = 'expert') {
-  let cpu = createCpu({ level, seed: 4 }), steps = 0;
+  // 정확한 탐색 결과는 의도적인 실수가 발생하지 않는 시드로 검사한다.
+  let cpu = createCpu({ level, seed: 30 }), steps = 0;
   do { cpu = stepCpu(cpu, match.players[0], match.table, opponent).cpu; steps++; }
   while (!cpu.planned && steps < 14);
   assert.ok(cpu.planned, '출현 대기 중에 계획을 완료해야 한다');
@@ -26,6 +28,22 @@ function chosen(match, cpu) {
   return evaluatePlacements(match.players[0].board.cells, match.players[0].piece, 0)
     .find((p) => p.x === cpu.target.x && p.orient === cpu.target.orient);
 }
+
+test('쉬움은 NEXT 첫 쌍에 맞춰 배치를 바꾸고 그 이후 쌍과 경기 상태는 건드리지 않는다', () => {
+  const match = createMatch({ seed: 4, playerCount: 1,
+    fields: [fieldFromRows(['214321', '432143', '214321'])] });
+  match.table[1] = [1, 2];
+  const before = structuredClone(match);
+  const first = planned(match, undefined, 'normal');
+  assert.deepEqual(match, before);
+  assert.ok(first.steps > 1 && first.steps < match.players[0].phaseTimer);
+  const next = structuredClone(match);
+  next.table[1] = [2, 3];
+  assert.notDeepEqual(planned(next, undefined, 'normal').cpu.target, first.cpu.target);
+  const hidden = structuredClone(match);
+  for (let i = 2; i < hidden.table.length; i++) hidden.table[i] = [4, 4];
+  assert.deepEqual(planned(hidden, undefined, 'normal').cpu, first.cpu);
+});
 
 test('어려움은 안전할 때 즉시 1연쇄를 내는 대신 연쇄 기반을 쌓는다', () => {
   const match = fixture();
@@ -48,6 +66,27 @@ test('방해 예고와 이미 시작한 상대 공격에는 연쇄 쌓기보다 
   enemy.phase = 'flash';
   assert.ok(chosen(safe, planned(safe, enemy).cpu).chains >= 1);
   assert.equal(safe.players[0].stocks.a, 0, '실제 공격 도착 전의 판단이어야 한다');
+});
+
+test('탐색 후보가 하나여도 실수는 다양한 안전 배치로 반영하고 큰 방해에는 상쇄를 지킨다', () => {
+  const match = fixture(), before = structuredClone(match);
+  let search = stepCpu(createCpu({ level: 'normal', seed: 30 }), match.players[0], match.table).cpu.thinking;
+  while (!search.done) search = advanceBuildSearch(search);
+  assert.equal(buildSearchResults(search).length, 1);
+  const choices = new Set();
+  for (let seed = 1; seed <= 40; seed++) {
+    for (const incoming of [0, 30]) {
+      const current = incoming ? fixture(incoming) : match;
+      let cpu = createCpu({ level: 'normal', seed });
+      while (!cpu.planned) cpu = stepCpu(cpu, current.players[0], current.table).cpu;
+      const option = chosen(current, cpu);
+      assert.ok(option && !option.lethal);
+      if (incoming) assert.ok(option.chains >= 1, `seed ${seed}: 상쇄를 포기했다`);
+      else choices.add(`${cpu.target.x}:${cpu.target.orient}`);
+    }
+  }
+  assert.ok(choices.size >= 3);
+  assert.deepEqual(match, before);
 });
 
 test('화면에 보이지 않는 세 번째 이후 NEXT를 바꿔도 결정은 같다', () => {

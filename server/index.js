@@ -52,7 +52,7 @@ export function createOnlineServer({ origins = [], profiles = createProfileStore
         } catch { /* 스킨이나 배정표가 없으면 제공하지 않는다. */ }
       }
       const publicRuntime = /^\/skins\/chiikawa\/pages-runtime\/(manifest\.json|characters\.json|assets\/[a-f0-9]{20}\.(png|webp|wav|mp3))$/.test(requested);
-      if (!localPreview && !runtimeVoice && !publicRuntime && requested !== '/skins/chiikawa/story.json' && !/^\/(online\.html|index\.html|style\.css|online\.css|src\/[\w/-]+\.js|skins\/[\w-]+\/(manifest\.json|characters\.json|[\w/-]+\.(png|webp))|sounds\/[\w/.-]+\.wav)$/.test(requested)) throw new Error('not public');
+      if (!localPreview && !runtimeVoice && !publicRuntime && requested !== '/skins/chiikawa/story.json' && !/^\/(asset-worker\.js|online\.html|index\.html|style\.css|online\.css|src\/[\w/-]+\.js|skins\/[\w-]+\/(manifest\.json|characters\.json|[\w/-]+\.(png|webp))|sounds\/[\w/.-]+\.wav)$/.test(requested)) throw new Error('not public');
       const file = await realpath(resolve(root, '.' + requested));
       if (!file.startsWith(root + sep)) throw new Error('outside root');
       const data = await readFile(file);

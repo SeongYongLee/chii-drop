@@ -114,7 +114,7 @@ test('캐릭터 여덟 명이 화면 안의 4×2 카드에 들어가고 아래 �
 });
 
 
-test('CPU 캐릭터 결정 연출을 0.6초 보여준 뒤 경기 준비를 시작한다', () => {
+test('1P 결정 연출을 0.6초 보여준 뒤 CPU 상대를 선택한다', () => {
   const h = harness();
   h.press('Enter'); h.press('Enter'); h.press('Enter');
   const selection = h.app.scene;
@@ -129,6 +129,9 @@ test('CPU 캐릭터 결정 연출을 0.6초 보여준 뒤 경기 준비를 시�
   assert.ok(h.labels().includes('결정!'));
   assert.ok(selection.touchLabel(h.app).includes('결정 완료'));
   h.wait(1);
+  assert.ok(h.labels().includes('CPU 상대 선택'));
+  assert.equal(h.app.scene.touchItems(h.app).at(-1).label, '랜덤');
+  h.press('Enter'); h.wait(36);
   assert.ok(h.labels().includes('준비'));
   assert.deepEqual(h.app.lastUi.stamps, []); // 결정 도장을 전환 때 다시 재생하지 않는다.
   assert.equal(h.figures.filter(figure => figure.size === 180).at(-1).id, MOCK_SKIN.characters[0].id);
@@ -182,7 +185,62 @@ test('주요 여덟 명만 표시하되 준비 중 네 명과 스토리 전용 �
   assert.equal(h.app.scene,selection);
   assert.ok(!h.labels().includes('결정!'));
   h.press('ArrowLeft'); h.press('Enter'); h.wait(36);
+  assert.deepEqual(h.app.scene.touchItems(h.app).map(item=>item.label), [...selected.filter(c=>c.selectable).map(c=>c.name), '랜덤']);
+  h.press('Enter'); h.wait(36);
   h.figures.length=0; assert.ok(h.labels().includes('준비'));
   assert.ok(h.figures.some(figure=>figure.id==='guest4'));
   assert.ok(h.figures.every(figure=>roster.filter(character=>character.selectable).some(character=>character.id===figure.id)));
+});
+
+
+test('CPU를 직접 선택하고 취소하면 1P 선택을 보존한다', () => {
+  const h = harness();
+  h.press('Enter'); h.press('Enter'); h.press('Enter');
+  const selection = h.app.scene;
+  h.press('ArrowRight'); h.press('Enter'); h.wait(36);
+  h.press('Escape');
+  assert.equal(h.app.scene,selection);
+  assert.ok(selection.touchLabel(h.app).includes(MOCK_SKIN.characters[1].name));
+  h.press('Enter'); h.wait(36);
+  h.app.scene.touchItems(h.app).find(item=>item.label===MOCK_SKIN.characters[0].name).activate();
+  h.press('Enter'); h.wait(36);
+  h.figures.length=0; h.labels();
+  assert.deepEqual(h.figures.map(figure=>figure.id), [MOCK_SKIN.characters[1].id,MOCK_SKIN.characters[0].id]);
+});
+
+test('CPU 랜덤은 활성 캐릭터 모두에서 고르고 1P·준비 중·숨김 캐릭터를 제외한다', t => {
+  const random = t.mock.method(crypto,'getRandomValues', array => { array[0]=0; return array; });
+  const opponents = [];
+  for (let sample=0; sample<3; sample++) {
+    random.mock.mockImplementation(array => { array[0]=sample; return array; });
+    const h=harness();
+    const roster=Array.from({length:6},(_,i)=>({id:`actor${i}`,name:`캐릭터 ${i}`,selectable:i<5,selectionVisible:i!==4}));
+    h.app.skin.characterRoster=roster;
+    h.press('Enter'); h.press('Enter'); h.press('Enter'); h.press('Enter'); h.wait(36);
+    h.press('Enter'); h.wait(36);
+    h.figures.length=0; h.labels();
+    opponents.push(h.figures.at(-1).id);
+  }
+  assert.deepEqual(opponents,['actor1','actor2','actor3']);
+});
+
+
+test('PC CPU 상대도 1P와 같은 카드 크기·위치·확대 미리보기·결정 도장을 쓴다', () => {
+  const h=harness();
+  h.press('Enter'); h.press('Enter'); h.press('Enter');
+  h.figures.length=0; h.labels();
+  const playerCards=h.figures.filter(figure=>figure.size===98).map(({x,y,size})=>({x,y,size}));
+  h.press('Enter'); h.wait(36);
+  const cpu=h.app.scene;
+  h.figures.length=0; const labels=h.labels();
+  assert.ok(labels.includes('CPU 상대 선택'));
+  assert.deepEqual(h.figures.filter(figure=>figure.size===98).map(({x,y,size})=>({x,y,size})),playerCards);
+  assert.ok(labels.includes('?'));
+  cpu.touchItems(h.app)[1].activate();
+  h.figures.length=0; h.labels();
+  assert.equal(h.figures.find(figure=>figure.size===180).id,MOCK_SKIN.characters[1].id);
+  h.press('Enter'); h.wait(35);
+  assert.equal(h.app.scene,cpu);
+  assert.ok(h.labels().includes('결정!'));
+  h.wait(1); assert.notEqual(h.app.scene,cpu);
 });

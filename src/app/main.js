@@ -1,3 +1,4 @@
+import { setupAssetCache, retainMedia } from './asset-cache.js';
 import { createSfx, prepareSfx, setSfxOptions, unlockSfx } from '../audio/sfx.js';
 import { configureCharacterVoices } from '../audio/character-voice.js';
 import { configureMusic, syncMusicVisibility } from '../audio/music.js';
@@ -105,9 +106,12 @@ document.addEventListener('visibilitychange', () => syncMusicVisibility(app.sfx)
 // 자료 준비 전에는 안내만 표시한다.
 drawFestivalBackground(ctx, SCREEN_WIDTH, SCREEN_HEIGHT, 'title');
 drawBanner(ctx, '불러오는 중…');
+const assetWorker = await setupAssetCache();
+let loadedManifest;
 const [skin, script] = await Promise.all([
   loadSkin({
     onManifest(manifest) {
+      loadedManifest = manifest;
       const audioAvailable = Boolean(window.AudioContext || window.webkitAudioContext);
       const voices = audioAvailable && app.settings.voice !== false
         ? [...new Set((manifest.characters ?? []).flatMap(character => Object.values(character.voices ?? {}).flat()))] : [];
@@ -132,6 +136,7 @@ if (skin && script) {
   loading.settleGroup('voice:'); loading.settleGroup('effect:'); loading.finish();
   app.setScene(createTitleScene());
   loadingScreen.hide();
+  retainMedia(assetWorker, loadedManifest, SKIN_DIR);
   clearPressed(app.keyboard);
 } else {
   loadingScreen.fail();

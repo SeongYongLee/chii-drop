@@ -14,7 +14,7 @@ export async function checkBuild() {
     return paths;
   }
   const manifest = JSON.parse(await readFile(`${RUNTIME}/manifest.json`, 'utf8'));
-  const expected = ['index.html','style.css','online.html','online.css','README.md', STORY,
+  const expected = ['index.html','style.css','online.html','online.css','README.md','asset-worker.js', STORY,
     `${RUNTIME}/manifest.json`,`${RUNTIME}/characters.json`,
     ...[...runtimePaths(manifest)].map(path => `${RUNTIME}/${path}`),
     ...(await walk('src')).filter(path => !/\.md$/i.test(path))];
