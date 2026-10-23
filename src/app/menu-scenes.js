@@ -2,11 +2,11 @@ import { playSfx, unlockSfx } from '../audio/sfx.js';
 import { playCharacterVoice } from '../audio/character-voice.js';
 import { CPU_LEVELS } from '../cpu/cpu.js';
 import { MENU_KEYS, PLAYER_MENU_KEYS, wasPressed } from '../input/keyboard.js';
-import { defaultKeyBindings, keyLabel } from '../input/key-settings.js';
 import { PALETTE, flower, paper } from '../view/festival.js';
 import { FONT, INK } from '../view/renderer.js';
 import { drawConfirmationStamp, reducedUiMotion } from '../view/ui-motion.js';
 
+import { withControlsGuide } from './controls-guide.js';
 import { MODES } from './modes.js';
 import { createGameScene } from './game-scene.js';
 import { createStoryFlow } from './story-mode.js';
@@ -15,7 +15,7 @@ import { loadStory, saveSettings } from './storage.js';
 
 function drawPanel(ctx, app, title, bottom = 465) {
   app.skin.drawBackground(ctx, SCREEN_WIDTH, SCREEN_HEIGHT, 'menu');
-  const notebook = title === '설정' || title === '기록' || title === '조작 방법';
+  const notebook = title === '설정' || title === '기록';
   paper(ctx, 140, 55, 680, bottom - 55, { radius: 20 });
   if (notebook) {
     ctx.strokeStyle = '#dfb5b0'; ctx.lineWidth = 2;
@@ -235,12 +235,15 @@ function selectionCharacters(skin) {
   return (skin.characterRoster ?? skin.characters).filter((character) => character.selectionVisible !== false);
 }
 
+// 결정 도장(12프레임)과 효과음이 끝난 뒤 잠깐 머무른다. 경기 시뮬레이션과는 별개다.
+const CHARACTER_CONFIRM_FRAMES = 36;
+
 function createCharacterSelect({ mode, cpuLevel }) {
   const humans = mode === 'versus' ? 2 : 1;
   const cursors = [0, 1];
   const confirmed = [false, false];
   const pickedAt = [0, 0];
-  let frame = 0;
+  let frame = 0, completeAt = null;
   return {
     touchColumns: 2,
     touchItems(app) {
@@ -248,19 +251,21 @@ function createCharacterSelect({ mode, cpuLevel }) {
       const player = mode === 'versus' && confirmed[0] ? 1 : 0;
       return characters.map((character, i) => ({
         label: character.selectable === false ? '준비 중' : character.name,
-        disabled: character.selectable === false, selected: cursors[player] % characters.length === i,
-        activate: () => { cursors[player] = i; playSfx(app.sfx, 'cursor'); },
+        disabled: completeAt !== null || character.selectable === false, selected: cursors[player] % characters.length === i,
+        activate: () => { if (completeAt !== null) return; cursors[player] = i; playSfx(app.sfx, 'cursor'); },
       }));
     },
     touchPlayer: () => mode === 'versus' ? (confirmed[0] ? 1 : 0) : null,
     touchBackPlayer: () => mode === 'versus' ? 0 : null,
     touchLabel(app) {
+      if (completeAt !== null) return '결정 완료 · 잠시 후 시작합니다';
       const player = mode === 'versus' && confirmed[0] ? 1 : 0;
       const characters = selectionCharacters(app.skin);
       const character = characters[cursors[player] % characters.length];
       return `${mode === 'versus' ? `${player + 1}P ` : ''}캐릭터 선택 · ${character.selectable === false ? '준비 중' : character.name}`;
     },
     tap(app, { x, y }) {
+      if (completeAt !== null) return true;
       const characters = selectionCharacters(app.skin);
       const columns = Math.min(4, characters.length);
       const column = Math.floor((x - 62) / 145), row = Math.floor((y - 127) / 157);
@@ -276,42 +281,43 @@ function createCharacterSelect({ mode, cpuLevel }) {
       frame += 1;
       const { keyboard, sfx } = app;
       const characters = selectionCharacters(app.skin);
-      for (let p = 0; p < humans; p++) {
-        const keys = characterKeys(mode, p);
-        if (!confirmed[p] && [keys.left, keys.right, keys.up, keys.down].some((codes) => codes && wasPressed(keyboard, codes))) {
-          const columns = Math.min(4, characters.length);
-          const horizontal = wasPressed(keyboard, keys.left) || wasPressed(keyboard, keys.right);
-          const delta = horizontal ? (wasPressed(keyboard, keys.left) ? -1 : 1)
-            : (wasPressed(keyboard, keys.up) ? -columns : columns);
-          cursors[p] = (cursors[p] + delta + characters.length) % characters.length;
-          playSfx(sfx, 'cursor');
-        } else if (!confirmed[p] && wasPressed(keyboard, keys.confirm)) {
-          if (characters[cursors[p] % characters.length].selectable === false) continue;
-          confirmed[p] = true;
-          pickedAt[p] = frame;
-          playSfx(sfx, 'confirm');
-          playCharacterVoice(sfx, characters[cursors[p] % characters.length].id, 'select', { channel: p });
-        } else if (wasPressed(keyboard, keys.back)) {
-          playSfx(sfx, 'cancel');
-          if (confirmed[p]) {
-            confirmed[p] = false;
-          } else if (!confirmed.some(Boolean)) {
-            if (mode === 'cpu') app.setScene(createCpuLevelMenu());
-            else app.goToSinglePlayer();
-            return;
+      if (completeAt !== null && frame - completeAt < CHARACTER_CONFIRM_FRAMES) return;
+      if (completeAt === null) {
+        for (let p = 0; p < humans; p++) {
+          const keys = characterKeys(mode, p);
+          if (!confirmed[p] && [keys.left, keys.right, keys.up, keys.down].some((codes) => codes && wasPressed(keyboard, codes))) {
+            const columns = Math.min(4, characters.length);
+            const horizontal = wasPressed(keyboard, keys.left) || wasPressed(keyboard, keys.right);
+            const delta = horizontal ? (wasPressed(keyboard, keys.left) ? -1 : 1)
+              : (wasPressed(keyboard, keys.up) ? -columns : columns);
+            cursors[p] = (cursors[p] + delta + characters.length) % characters.length;
+            playSfx(sfx, 'cursor');
+          } else if (!confirmed[p] && wasPressed(keyboard, keys.confirm)) {
+            if (characters[cursors[p] % characters.length].selectable === false) continue;
+            confirmed[p] = true;
+            pickedAt[p] = frame;
+            playSfx(sfx, 'confirm');
+            playCharacterVoice(sfx, characters[cursors[p] % characters.length].id, 'select', { channel: p });
+          } else if (wasPressed(keyboard, keys.back)) {
+            playSfx(sfx, 'cancel');
+            if (confirmed[p]) {
+              confirmed[p] = false;
+            } else if (!confirmed.some(Boolean)) {
+              if (mode === 'cpu') app.setScene(createCpuLevelMenu());
+              else app.goToSinglePlayer();
+              return;
+            }
           }
         }
+        if (confirmed.slice(0, humans).every(Boolean)) completeAt = frame;
+        return;
       }
-      if (confirmed.slice(0, humans).every(Boolean)) {
-        const picks = cursors.slice(0, humans).map((i) => characters[i % characters.length]);
-        if (mode === 'cpu') {
-          picks.push(pickCpuCharacter(characters.filter(character => character.selectable !== false), picks[0]));
-        }
-        const stamps = cursors.slice(0, humans).flatMap((cursor, p) => pickedAt[p] === frame
-          ? [{ x: 128 + (cursor % Math.min(4, characters.length)) * 145,
-            y: 219 + Math.floor(cursor / Math.min(4, characters.length)) * 157, player: p }] : []);
-        app.setScene(createGameScene({ mode, cpuLevel, characters: picks }), { stamps });
+      const picks = cursors.slice(0, humans).map((i) => characters[i % characters.length]);
+      if (mode === 'cpu') {
+        picks.push(pickCpuCharacter(characters.filter(character => character.selectable !== false), picks[0]));
       }
+      withControlsGuide(app, { mode, background: this,
+        next: () => createGameScene({ mode, cpuLevel, characters: picks }) });
     },
     draw(ctx, app) {
       app.skin.drawBackground(ctx, SCREEN_WIDTH, SCREEN_HEIGHT, 'menu');
@@ -353,7 +359,7 @@ function createCharacterSelect({ mode, cpuLevel }) {
       const hint = mode === 'versus'
         ? '1P: WASD 선택 · G 결정 · F 취소   2P: 방향키 선택 · . 결정 · , 취소'
         : '방향키 선택 · Enter 결정 · Esc 뒤로';
-      drawFooter(ctx, hint);
+      drawFooter(ctx, completeAt !== null ? '결정 완료 · 잠시 후 시작합니다' : hint);
     },
   };
 }
@@ -444,43 +450,6 @@ function createRecordsMenu() {
   });
 }
 
-const HELP_LINES = [
-  '연습·CPU 대전: ←→ 이동 · ↓ 빠르게 · Z/X 회전 (WASD + F/G도 가능)',
-  '로컬 대전 1P: A·D 이동 · S 빠르게 · F/G 회전',
-  '로컬 대전 2P: ←→ 이동 · ↓ 빠르게 · , / . 회전',
-  '같은 색 4개 이상을 이으면 사라지고, 이어서 사라지면 연쇄가 됩니다.',
-  '연쇄로 얻은 점수만큼 상대에게 방해 블록을 보냅니다.',
-  '양옆이 막혔을 때 회전을 빠르게 두 번 누르면 뒤집힙니다.',
-  'Esc 또는 P: 일시정지',
-];
-
-function createHelpScene() {
-  return {
-    update(app) {
-      if (wasPressed(app.keyboard, MENU_KEYS.back) || wasPressed(app.keyboard, MENU_KEYS.confirm)) {
-        playSfx(app.sfx, 'cancel');
-        app.goToMenu();
-      }
-    },
-    draw(ctx, app) {
-      drawPanel(ctx, app, '조작 방법');
-      ctx.fillStyle = INK;
-      ctx.font = `17px ${FONT}`;
-      ctx.textAlign = 'center';
-      const bindings = app.keyboard.bindings ?? defaultKeyBindings();
-      const lines = [...HELP_LINES];
-      for (const [index, group] of ['solo', 'p1', 'p2'].entries()) {
-        const keys = bindings[group], label = ['연습·CPU 대전', '로컬 대전 1P', '로컬 대전 2P'][index];
-        const key = (action) => keyLabel(keys[action][0]);
-        lines[index] = `${label}: ${key('LEFT')} / ${key('RIGHT')} 이동 · ${key('DOWN')} 빠르게 · ${key('ROTATE_CCW')} / ${key('ROTATE_CW')} 회전`;
-      }
-      lines[6] = `${bindings.pause.map(keyLabel).join(' / ')}: 일시정지 · 설정에서 경기 키 변경`;
-      lines.forEach((line, i) => ctx.fillText(line, SCREEN_WIDTH / 2, 170 + i * 36));
-      drawFooter(ctx, 'Esc 뒤로');
-    },
-  };
-}
-
 function createStoryMenu(app) {
   const flow = createStoryFlow(app);
   return createListMenu({
@@ -520,7 +489,10 @@ function createMainMenu() {
       { label: MODES.online ? '온라인 모드' : '온라인 모드 · 준비 중', disabled: !MODES.online, select: () => window.location.assign('online.html') },
       { label: '설정', select: () => app.setScene(createSettingsMenu()) },
       { label: '기록', select: () => app.setScene(createRecordsMenu()) },
-      { label: '조작 방법', select: () => app.setScene(createHelpScene()) },
+      { label: '게임 방법', select: () => {
+        const menu = app.scene;
+        withControlsGuide(app, { force: true, background: menu, next: () => menu });
+      } },
     ],
     onBack: (app) => app.setScene(createTitleScene()),
   });

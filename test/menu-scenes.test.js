@@ -11,6 +11,7 @@ function harness() {
   const figures = [];
   const ctx = new Proxy({ fillText: (s) => text.push(s) }, { get: (o, k) => o[k] ?? (() => {}) });
   const app = {
+    controlsGuidesSeen: new Set(['solo:keyboard', 'versus:keyboard']),
     keyboard: createKeyboard(), sfx: { enabled: false }, skin: { ...MOCK_SKIN, drawBackground() {}, drawCharacter: (_, id, mood, x, y, size, motion) => figures.push({ id, x, y, size, motion }) },
     settings: { ...DEFAULT_SETTINGS }, applySettings() {}, storyScript: MOCK_SCRIPT,
     single: createSinglePlayerMenu(), main: createMainMenu(),
@@ -21,7 +22,8 @@ function harness() {
   app.scene = app.main;
   const press = (code) => { app.keyboard.pressed = new Set([code]); app.scene.update(app); };
   const labels = () => { text.length = 0; app.scene.draw(ctx, app); return [...text]; };
-  return { app, press, labels, figures };
+  const wait = (frames) => { for (let i = 0; i < frames; i++) { app.keyboard.pressed.clear(); app.scene.update(app); } };
+  return { app, press, labels, figures, wait };
 }
 
 test('모바일의 큰 항목 버튼과 화면 터치로 메뉴·캐릭터 선택·일시정지까지 이동한다', () => {
@@ -31,7 +33,7 @@ test('모바일의 큰 항목 버튼과 화면 터치로 메뉴·캐릭터 선�
   const selection = h.app.scene;
   selection.touchItems(h.app)[1].activate();
   assert.ok(selection.touchLabel(h.app).includes('참가자 2'));
-  h.press('Enter');
+  h.press('Enter'); h.wait(36);
   assert.equal(h.app.scene.touchMode(), 'game');
   h.press('Escape');
   assert.equal(h.app.scene.touchMode(), 'menu');
@@ -107,12 +109,24 @@ test('캐릭터 여덟 명이 화면 안의 4×2 카드에 들어가고 아래 �
 });
 
 
-test('CPU 캐릭터 결정 도장을 전환에 넘기고 경기 준비는 지연 없이 시작한다', () => {
+test('CPU 캐릭터 결정 연출을 0.6초 보여준 뒤 경기 준비를 시작한다', () => {
   const h = harness();
   h.press('Enter'); h.press('Enter'); h.press('Enter');
+  const selection = h.app.scene;
   h.press('Enter');
+  assert.equal(h.app.scene, selection);
+  assert.ok(h.labels().includes('결정!'));
+  assert.ok(selection.touchItems(h.app).every(item => item.disabled));
+  selection.touchItems(h.app)[1].activate();
+  selection.tap(h.app, { x: 220, y: 150 });
+  h.press('ArrowRight'); h.press('Escape'); h.wait(33);
+  assert.equal(h.app.scene, selection);
+  assert.ok(h.labels().includes('결정!'));
+  assert.ok(selection.touchLabel(h.app).includes('결정 완료'));
+  h.wait(1);
   assert.ok(h.labels().includes('준비'));
-  assert.deepEqual(h.app.lastUi.stamps, [{ x: 128, y: 219, player: 0 }]);
+  assert.deepEqual(h.app.lastUi.stamps, []); // 결정 도장을 전환 때 다시 재생하지 않는다.
+  assert.equal(h.figures.filter(figure => figure.size === 180).at(-1).id, MOCK_SKIN.characters[0].id);
 });
 
 test('로컬 대전의 결정 도장은 플레이어별로 표시되고 취소하면 사라진다', () => {
@@ -127,8 +141,13 @@ test('로컬 대전의 결정 도장은 플레이어별로 표시되고 취소�
   h.press('Period');
   assert.equal(h.labels().filter((s) => s === '결정!').length, 1);
   h.press('KeyG');
+  assert.equal(h.app.scene, selection);
+  assert.equal(h.labels().filter(s => s === '결정!').length, 2);
+  h.press('KeyF'); h.wait(34);
+  assert.equal(h.app.scene, selection);
+  h.wait(1);
   assert.ok(h.labels().includes('준비'));
-  assert.equal(h.app.lastUi.stamps[0].player, 0);
+  assert.deepEqual(h.app.lastUi.stamps, []);
 });
 
 
@@ -157,7 +176,7 @@ test('주요 여덟 명만 표시하되 준비 중 네 명과 스토리 전용 �
   h.press('ArrowRight'); h.press('Enter');
   assert.equal(h.app.scene,selection);
   assert.ok(!h.labels().includes('결정!'));
-  h.press('ArrowLeft'); h.press('Enter');
+  h.press('ArrowLeft'); h.press('Enter'); h.wait(36);
   h.figures.length=0; assert.ok(h.labels().includes('준비'));
   assert.ok(h.figures.some(figure=>figure.id==='guest4'));
   assert.ok(h.figures.every(figure=>roster.filter(character=>character.selectable).some(character=>character.id===figure.id)));
