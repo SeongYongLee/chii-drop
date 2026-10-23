@@ -10,7 +10,8 @@ import { withControlsGuide } from './controls-guide.js';
 import { MODES } from './modes.js';
 import { createGameScene } from './game-scene.js';
 import { createStoryFlow } from './story-mode.js';
-import { SCREEN_HEIGHT, SCREEN_WIDTH } from './screen.js';
+import { SCREEN_HEIGHT, SCREEN_WIDTH, isPortraitScreen } from './screen.js';
+import { drawPortraitHero } from '../view/portrait-ui.js';
 import { loadStory, saveSettings } from './storage.js';
 
 function drawPanel(ctx, app, title, bottom = 465) {
@@ -65,6 +66,7 @@ function createListMenu({ title, items, onBack, notice, compact = false, footer 
   }
   return {
     touchDirect: true,
+    touchNotice: (app) => notice?.(app),
     touchItems: (app) => items(app).map((item, i) => ({ label: item.label,
       value: item.value, disabled: Boolean(item.disabled), selected: index === i,
       adjustable: Boolean(item.change && typeof item.value === 'number'),
@@ -73,7 +75,8 @@ function createListMenu({ title, items, onBack, notice, compact = false, footer 
       const item = items(app)[index];
       return `${title} · ${item?.label ?? ''}${item?.value === undefined ? '' : ` ${item.value}`}`;
     },
-    tap(app, { x, y }) {
+    tap(app, { x, y }, viewport) {
+      if (viewport?.portrait) return true;
       const list = items(app);
       const step = Math.min(49, 254 / Math.max(1, list.length - 1));
       const picked = Math.round((y - 148) / step);
@@ -121,6 +124,9 @@ function createListMenu({ title, items, onBack, notice, compact = false, footer 
     draw(ctx, app) {
       const list = items(app);
       if (list[index]?.disabled) index = moveCursor(list, index, 1);
+      if(isPortraitScreen(ctx)){
+        drawPortraitHero(ctx,app,title,{subtitle:list[index]?.label??''});return;
+      }
       const rowStep = Math.min(49, 254 / Math.max(1, list.length - 1));
       const itemHeight = Math.min(42, rowStep - 4);
       const panelBottom = compact ? Math.min(465, 148 + Math.max(0, list.length - 1) * rowStep + itemHeight / 2 + 22) : 465;
@@ -173,6 +179,11 @@ function createTitleScene() {
       }
     },
     draw(ctx, app) {
+      if(isPortraitScreen(ctx)){
+        drawPortraitHero(ctx,app,app.skin.branding?.title??'퍼즐 대전',{
+          characters:app.skin.characters.slice(0,3),subtitle:app.skin.branding?.tagline??'화면을 눌러 시작',frame,
+        });return;
+      }
       app.skin.drawBackground(ctx, SCREEN_WIDTH, SCREEN_HEIGHT, 'title');
       paper(ctx, 160, 80, 640, 136, { fill: '#fffdf5', radius: 24 });
       flower(ctx, 192, 148, 12); flower(ctx, 768, 148, 12, PALETTE.blue);
@@ -264,7 +275,8 @@ function createCharacterSelect({ mode, cpuLevel }) {
       const character = characters[cursors[player] % characters.length];
       return `${mode === 'versus' ? `${player + 1}P ` : ''}캐릭터 선택 · ${character.selectable === false ? '준비 중' : character.name}`;
     },
-    tap(app, { x, y }) {
+    tap(app, { x, y }, viewport) {
+      if (viewport?.portrait) return true;
       if (completeAt !== null) return true;
       const characters = selectionCharacters(app.skin);
       const columns = Math.min(4, characters.length);
@@ -320,6 +332,13 @@ function createCharacterSelect({ mode, cpuLevel }) {
         next: () => createGameScene({ mode, cpuLevel, characters: picks }) });
     },
     draw(ctx, app) {
+      if(isPortraitScreen(ctx)){
+        const player=mode==='versus'&&confirmed[0]?1:0;
+        const entries=selectionCharacters(app.skin),character=entries[cursors[player]%entries.length];
+        drawPortraitHero(ctx,app,humans>1?`${player+1}P 캐릭터 선택`:'캐릭터 선택',{
+          character,subtitle:completeAt!==null?'결정 완료!':character.selectable===false?'준비 중':character.name,frame,
+        });return;
+      }
       app.skin.drawBackground(ctx, SCREEN_WIDTH, SCREEN_HEIGHT, 'menu');
       paper(ctx, 38, 60, 884, 405, { radius: 22 });
       ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -482,7 +501,7 @@ function createMainMenu() {
   return createListMenu({
     title: '메인 메뉴',
     compact: true,
-    notice: (app) => app.skin.branding?.fanNotice,
+    notice: (app) => [app.skin.branding?.fanNotice, app.versionLabel].filter(Boolean).join('\n'),
     footer: '↑↓ 선택 · Enter 결정 · Esc 타이틀',
     items: (app) => [
       { label: '싱글 모드', select: () => app.goToSinglePlayer() },

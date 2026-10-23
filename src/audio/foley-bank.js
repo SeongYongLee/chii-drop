@@ -16,6 +16,7 @@ const LEVELS = { move: .4, rotate: .65, land: .85, warning: .65, warningHeavy: .
 const INTERVALS = { move: .025, rotate: .025, land: .035, warning: .09, garbage: .12, garbageLand: .07, clear: .05 };
 
 async function preloadRecordedSfx(sfx) {
+  if (sfx.recorded === false) return 0;
   if (sfx.loading) return sfx.loading;
   if (!sfx.context) return false;
   sfx.buffers ??= new Map();
@@ -24,11 +25,13 @@ async function preloadRecordedSfx(sfx) {
       const buffer = await loadAudioBuffer(sfx.context, file);
       sfx.buffers.set(file, buffer);
     } catch { /* 자료가 없으면 기존 합성 효과음으로 계속 실행한다. */ }
+    finally { sfx.onLoadProgress?.(`effect:${file}`, sfx.buffers.has(file)); }
   })).then(() => sfx.buffers.size);
   return sfx.loading;
 }
 
 function playRecordedSfx(sfx, event, options = {}) {
+  if (sfx.recorded === false) return false;
   const name = event === 'lock' ? 'land' : event === 'warning' && options.total >= 30 ? 'warningHeavy' : event;
   const files = FILES[name];
   const available = files?.filter((file) => sfx.buffers?.has(file));

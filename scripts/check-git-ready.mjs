@@ -9,7 +9,7 @@ function list(args) {
 }
 const paths = [...new Set(list(['--cached', '--others', '--exclude-standard']))].sort();
 const issues = list(['--cached', '--ignored', '--exclude-standard']).map(path => `이미 추적 중인 제외 파일: ${path}`);
-const privatePath = /^(?:data|node_modules|\.git|\.codex|\.agents|\.pnpm-store)(?:\/|$)|^skins\/chiikawa(?:\/|$)(?!pages-runtime\/)|^(?:AGENTS\.md|README\.local\.md|docs\/classic-rules\.md)$|(?:^|\/)\.env(?!\.example$)(?:\.|$)|\.(?:pem|key|p12|pfx)$/i;
+const privatePath = /^(?:data|node_modules|\.git|\.codex|\.agents|\.pnpm-store)(?:\/|$)|^skins\/chiikawa(?:\/|$)(?!pages-runtime\/|story\.json$)|^(?:AGENTS\.md|README\.local\.md|docs\/classic-rules\.md)$|(?:^|\/)\.env(?!\.example$)(?:\.|$)|\.(?:pem|key|p12|pfx)$/i;
 const audio = /^sounds\/.*\.(?:wav|mp3|ogg|flac|m4a)$/i;
 const secret = /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|\bAKIA[A-Z0-9]{16}\b|\bgh[pousr]_[A-Za-z0-9]{30,}\b|\bgithub_pat_[A-Za-z0-9_]{40,}\b/;
 let count = 0, bytes = 0;
@@ -18,7 +18,7 @@ for (const path of paths) {
   try { info = await stat(path); } catch (error) { if (error.code === 'ENOENT') continue; throw error; }
   if (!info.isFile()) continue;
   count++; bytes += info.size;
-  if (/(?:^|\/)story\.json$/i.test(path)) issues.push(`로컬 전용 스토리 대본이 포함됨: ${path}`);
+  if (/(?:^|\/)story\.json$/i.test(path) && path !== 'skins/chiikawa/story.json') issues.push(`허용 경로 밖의 스토리 대본이 포함됨: ${path}`);
   if (/^sounds\/.*\/preview\.html$/i.test(path)) issues.push(`로컬 사운드 검토 페이지가 포함됨: ${path}`);
   if (/\.md$/i.test(path) && path !== 'README.md') issues.push(`루트 README 외 Markdown이 포함됨: ${path}`);
   if (privatePath.test(path) || audio.test(path)) issues.push(`로컬 전용 자료가 포함됨: ${path}`);
@@ -29,8 +29,12 @@ for (const path of paths) {
     if (/\.json$/i.test(path)) {
       try {
         const data = JSON.parse(content);
-        if (data?.scenes && Object.values(data.scenes).some(scene => Array.isArray(scene))) {
+        if (data?.scenes && Object.values(data.scenes).some(scene => Array.isArray(scene)) && path !== 'skins/chiikawa/story.json') {
           issues.push(`스토리 장면 데이터가 포함됨: ${path}`);
+        }
+        if (path === 'skins/chiikawa/story.json') {
+          const { validateStory } = await import('./pages/assets.mjs');
+          validateStory(data, JSON.parse(await readFile('skins/chiikawa/pages-runtime/manifest.json', 'utf8')));
         }
         if (/^skins\/[\w-]+\/pages-runtime\/characters\.json$/.test(path)) {
           const { validateCharacterInfo } = await import('./pages/assets.mjs');

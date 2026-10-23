@@ -46,6 +46,7 @@ test('5종 모두 실제 엔진의 착지·연결·소거·재낙하를 렌더�
     const frames=createMotionReplay(color),seen=new Set();
     let connected=false,fallAfterClear=false;
     const h=context();
+    // 같은 경기의 가로·세로 표시가 엔진 상태를 바꾸지 않는지 함께 확인한다.
     const skin={...loaded,drawBackground(){},drawCharacter(){},drawBlob(ctx,c,x,y,size,style={}){
       if(c===color){if(style.shape)seen.add(style.shape);if(style.links)connected=true;}
       loaded.drawBlob(ctx,c,x,y,size,style);
@@ -53,6 +54,11 @@ test('5종 모두 실제 엔진의 착지·연결·소거·재낙하를 렌더�
     for(const view of frames){
       const before=structuredClone(view);
       drawGame(h.ctx,{...view,skin,characters:[],showGhost:true});
+      h.ctx.screenHeight=1440;
+      h.ctx.portraitScreen=true;
+      drawGame(h.ctx,{...view,skin,characters:[],showGhost:true});
+      h.ctx.screenHeight=540;
+      h.ctx.portraitScreen=false;
       assert.deepEqual(view,before);
       h.check();h.calls.length=0;
       const player=view.match.players[0];

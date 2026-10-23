@@ -17,12 +17,17 @@ function harness() {
 
 test('스킨 음성은 중복 없이 준비하고 누락 파일이 있어도 나머지를 재생한다', async (t) => {
   const { sfx, skin, starts } = harness();
+  const progress = [];
+  sfx.onLoadProgress = (id, ok) => progress.push({ id, ok });
   const requests = [];
   t.mock.method(globalThis, 'fetch', async (url) => {
     requests.push(url); return { ok: url !== 'hurt.wav', arrayBuffer: async () => url };
   });
   const counts = await Promise.all([configureCharacterVoices(sfx, skin), configureCharacterVoices(sfx, skin)]);
   assert.deepEqual(counts, [4, 4]); assert.equal(requests.length, 5);
+  assert.equal(progress.length, 5);
+  assert.deepEqual(progress.find(item => item.id === 'voice:hurt.wav'), { id: 'voice:hurt.wav', ok: false });
+  assert.ok(sfx.characterVoiceGains.get('select.wav') > .7);
   assert.equal(playCharacterVoice(sfx, 'actor', 'select'), true);
   assert.deepEqual(starts, ['select.wav']);
   assert.equal(playCharacterVoice(sfx, 'unknown', 'select'), false);
@@ -63,4 +68,18 @@ test('다른 플레이어 발성은 독립적이며 음성 자료 없음·음소
   assert.equal(playCharacterVoice(sfx, 'actor', 'win'), true, '효과음을 꺼도 켜 둔 목소리는 재생한다');
   await configureCharacterVoices(sfx, {});
   sfx.enabled = true; assert.equal(playCharacterVoice(sfx, 'actor', 'win'), false);
+});
+
+test('작은 발성은 증폭하고 앞뒤 무음에 영향받지 않으며 최대 증폭·피크를 제한한다', async () => {
+  const { characterVoiceGain } = await import('../src/audio/character-voice.js');
+  const buffer = channels => ({ numberOfChannels: channels.length, getChannelData: index => channels[index] });
+  const speech = new Float32Array(100).fill(.02), padded = new Float32Array(1000); padded.set(speech, 400);
+  const gain = characterVoiceGain(buffer([speech]));
+  assert.ok(gain > 6 && gain <= 8);
+  assert.equal(characterVoiceGain(buffer([padded])), gain);
+  assert.equal(characterVoiceGain(buffer([new Float32Array(100)])), 1);
+  assert.equal(characterVoiceGain(buffer([new Float32Array(100).fill(.001)])), 8);
+  const peak = new Float32Array(100).fill(.1); peak[0] = .99;
+  assert.ok(characterVoiceGain(buffer([speech, peak])) * .99 <= .850001);
+  assert.ok(Math.abs(speech[0] - .02) < 1e-8, '원본 샘플은 변형하지 않는다');
 });

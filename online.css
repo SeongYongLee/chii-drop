@@ -156,6 +156,7 @@ body[data-match-active=true] #room-view .room-bottom { display:none}
 .board-area { min-height:0; min-width:0; display:flex; align-items:center; justify-content:center; overflow:hidden}
 .stage { flex:none; overflow:hidden; background:var(--paper); border:1px solid var(--line); border-radius:12px}
 #screen { display:block; width:100%; height:100%; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none }
+.stage[data-portrait=true] #screen { --portrait-game:1; }
 .keyboard-help { text-align:center}
 .touch-controls { display:none}
 .mobile-control { display:inline-flex; font-size:12px}

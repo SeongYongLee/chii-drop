@@ -1,6 +1,7 @@
 import { attachTouchControls } from '../net/touch.js';
 import { setTouchKeys } from './keyboard.js';
 import { createTouchLayoutEditor } from './touch-layout.js';
+import { createPauseDialog } from './pause-dialog.js';
 
 export const MOBILE_INPUT = Object.freeze({ left: 1, right: 2, down: 4, cw: 8, ccw: 16,
   up: 32, confirm: 64, back: 128, pause: 256 });
@@ -30,8 +31,14 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
   const playerButton = container.querySelector('[data-mobile-player]');
   const nativeItems = container.querySelector('[data-mobile-items]');
   const confirmButton = container.querySelector('[data-mobile-confirm]');
+  const notice = container.querySelector('[data-mobile-notice]');
+  const backButton = menu.querySelector?.('[data-input="128"]');
   const media = view.matchMedia('(pointer: coarse), (max-width: 760px), (max-height: 500px) and (max-width: 960px)');
   let context = {}, key = '', queued = 0, localPlayer = 0, start = null, enabled = false, itemsKey = '';
+  const pauseDialog=createPauseDialog(view,{
+    opened:()=>clearEditorInput(),
+    choose:index=>{onUnlock();context.items?.[index]?.activate();sync()},
+  });
   function clearEditorInput() { clear(); keyboard.held.clear(); keyboard.pressed.clear(); }
   const editor = game.querySelectorAll ? createTouchLayoutEditor({ view, game,
     onOpen: clearEditorInput, onClose: () => { clearEditorInput(); sync(); } }) : null;
@@ -64,19 +71,24 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
   function sync() {
     context = getContext();
     if (context.local) context = { ...context, player: localPlayer };
-    const nextKey = `${context.enabled}:${context.mode}:${context.player}`;
+    const nextKey = `${context.enabled}:${context.mode}:${context.player}:${context.paused}`;
     if (nextKey !== key) { clear(); key = nextKey; }
     const active = Boolean(context.enabled && media.matches && !editor?.editing);
     if (enabled !== active) { enabled = active; touch.setEnabled(enabled); }
-    container.hidden = !media.matches;
+    const modalPause=active&&Boolean(context.paused)&&Boolean(pauseDialog);
+    container.hidden = !media.matches||modalPause;
     menu.hidden = context.mode === 'game'; game.hidden = context.mode !== 'game';
     if (container.dataset.mode !== context.mode) container.dataset.mode = context.mode;
     if (view.document.body) view.document.body.dataset.touchMode = active ? context.mode : 'none';
+    if (view.document.body) view.document.body.dataset.gameScreen = String(Boolean(context.gameScreen));
     menu.dataset.hasItems = String(Boolean(context.items?.length));
     menu.dataset.title = String(Boolean(context.title));
     confirmButton.hidden = Boolean(context.direct);
     confirmButton.textContent = context.title ? '시작' : '결정';
+    if(backButton)backButton.hidden=Boolean(context.title);
+    if(notice){notice.hidden=!context.notice;if(notice.textContent!==context.notice)notice.textContent=context.notice??'';}
     renderItems();
+    pauseDialog?.sync(context.items??[],modalPause);
     const text = context.label ?? (context.enabled ? '메뉴 선택' : '불러오는 중…');
     if (label.textContent !== text) label.textContent = text;
     playerButton.hidden = !context.local;
@@ -102,9 +114,10 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
     sync();
     if (!context.enabled) return;
     const rect = canvas.getBoundingClientRect();
+    const logicalHeight = canvas.width > 0 && canvas.height > 0 ? 960 * canvas.height / canvas.width : 540;
     const point = { x: (event.clientX - rect.left) * 960 / rect.width,
-      y: (event.clientY - rect.top) * 540 / rect.height };
-    if (!onTap(point) && context.mode !== 'game') queued |= MOBILE_INPUT.confirm;
+      y: (event.clientY - rect.top) * logicalHeight / rect.height };
+    if (!onTap(point,{height:logicalHeight,portrait:canvas.portraitScreen===true}) && context.mode !== 'game') queued |= MOBILE_INPUT.confirm;
   });
   for (const name of ['pointercancel', 'lostpointercapture']) canvas.addEventListener(name, () => { start = null; });
   view.addEventListener('blur', () => { start = null; clear(); });
@@ -114,6 +127,7 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
   sync();
   return {
     clear, sync, editLayout() { editor?.open(); }, get visible() { return media.matches; },
+    get pauseDialogOpen(){return Boolean(pauseDialog?.open)},
     read() {
       sync();
       const input = touch.read() | queued; queued = 0;

@@ -5,11 +5,21 @@ import { resolve, sep } from 'node:path';
 
 export const SKIN_ROOT = 'skins/chiikawa';
 export const RUNTIME = `${SKIN_ROOT}/pages-runtime`;
+export const STORY = `${SKIN_ROOT}/story.json`;
 export function publicManifest(value) {
   // 2026-10-23 사용자 승인: 배정된 캐릭터 음성·장면별 음악도 실행 팩에 포함한다.
   const result = structuredClone(value);
-  result.characters = (result.characters ?? []).filter(character => character.selectionVisible !== false);
+  // 스토리의 배정된 출연진도 공개 실행 팩에 포함한다. 선택창 노출 여부는 원래 값을 유지한다.
+  result.characters ??= [];
   return result;
+}
+export function validateStory(story, manifest) {
+  if (!story?.characters || Array.isArray(story.characters) || !story?.scenes || Array.isArray(story.scenes)) throw new Error('대본의 캐릭터·장면 구조가 올바르지 않습니다.');
+  const available = new Set((manifest.characters ?? []).map(character => character.id));
+  for (const [id, character] of Object.entries(story.characters)) {
+    if (!available.has(character.charId ?? id)) throw new Error(`대본 캐릭터의 실행 이미지가 없습니다: ${id}`);
+  }
+  if (Object.values(story.scenes).some(scene => !Array.isArray(scene))) throw new Error('대본의 장면은 배열이어야 합니다.');
 }
 export function publicCharacterInfo(manifest) {
   return { characters: Object.fromEntries((manifest.characters ?? [])
@@ -53,6 +63,7 @@ export async function safeFile(root, relative) {
 }
 export async function prepareAssets() {
   const manifest = publicManifest(JSON.parse(await readFile(`${SKIN_ROOT}/manifest.json`, 'utf8')));
+  validateStory(JSON.parse(await readFile(STORY, 'utf8')), manifest);
   const mapping = new Map(), records = [];
   // 누락 파일을 먼저 검사한 뒤 생성 폴더만 갱신해 미사용 자료가 남지 않게 한다.
   const paths = [...runtimePaths(manifest)];

@@ -77,3 +77,13 @@ test('캔버스의 길게 누르기 메뉴·선택·드래그와 Safari 터치 �
   const h = harness();
   for (const type of ['contextmenu', 'selectstart', 'dragstart', 'touchstart']) assert.equal(h.fire(h.canvas, type).defaultPrevented, true);
 });
+
+test('세로 경기의 화면 탭은 확장한 논리 높이로 전달한다',()=>{
+  const h=harness();
+  h.canvas.width=1920;h.canvas.height=2880;
+  h.canvas.getBoundingClientRect=()=>({left:100,top:10,width:480,height:720});
+  h.context({enabled:true,mode:'menu',gameScreen:true});
+  h.fire(h.canvas,'pointerdown',{clientX:340,clientY:334.5});
+  h.fire(h.canvas,'pointerup',{clientX:340,clientY:334.5});
+  assert.deepEqual(h.taps,[{x:480,y:649}]);
+});

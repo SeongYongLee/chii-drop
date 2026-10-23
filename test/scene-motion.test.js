@@ -80,3 +80,16 @@ test('결과 팻말 애니메이션은 기존 40프레임 입력 대기를 늘�
   assert.ok(title().includes('게임 오버'));
   scene.update(h.app); assert.ok(title().includes('준비'));
 });
+
+test('모바일 일시정지 항목은 직접 눌러 재개·재시작·나가기를 실행한다',t=>{
+  const h=harness(t);let quit=0;
+  h.app.goToSinglePlayer=()=>quit++;
+  const scene=createGameScene({mode:'solo',characters:[{id:'actor-0',name:'참가자'}]});
+  for(const index of [0,1,2]){
+    h.app.keyboard.pressed=new Set(['Escape']);scene.update(h.app);h.app.keyboard.pressed.clear();
+    assert.equal(scene.touchMode(),'menu');assert.equal(scene.touchDirect(),true);
+    const items=scene.touchItems(h.app);assert.equal(items.length,3);items[index].activate();
+    if(index<2){assert.equal(scene.touchMode(),'game');assert.equal(scene.touchDirect(),false);}
+  }
+  assert.equal(quit,1);
+});

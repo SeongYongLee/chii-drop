@@ -16,7 +16,7 @@ test('일반 플레이는 캐릭터 정보만 읽고 실패하더라도 전체 �
   assert.ok(requests.every(url=>!url.endsWith('story.json')));
 });
 
-test('로컬 스토리를 명시적으로 활성화했을 때만 대본을 읽는다',async(t)=>{
+test('스토리 모드를 명시적으로 활성화했을 때 공개 대본을 읽는다',async(t)=>{
   t.mock.method(globalThis,'fetch',async(url)=>{
     assert.equal(url,'skins/sample/story.json');
     return {ok:true,json:async()=>({characters:{},scenes:{opening:[]}})};

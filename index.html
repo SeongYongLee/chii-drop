@@ -8,6 +8,15 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <section id="loading-screen" class="loading-screen" aria-labelledby="loading-title">
+      <div class="loading-card">
+        <h1 id="loading-title">게임을 준비하고 있어요</h1>
+        <p data-loading-stage role="status">게임 자료 확인 중…</p>
+        <progress data-loading-bar max="100" aria-label="게임 로딩 진행률"></progress>
+        <strong data-loading-percent>잠시만 기다려 주세요</strong>
+        <p data-loading-detail>이미지와 소리를 준비합니다.</p>
+      </div>
+    </section>
     <main class="stage">
       <canvas id="screen" aria-label="게임 화면"></canvas>
     </main>
@@ -15,6 +24,7 @@
       <p data-mobile-label role="status" aria-live="polite">불러오는 중…</p>
       <button data-mobile-player type="button" class="mobile-player" hidden>1P 조작 · 전환</button>
       <div data-mobile-items class="mobile-items" aria-label="화면 항목" hidden></div>
+      <p data-mobile-notice class="mobile-notice" hidden></p>
       <div data-mobile-menu class="mobile-pad">
         <div class="mobile-direction">
           <button type="button" data-input="32" class="mobile-up" aria-label="위로 선택">↑</button>

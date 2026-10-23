@@ -12,8 +12,9 @@ docs/classic-rules.md
 skins/chiikawa/*
 !skins/chiikawa/pages-runtime/
 
-# 전체 스토리 대본은 로컬에서만 보존한다.
+# 사용자 승인으로 현재 게임 대본만 공개한다. 사본·검토 대본은 계속 제외한다.
 **/[sS][tT][oO][rR][yY].[jJ][sS][oO][nN]
+!skins/chiikawa/story.json
 
 # 생성 스크립트로 다시 만들 수 있는 사운드 파일
 sounds/**/*.wav

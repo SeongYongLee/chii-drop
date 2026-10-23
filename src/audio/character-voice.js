@@ -1,5 +1,19 @@
 // 스킨이 지정한 짧은 발성을 표현 계층에서만 재생한다. 경기 난수는 사용하지 않는다.
 import { loadAudioBuffer } from './buffer-loader.js';
+
+// 발성 구간의 크기를 맞춘다. 앞뒤 무음으로 과도하게 증폭하지 않고 피크 여유를 남긴다.
+export function characterVoiceGain(buffer) {
+  if (!buffer?.getChannelData || !buffer.numberOfChannels) return 1.4;
+  let peak = 0, energy = 0, count = 0;
+  for (let c = 0; c < buffer.numberOfChannels; c++) {
+    for (const sample of buffer.getChannelData(c)) peak = Math.max(peak, Math.abs(sample));
+  }
+  if (peak < .0001) return 1;
+  for (let c = 0; c < buffer.numberOfChannels; c++) {
+    for (const sample of buffer.getChannelData(c)) if (Math.abs(sample) > peak * .08) { energy += sample * sample; count++; }
+  }
+  return Math.min(8, .14 / Math.sqrt(energy / count), .85 / peak);
+}
 function configureCharacterVoices(sfx, skin, enabled = true) {
   if (sfx.characterVoiceBank !== skin?.voices) stopCharacterVoices(sfx);
   sfx.characterVoiceEnabled = enabled;
@@ -12,6 +26,7 @@ async function preloadCharacterVoices(sfx) {
   if (!sfx.context || !sfx.characterVoiceEnabled) return 0;
   sfx.characterVoiceBuffers ??= new Map();
   sfx.characterVoicePending ??= new Map();
+  sfx.characterVoiceGains ??= new Map();
   const files = [...new Set(Object.values(sfx.characterVoiceBank ?? {}).flatMap((events) => Object.values(events).flat()))];
   await Promise.all(files.map((file) => {
     if (sfx.characterVoiceBuffers.has(file)) return;
@@ -20,8 +35,12 @@ async function preloadCharacterVoices(sfx) {
         try {
           const buffer = await loadAudioBuffer(sfx.context, file);
           sfx.characterVoiceBuffers.set(file, buffer);
+          sfx.characterVoiceGains.set(file, characterVoiceGain(buffer));
         } catch { /* 음성이 없어도 게임과 효과음은 계속 동작한다. */ }
-        finally { sfx.characterVoicePending.delete(file); }
+        finally {
+          sfx.characterVoicePending.delete(file);
+          sfx.onLoadProgress?.(`voice:${file}`, sfx.characterVoiceBuffers.has(file));
+        }
       })();
       sfx.characterVoicePending.set(file, loading);
     }
@@ -57,9 +76,10 @@ function playCharacterVoice(sfx, charId, event, { channel = 0, chain = 1 } = {})
   const sequenceKey = `${charId}:${key}:${channel}`;
   const index = sfx.characterVoiceSequence.get(sequenceKey) ?? 0;
   const source = sfx.context.createBufferSource();
-  source.buffer = sfx.characterVoiceBuffers.get(available[index % available.length]);
+  const file = available[index % available.length];
+  source.buffer = sfx.characterVoiceBuffers.get(file);
   const amp = sfx.context.createGain();
-  amp.gain.value = .7;
+  amp.gain.value = sfx.characterVoiceGains?.get(file) ?? 1.4;
   source.connect(amp).connect(sfx.master);
   if (previous) stopVoice(previous, t);
   const voice = { source, amp, started: t, priority };

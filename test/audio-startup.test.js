@@ -21,15 +21,20 @@ test('첫 입력 전에 음성을 디코딩하고 첫 발성은 추가 요청·�
     requests.push(url); return { ok: true, arrayBuffer: async () => url };
   });
   const sfx = createSfx();
+  const progress = [];
+  sfx.onLoadProgress = id => progress.push(id);
   await configureCharacterVoices(sfx, { voices: { actor: { select: ['actor-select.wav'] } } });
   await prepareSfx(sfx);
   assert.equal(sfx.context.state, 'suspended'); assert.equal(starts.length, 0);
-  assert.equal(decoded, 47); assert.equal(sfx.characterVoiceBuffers.size, 1);
+  assert.equal(decoded, 1); assert.equal(sfx.characterVoiceBuffers.size, 1);
+  assert.deepEqual(requests,['actor-select.wav']); // 개발·배포 모두 로컬 녹음 효과음을 요청하지 않는다.
+  assert.equal(new Set(progress).size, 1);
+  assert.equal(progress.filter(id => id.startsWith('voice:')).length, 1);
   const beforeRequests = requests.length;
   await unlockSfx(sfx);
   assert.equal(playCharacterVoice(sfx, 'actor', 'select'), true);
   assert.deepEqual(starts, ['silent warmup', 'actor-select.wav']);
-  assert.equal(requests.length, beforeRequests); assert.equal(decoded, 47);
+  assert.equal(requests.length, beforeRequests); assert.equal(decoded, 1);
 });
 
 test('효과음·보이스 공유 로더는 두 작업만 병렬 처리하며 실패 뒤에도 다음 파일을 준비한다', async (t) => {

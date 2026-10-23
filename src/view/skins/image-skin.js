@@ -96,9 +96,18 @@ function spriteAt(clip, frame = 0, still = false, blink = null) {
   }
 }
 
-async function loadImageMap(baseUrl, entries, pending) {
+export function skinImageFiles(manifest) {
+  const entries = [...Object.values(manifest.blobs ?? {}), manifest.background, ...Object.values(manifest.backgrounds ?? {}),
+    ...(manifest.characters ?? []).flatMap(character => MOODS.map(mood => character.moods?.[mood]))];
+  return [...new Set(entries.filter(Boolean).flatMap(entry => typeof entry === 'string' ? [entry]
+    : entry.file ? [entry.file, ...(Array.isArray(entry.frames) ? entry.frames : []).map(part => part?.file).filter(Boolean)] : []))];
+}
+
+async function loadImageMap(baseUrl, entries, pending, onImage) {
   const loadFile = (file) => {
-    if (!pending.has(file)) pending.set(file, loadImage(`${baseUrl}/${file}`));
+    if (!pending.has(file)) pending.set(file, loadImage(`${baseUrl}/${file}`).then(image => {
+      onImage?.(file, Boolean(image)); return image;
+    }));
     return pending.get(file);
   };
   const loaded = await Promise.all(
@@ -131,7 +140,7 @@ function drawImageCover(ctx, sprite, width, height) {
 
 // 매니페스트의 이미지를 불러온다. 캐릭터 이미지는 다른 외형으로 대체하지 않는다.
 // 사용할 이미지나 절차적 방해 블록 스타일이 없으면 null을 돌려준다.
-async function loadImageSkin(baseUrl) {
+async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
   let manifest;
   try {
     const response = await fetch(`${baseUrl}/manifest.json`, { cache: 'no-store' });
@@ -143,16 +152,18 @@ async function loadImageSkin(baseUrl) {
     return null;
   }
 
+  onManifest?.(manifest);
   const pending = new Map();
-  const blobs = await loadImageMap(baseUrl, Object.entries(manifest.blobs ?? {}), pending);
-  const [background] = Object.values(await loadImageMap(baseUrl, [['background', manifest.background]], pending));
-  const backgrounds = await loadImageMap(baseUrl, Object.entries(manifest.backgrounds ?? {}), pending);
+  const blobs = await loadImageMap(baseUrl, Object.entries(manifest.blobs ?? {}), pending, onImage);
+  const [background] = Object.values(await loadImageMap(baseUrl, [['background', manifest.background]], pending, onImage));
+  const backgrounds = await loadImageMap(baseUrl, Object.entries(manifest.backgrounds ?? {}), pending, onImage);
   const characters = [];
   for (const character of manifest.characters ?? []) {
     const moods = await loadImageMap(
       baseUrl,
       MOODS.map((mood) => [mood, character.moods?.[mood]]),
       pending,
+      onImage,
     );
     if (Object.keys(moods).length > 0) {
       const idleMotion = compileIdleMotion(character.idleMotion,

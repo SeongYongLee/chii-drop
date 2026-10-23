@@ -15,3 +15,7 @@ test('game stage fits portrait, desktop and short landscape areas without croppi
 test('hidden or invalid stage area has no size', () => {
   for (const [w, h] of [[0, 500], [500, 0], [-1, 100], [NaN, 100]]) assert.deepEqual(fitStage(w, h), {width: 0, height: 0});
 });
+test('portrait stage uses the available height while focused and landscape views retain their ratios',()=>{
+  assert.deepEqual(fitStage(370,530,false,true),{width:370,height:530});
+  assert.deepEqual(fitStage(370,530,true,true),fitStage(370,530,true));
+});

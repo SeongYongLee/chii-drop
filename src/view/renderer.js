@@ -1,7 +1,8 @@
 import { drawFieldBase } from './field-base.js';
 import { PALETTE, UI_FONT, paper } from './festival.js';
 import { characterPresentation } from './character-situation.js';
-import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../app/screen.js';
+import { SCREEN_HEIGHT, SCREEN_WIDTH, screenHeight, isPortraitScreen } from '../app/screen.js';
+import { drawPortraitSurface } from './portrait-ui.js';
 import { CHILD_OFFSETS, fits, rowOf } from '../engine/control.js';
 import { GARBAGE } from '../engine/field.js';
 import { COLS, FLASH_FRAMES, HIDDEN_ROWS, NEXT_WAIT, POP_FRAMES, ROWS } from '../engine/rules.js';
@@ -19,6 +20,7 @@ import {
   NEXT_START,
   SIDES,
   gameTransform,
+  portraitGameLayout,
 } from './layout.js';
 
 const INK = PALETTE.ink;
@@ -346,11 +348,11 @@ function drawNext(ctx, skin, effect, solo = false) {
   ctx.restore();
 }
 
-function drawNextBox(ctx, solo = false) {
+function drawNextBox(ctx, solo = false, label = true) {
   const box = solo ? SOLO_NEXT_BOX : NEXT_BOX;
   ctx.fillStyle = INK; ctx.font = `bold 12px ${FONT}`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-  ctx.fillText('다음', box.x + box.width / 2, box.y - 5);
+  if (label) ctx.fillText('다음', box.x + box.width / 2, box.y - 5);
   if (solo) {
     paper(ctx, box.x, box.y, box.width, box.height, {
       fill: PALETTE.paper, edge: '#d6c3a9', radius: 12, shadow: false,
@@ -407,10 +409,10 @@ function drawParticles(ctx, skin, effect) {
   }
 }
 
-function drawOrbs(ctx, effect) {
+function drawOrbs(ctx, effect, project = point => point) {
   for (const orb of effect.orbs) {
     const arrival = orbArrival(orb);
-    const pos = orbPosition(orb);
+    const pos = project(orbPosition(orb));
     if (orb.frame >= arrival) {
       const t = (orb.frame - arrival) / 14;
       ctx.strokeStyle = `rgba(255, 220, 120, ${1 - t})`;
@@ -440,9 +442,10 @@ function drawOrbs(ctx, effect) {
     ctx.textBaseline = 'middle';
     ctx.lineWidth = 4;
     ctx.strokeStyle = '#ffffff';
-    ctx.strokeText('상쇄!', label.x, label.y);
+    const pos = project(label);
+    ctx.strokeText('상쇄!', pos.x, pos.y);
     ctx.fillStyle = '#3a8fd1';
-    ctx.fillText('상쇄!', label.x, label.y);
+    ctx.fillText('상쇄!', pos.x, pos.y);
   }
 }
 
@@ -479,8 +482,68 @@ function drawPlayer(ctx, view, index) {
   drawScore(ctx, effect, player);
 }
 
+function drawPortraitNext(ctx, skin, effects) {
+  const single=effects.length===1;
+  paper(ctx,single?376:280,76,single?208:400,244,{radius:24,fill:'#f7edda',shadow:false});
+  effects.forEach((effect,i)=>{
+    const first=single?400:i===0?304:592, direction=i===0?1:-1;
+    ctx.save();ctx.beginPath();ctx.rect(single?384:i===0?288:480,80,192,234);ctx.clip();
+    const anim=effect.next;
+    if(anim){
+      const progress=Math.max(0,Math.min(16,anim.frame-NEXT_WAIT))/16;
+      const side=SIDES[effect.side];
+      const pair=(value,x,y)=>{ctx.save();ctx.translate(x,y);ctx.scale(2,2);drawPair(ctx,skin,value,0,0,false);ctx.restore()};
+      if(anim.frame<NEXT_WAIT&&anim.outgoing)pair(anim.outgoing,first,180-14*anim.frame);
+      pair(anim.pairs[0],first+direction*64*(1-progress),180+2*(anim.y1-side.next1.y));
+      pair(anim.pairs[1],first+direction*64*(2-progress),212+2*(anim.y2-side.next2.y));
+    }
+    ctx.restore();
+  });
+}
+
+function drawPortraitGame(ctx, view, height) {
+  const { players } = view.match, boxes = portraitGameLayout(height, players.length);
+  paper(ctx,36,20,888,360,{radius:28,fill:'#fffdf5',shadow:false});
+  drawPortraitNext(ctx,view.skin,view.effects);
+  players.forEach((player, i) => {
+    const effect = view.effects[i], character = view.characters[i], box = boxes[i];
+    const center=i===0?154:806;
+    if (character) {
+      const presentation = characterPresentation(effect);
+      view.skin.drawCharacter(ctx, character.id, presentation.mood, center-108, 80, 216,
+        { frame:presentation.frame, blinkFrame:effect.blinkFrame, chain:effect.characterChain,
+          instance:`portrait-${effect.side}`, presentation:'battle' });
+    }
+    ctx.fillStyle=INK;ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`bold 30px ${FONT}`;
+    ctx.fillText(character?.name ?? `${i+1}P`, center, 52, 212);
+    ctx.font=`bold 34px ${FONT}`;
+    const formula = effect.formula && ['pop-start','pop','chain-fall'].includes(player.phase);
+    ctx.fillText(formula ? `${effect.formula.base}×${effect.formula.multiplier}` : String(effect.displayScore).padStart(8,'0'), center, 332, 212);
+
+    // 기존 필드 좌표를 균등하게 확대해 착지·회전·소거의 움직임을 유지한다.
+    const sourceX = SIDES[effect.side].fieldX;
+    ctx.save();ctx.translate(box.x,box.y);ctx.scale(box.scale,box.scale);ctx.translate(-sourceX,-FIELD_TOP);
+    ctx.beginPath();ctx.rect(sourceX-9,0,FIELD_WIDTH+18,GAME_HEIGHT);ctx.clip();
+    drawFieldBack(ctx,sourceX,effect,player);drawWarning(ctx,view.skin,sourceX,effect);
+    drawShadows(ctx,view.skin,sourceX,player,effect);drawBoard(ctx,view.skin,sourceX,player,effect);
+    drawPiece(ctx,view.skin,sourceX,player,view.showGhost);drawFever(ctx,sourceX,player);
+    drawChainLabels(ctx,effect);drawAllClear(ctx,sourceX,effect);drawParticles(ctx,view.skin,effect);
+    ctx.restore();
+  });
+  const project = point => {
+    const first=boxes[0], last=boxes.at(-1);
+    const xScale = boxes.length>1 ? (last.x+last.width/2-first.x-first.width/2)/384 : first.scale;
+    return {x:first.x+first.width/2+(point.x-128)*xScale, y:first.y+(point.y-FIELD_TOP)*first.scale};
+  };
+  view.effects.forEach(effect=>drawOrbs(ctx,effect,project));
+}
+
 function drawGame(ctx, view) {
-  view.skin.drawBackground(ctx, SCREEN_WIDTH, SCREEN_HEIGHT, view.scenery ? `game:${view.scenery}` : 'game');
+  const height = screenHeight(ctx);
+  if (isPortraitScreen(ctx)) {
+    drawPortraitSurface(ctx);drawPortraitGame(ctx,view,height);return;
+  }
+  view.skin.drawBackground(ctx, SCREEN_WIDTH, height, view.scenery ? `game:${view.scenery}` : 'game');
   const t = gameTransform();
   ctx.save();
   ctx.translate(t.x, t.y);
@@ -505,16 +568,25 @@ function drawGame(ctx, view) {
 }
 
 function drawBanner(ctx, text, sub) {
-  paper(ctx, 140, SCREEN_HEIGHT / 2 - 76, SCREEN_WIDTH - 280, sub ? 152 : 108, { fill: '#fffdf5f5', radius: 22 });
+  const height = screenHeight(ctx);
+  if(isPortraitScreen(ctx)){
+    const lines=sub?sub.split('\n'):[], boxHeight=170+lines.length*48;
+    paper(ctx,48,height/2-boxHeight/2,864,boxHeight,{fill:'#fffdf5f5',radius:32});
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=INK;
+    ctx.font=`bold 64px ${FONT}`;ctx.fillText(text,480,height/2-boxHeight/2+82,800);
+    ctx.font=`32px ${FONT}`;lines.forEach((line,i)=>ctx.fillText(line,480,height/2-boxHeight/2+158+i*48,790));
+    return;
+  }
+  paper(ctx, 140, height / 2 - 76, SCREEN_WIDTH - 280, sub ? 152 : 108, { fill: '#fffdf5f5', radius: 22 });
   ctx.fillStyle = INK;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.font = `bold 44px ${FONT}`;
-  ctx.fillText(text, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - (sub ? 22 : 20));
+  ctx.fillText(text, SCREEN_WIDTH / 2, height / 2 - (sub ? 22 : 20));
   if (sub) {
     ctx.font = `18px ${FONT}`;
     sub.split('\n').forEach((line, i) => {
-      ctx.fillText(line, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 24 + i * 24);
+      ctx.fillText(line, SCREEN_WIDTH / 2, height / 2 + 24 + i * 24);
     });
   }
 }

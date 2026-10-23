@@ -48,6 +48,162 @@
     "bytes": 1334216
   },
   {
+    "original": "drafts/animation-v8/chimera.png",
+    "file": "assets/0a0f6c7060d142903f1e.png",
+    "sha256": "0a0f6c7060d142903f1eb1a1713094b61b104efdc49a69ff53b7355ba5c651b1",
+    "bytes": 1490872
+  },
+  {
+    "original": "drafts/animation-v8/big-bird.png",
+    "file": "assets/74a991dede7e65f13bf4.png",
+    "sha256": "74a991dede7e65f13bf4487c67a25c170197f55c42dc36e2a8d005b7488ab079",
+    "bytes": 1532752
+  },
+  {
+    "original": "drafts/story-roster-v1/pochette-armor.png",
+    "file": "assets/1249c46457c719d48160.png",
+    "sha256": "1249c46457c719d481603e76925c15a3bc9f01bc9c934aa0ae4f0592855d1c2f",
+    "bytes": 1504124
+  },
+  {
+    "original": "drafts/story-roster-v1/pajama-green.png",
+    "file": "assets/44cbd193280f6428ddb7.png",
+    "sha256": "44cbd193280f6428ddb7a2206dec24f522f12582e34652ea09443c0d78403b38",
+    "bytes": 1110041
+  },
+  {
+    "original": "drafts/story-roster-v1/anoko.png",
+    "file": "assets/cfe9c383b22d5cb04b18.png",
+    "sha256": "cfe9c383b22d5cb04b18f520edd1eb31fac4271b073692a11a21613c283e4896",
+    "bytes": 1494798
+  },
+  {
+    "original": "drafts/story-roster-v1/dekatsuyo.png",
+    "file": "assets/498dfdf07192cee26de6.png",
+    "sha256": "498dfdf07192cee26de6ac7860ff44addfe51aabc69d2261c68f2aac5d0059e0",
+    "bytes": 1692577
+  },
+  {
+    "original": "drafts/story-roster-v1/goblin.png",
+    "file": "assets/30430611d4643c9829d6.png",
+    "sha256": "30430611d4643c9829d668f105ac994be4895c8a10f7af4d365c18418bc77371",
+    "bytes": 1312527
+  },
+  {
+    "original": "drafts/story-roster-v1/gray-one.png",
+    "file": "assets/720a71b7e063d138d0e9.png",
+    "sha256": "720a71b7e063d138d0e9e7e11fb67c8cb36e71417f2e23dccda207646863a89c",
+    "bytes": 968420
+  },
+  {
+    "original": "drafts/story-roster-v1/bug.png",
+    "file": "assets/77087d84bbdf8140be15.png",
+    "sha256": "77087d84bbdf8140be15f657ac980f909f3a0d78b4f511dbd7622a9425579e92",
+    "bytes": 819489
+  },
+  {
+    "original": "drafts/story-roster-v1/tofu.png",
+    "file": "assets/95e4f75c4c250d497dcd.png",
+    "sha256": "95e4f75c4c250d497dcd940a8c512b617df479f97b69cbd0cf007ecc12ef4b54",
+    "bytes": 1290730
+  },
+  {
+    "original": "drafts/story-roster-v1/amoeba.png",
+    "file": "assets/e7bd48611bf479fc2251.png",
+    "sha256": "e7bd48611bf479fc225199335e7751cc48c4c67ccb2ab044860e5f03a2784eea",
+    "bytes": 1047822
+  },
+  {
+    "original": "drafts/story-roster-v1/fugu.png",
+    "file": "assets/a14f322f2158309b3ec5.png",
+    "sha256": "a14f322f2158309b3ec5cc7a5b843369f049f53d3a3a2449d45a215a0881b343",
+    "bytes": 1248733
+  },
+  {
+    "original": "drafts/story-roster-v1/antlion.png",
+    "file": "assets/e47e4ae83db579c26567.png",
+    "sha256": "e47e4ae83db579c265677368e70eaa51ca915f02a0401d43d6a8a3f05ded7876",
+    "bytes": 1095865
+  },
+  {
+    "original": "drafts/story-roster-v1/mask-chimera.png",
+    "file": "assets/f0009effa4cbc7e17125.png",
+    "sha256": "f0009effa4cbc7e171257c5836bff86f59f1fa8aa237c4b43ee7ba3def85d562",
+    "bytes": 1696687
+  },
+  {
+    "original": "drafts/story-roster-v1/rps.png",
+    "file": "assets/abd76faafb911a21a0f6.png",
+    "sha256": "abd76faafb911a21a0f626aef9c28d22afc9c187a60c89e9a3a5365fa84e5f46",
+    "bytes": 1236305
+  },
+  {
+    "original": "drafts/story-roster-v1/beetle.png",
+    "file": "assets/c5daae495c96796a6ae9.png",
+    "sha256": "c5daae495c96796a6ae97d28fd7009d65a1c4ae92e079e7b186f2d7b128bce3c",
+    "bytes": 1277000
+  },
+  {
+    "original": "drafts/story-roster-v1/omelet.png",
+    "file": "assets/cc43ae53bedc5b018d85.png",
+    "sha256": "cc43ae53bedc5b018d85afb87fb5dad34b29b81641a7c158fefba859ba52422f",
+    "bytes": 1005282
+  },
+  {
+    "original": "drafts/story-roster-v1/powder-bug.png",
+    "file": "assets/db4917ba6b7fb765205d.png",
+    "sha256": "db4917ba6b7fb765205d20e36a258b0dc087b98c99fdcde029c9a83085cce9c9",
+    "bytes": 884151
+  },
+  {
+    "original": "drafts/story-roster-v1/octopus.png",
+    "file": "assets/cefbe9d1945a16f2ec9a.png",
+    "sha256": "cefbe9d1945a16f2ec9a5e5d4f077a424793bf00b420c8cab9ff91c3e210655f",
+    "bytes": 1297913
+  },
+  {
+    "original": "drafts/story-roster-v1/p-hachiware.png",
+    "file": "assets/4c0ced13afadd41fd845.png",
+    "sha256": "4c0ced13afadd41fd8457fd377a6307a4431ff060f17c23d20a044abbd9b57d7",
+    "bytes": 1665121
+  },
+  {
+    "original": "drafts/story-roster-v1/p-usagi.png",
+    "file": "assets/586ca34f1cf5cca8de93.png",
+    "sha256": "586ca34f1cf5cca8de9386af4bff32f6efb0dac06f3ca78fc16ded7ce2b3caac",
+    "bytes": 1220557
+  },
+  {
+    "original": "drafts/story-roster-v1/p-chiikawa.png",
+    "file": "assets/db8858609371dd5f9e9e.png",
+    "sha256": "db8858609371dd5f9e9e28c71f1500ce9eb0c4c4757b5534393f799d4abf704f",
+    "bytes": 1170528
+  },
+  {
+    "original": "drafts/story-roster-v1/p-momonga.png",
+    "file": "assets/f7cc1205168cdf65e9c8.png",
+    "sha256": "f7cc1205168cdf65e9c8a108248e68f667c9403c98d6597b1e6d9008a3c546b3",
+    "bytes": 1511409
+  },
+  {
+    "original": "drafts/story-roster-v1/p-kurimanju.png",
+    "file": "assets/d3985ac7527971eaba0f.png",
+    "sha256": "d3985ac7527971eaba0f7ef322a48b55bdf393d9f1350017fabafa403a9f5bf8",
+    "bytes": 1362422
+  },
+  {
+    "original": "drafts/story-roster-v1/p-chiikawa-large.png",
+    "file": "assets/600449337700abbd75a8.png",
+    "sha256": "600449337700abbd75a81e8d9e065d1e41a3aaec4ba55dead4dd484376e95373",
+    "bytes": 1512624
+  },
+  {
+    "original": "drafts/story-roster-v1/chushi.png",
+    "file": "assets/fa47aec8e5feb2535e01.png",
+    "sha256": "fa47aec8e5feb2535e01957a55a6f5c88f7dd937bfa7c863a5c66615a6231b9c",
+    "bytes": 1057106
+  },
+  {
     "original": "backgrounds/ending-v1/threshold.png",
     "file": "assets/b362d33b4fd50d2d9242.png",
     "sha256": "b362d33b4fd50d2d9242bb2be45f1fd5e4a08adbecfe390f864fbc6a6e94c477",
@@ -58,12 +214,6 @@
     "file": "assets/b3e0e2367c89cc7d8e35.png",
     "sha256": "b3e0e2367c89cc7d8e357df4fb16412dafb5b63b792487c253b163ee2bb5b99e",
     "bytes": 1858236
-  },
-  {
-    "original": "backgrounds/meadow-v1/background.png",
-    "file": "assets/06c45b1ae62a0f39b204.png",
-    "sha256": "06c45b1ae62a0f39b2049979056de22b6a0fc6982420c8aa6de1c0f83c6ee603",
-    "bytes": 1626948
   },
   {
     "original": "backgrounds/story-v2/tower.png",

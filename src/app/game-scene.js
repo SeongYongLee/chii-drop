@@ -113,16 +113,17 @@ function updatePause(app, scene) {
   } else if (wasPressed(keyboard, MENU_KEYS.pause)) {
     scene.paused = false;
   } else if (wasPressed(keyboard, MENU_KEYS.confirm)) {
-    playSfx(app.sfx, 'confirm');
-    if (scene.pauseIndex === 0) {
-      scene.paused = false;
-    } else if (scene.pauseIndex === 1) {
-      startRound(scene);
-    } else {
-      if (scene.options.onQuit) scene.options.onQuit(app);
-      else app.goToSinglePlayer();
-    }
+    selectPauseItem(app,scene,scene.pauseIndex);
   }
+}
+
+function selectPauseItem(app, scene, index) {
+  scene.pauseIndex = index;
+  playSfx(app.sfx, 'confirm');
+  if (index === 0) scene.paused = false;
+  else if (index === 1) startRound(scene);
+  else if (scene.options.onQuit) scene.options.onQuit(app);
+  else app.goToSinglePlayer();
 }
 
 function updateGame(app, scene) {
@@ -266,7 +267,7 @@ function drawGameScene(ctx, app, scene) {
   });
 
   if (scene.paused) {
-    drawPauseMenu(ctx, PAUSE_ITEMS, scene.pauseIndex);
+    if(!app.mobile?.visible)drawPauseMenu(ctx, PAUSE_ITEMS, scene.pauseIndex);
   } else if (session.phase === 'ready') {
     drawBanner(ctx, session.readyTimer > GO_FRAMES ? '준비' : '시작!');
   } else if (scene.reviveTimer > 0) {
@@ -295,21 +296,23 @@ function createGameScene(options) {
   };
   startRound(scene);
   return {
+    touchGame: () => !scene.reviveDialogue,
+    touchPaused: () => scene.paused,
+    touchDirect: () => scene.paused,
+    touchItems: (app) => scene.paused ? PAUSE_ITEMS.map((label, index) => ({
+      label, selected:scene.pauseIndex === index, activate:() => selectPauseItem(app,scene,index),
+    })) : [],
     touchMode: () => scene.reviveDialogue || scene.paused || scene.session.phase === 'result' ? 'menu' : 'game',
     touchLocal: () => options.mode === 'versus' && !scene.reviveDialogue && !scene.paused && scene.session.phase !== 'result',
     touchLabel: () => scene.paused ? `일시정지 · ${PAUSE_ITEMS[scene.pauseIndex]}`
       : scene.session.phase === 'result' ? '결정: 다시 하기 · 뒤로: 싱글 모드'
       : '이동 · 빠르게 내리기 · 회전',
-    tap(app, { x, y }) {
+    tap(app, { x, y }, viewport) {
       if (!scene.paused) return false;
+      if(viewport){const scale=viewport.portrait?1.85:1;x=480+(x-480)/scale;y=270+(y-viewport.height/2)/scale;}
       const index = Math.floor((y - 199) / 56);
       if (x >= 306 && x <= 654 && index >= 0 && index < PAUSE_ITEMS.length && (y - 199) % 56 <= 44) {
-        scene.pauseIndex = index;
-        playSfx(app.sfx, 'confirm');
-        if (index === 0) scene.paused = false;
-        else if (index === 1) startRound(scene);
-        else if (scene.options.onQuit) scene.options.onQuit(app);
-        else app.goToSinglePlayer();
+        selectPauseItem(app,scene,index);
       }
       return true;
     },

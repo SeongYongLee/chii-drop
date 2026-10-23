@@ -9,6 +9,7 @@ import { createRooms } from './rooms.js';
 import { createProfileStore } from './profiles.js';
 import { createVoiceEditor } from './voice-editor.js';
 import { createMusicEditor } from './music-editor.js';
+import { buildInfo } from '../scripts/build-info.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.webp': 'image/webp', '.json': 'application/json', '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.md': 'text/plain; charset=utf-8' };
@@ -23,6 +24,7 @@ export function createOnlineServer({ origins = [], profiles = createProfileStore
       if (await editVoices(req, res, path)) return;
       if (await editMusic(req, res, path)) return;
       if (path === '/health') { res.writeHead(200); res.end('ok'); return; }
+      if (path === '/version.json') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(buildInfo())); return; }
       const requested = path === '/' ? '/index.html' : path;
       // 소스 트리 전체, .git, 문서, 생성 프롬프트 등은 공개하지 않는다.
       const loopback = ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress);
@@ -49,7 +51,8 @@ export function createOnlineServer({ origins = [], profiles = createProfileStore
               files.some((file) => `/skins/${voiceSkin}/${file}` === requested)));
         } catch { /* 스킨이나 배정표가 없으면 제공하지 않는다. */ }
       }
-      if (!localPreview && !runtimeVoice && !/^\/(online\.html|index\.html|style\.css|online\.css|src\/[\w/-]+\.js|skins\/[\w-]+\/(manifest\.json|characters\.json|[\w/-]+\.(png|webp))|sounds\/[\w/.-]+\.wav)$/.test(requested)) throw new Error('not public');
+      const publicRuntime = /^\/skins\/chiikawa\/pages-runtime\/(manifest\.json|characters\.json|assets\/[a-f0-9]{20}\.(png|webp|wav|mp3))$/.test(requested);
+      if (!localPreview && !runtimeVoice && !publicRuntime && requested !== '/skins/chiikawa/story.json' && !/^\/(online\.html|index\.html|style\.css|online\.css|src\/[\w/-]+\.js|skins\/[\w-]+\/(manifest\.json|characters\.json|[\w/-]+\.(png|webp))|sounds\/[\w/.-]+\.wav)$/.test(requested)) throw new Error('not public');
       const file = await realpath(resolve(root, '.' + requested));
       if (!file.startsWith(root + sep)) throw new Error('outside root');
       const data = await readFile(file);

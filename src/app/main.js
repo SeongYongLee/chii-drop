@@ -1,19 +1,22 @@
 import { createSfx, prepareSfx, setSfxOptions, unlockSfx } from '../audio/sfx.js';
 import { configureCharacterVoices } from '../audio/character-voice.js';
 import { configureMusic, syncMusicVisibility } from '../audio/music.js';
+import { FOLEY_FILES } from '../audio/foley-bank.js';
 import { attachKeyboard, clearPressed, createKeyboard } from '../input/keyboard.js';
 import { attachMobileControls } from '../input/mobile-controls.js';
 import { createKeySettings } from '../input/key-settings.js';
 import { loadSkinScript } from '../story/script.js';
 import { drawBanner } from '../view/renderer.js';
 import { captureUiScreen, createUiTransition, reducedUiMotion } from '../view/ui-motion.js';
-import { SKIN_DIR, loadSkin } from '../view/skins/index.js';
+import { SKIN_DIR, STORY_DIR, loadSkin } from '../view/skins/index.js';
+import { skinImageFiles } from '../view/skins/image-skin.js';
 import { drawFestivalBackground } from '../view/festival.js';
 
 import { createMainMenu, createSinglePlayerMenu, createTitleScene } from './menu-scenes.js';
-import { SCREEN_HEIGHT, SCREEN_WIDTH, setupScreen } from './screen.js';
+import { SCREEN_HEIGHT, SCREEN_WIDTH, screenHeight, setupScreen } from './screen.js';
 import { loadRecords, loadSettings } from './storage.js';
 import { MODES } from './modes.js';
+import { createLoadingProgress, createLoadingScreen } from './loading-progress.js';
 
 const FRAME_MS = 1000 / 60;
 const MAX_STEPS_PER_TICK = 5;
@@ -67,6 +70,12 @@ const app = {
   },
 };
 
+const loadingScreen = createLoadingScreen(document);
+const loading = createLoadingProgress(state => loadingScreen.update(state));
+app.sfx.onLoadProgress = (id, ok) => loading.complete(id, ok);
+void fetch('version.json', { cache: 'no-store' }).then(response => response.ok ? response.json() : null).then(info => {
+  if (typeof info?.version === 'string') app.versionLabel = `v${info.version} · ${info.commit?.slice(0, 7) ?? '소스 패키지'}${info.dirty ? ' · 개발 중' : ''}`;
+}).catch(() => {});
 attachKeyboard(app.keyboard, window);
 app.keySettings = createKeySettings({ view: window, keyboard: app.keyboard,
   onOpen: () => app.mobile?.clear(), onClose: () => app.mobile?.clear() });
@@ -74,13 +83,17 @@ app.mobile = attachMobileControls({ view: window, canvas, container: document.ge
   keyboard: app.keyboard, onUnlock: () => unlockSfx(app.sfx),
   getContext: () => ({ enabled: Boolean(app.scene),
     mode: app.scene?.touchMode?.() ?? 'menu', player: app.scene?.touchPlayer?.() ?? null,
+    gameScreen: app.scene?.touchGame?.() ?? false,
+    paused: app.scene?.touchPaused?.() ?? false,
     backPlayer: app.scene?.touchBackPlayer?.() ?? null,
     local: app.scene?.touchLocal?.() ?? false,
     label: app.scene?.touchLabel?.(app),
-    items: app.scene?.touchItems?.(app), direct: app.scene?.touchDirect === true,
+    notice: app.scene?.touchNotice?.(app),
+    items: app.scene?.touchItems?.(app), direct: typeof app.scene?.touchDirect === 'function'
+      ? app.scene.touchDirect() : app.scene?.touchDirect === true,
     title: app.scene?.touchTitle === true, columns: app.scene?.touchColumns ?? 1,
   }),
-  onTap: (point) => app.scene?.tap?.(app, point) ?? false,
+  onTap: (point, viewport) => app.scene?.tap?.(app, point, viewport) ?? false,
 });
 window.addEventListener('pointerdown', () => unlockSfx(app.sfx));
 window.addEventListener('keydown', () => unlockSfx(app.sfx));
@@ -88,17 +101,36 @@ document.addEventListener('visibilitychange', () => syncMusicVisibility(app.sfx)
 // 자료 준비 전에는 안내만 표시한다.
 drawFestivalBackground(ctx, SCREEN_WIDTH, SCREEN_HEIGHT, 'title');
 drawBanner(ctx, '불러오는 중…');
-const [skin, script] = await Promise.all([loadSkin(), loadSkinScript(SKIN_DIR, { includeStory: MODES.story })]);
+const [skin, script] = await Promise.all([
+  loadSkin({
+    onManifest(manifest) {
+      const audioAvailable = Boolean(window.AudioContext || window.webkitAudioContext);
+      const voices = audioAvailable && app.settings.voice !== false
+        ? [...new Set((manifest.characters ?? []).flatMap(character => Object.values(character.voices ?? {}).flat()))] : [];
+      loading.plan([
+        ...skinImageFiles(manifest).map(file => `image:${file}`),
+        ...voices.map(file => `voice:${SKIN_DIR}/${file}`),
+        ...(audioAvailable && app.sfx.recorded !== false ? Object.values(FOLEY_FILES).flat().map(file => `effect:${file}`) : []),
+      ]);
+      loading.complete('manifest');
+    },
+    onImage: (file, ok) => loading.complete(`image:${file}`, ok),
+  }).then(skin => { loading.complete('manifest', Boolean(skin)); loading.settleGroup('image:'); return skin; }),
+  loadSkinScript(MODES.story ? STORY_DIR : SKIN_DIR, { includeStory: MODES.story }).then(script => { loading.complete('characters', Boolean(script)); return script; }),
+]);
 if (skin && script) {
   app.skin = skin;
   if (skin.branding?.title) document.title = [skin.branding.title,
     [skin.branding.subtitle, skin.branding.tagline].filter(Boolean).join(' - ')].filter(Boolean).join(' — ');
   app.storyScript = script;
   app.applySettings();
-  await prepareSfx(app.sfx);
+  try { await prepareSfx(app.sfx); } catch { /* 소리 장치를 준비할 수 없어도 게임은 시작한다. */ }
+  loading.settleGroup('voice:'); loading.settleGroup('effect:'); loading.finish();
   app.setScene(createTitleScene());
+  loadingScreen.hide();
   clearPressed(app.keyboard);
 } else {
+  loadingScreen.fail();
   drawBanner(ctx, '게임 자료를 불러오지 못했습니다', '이미지·캐릭터 정보 파일을 확인하고 새로고침해 주세요.');
 }
 
@@ -119,7 +151,7 @@ function tick(now) {
     accumulator -= FRAME_MS;
   }
   app.scene.draw(ctx, app);
-  uiTransition.draw(ctx, SCREEN_WIDTH, SCREEN_HEIGHT);
+  uiTransition.draw(ctx, SCREEN_WIDTH, screenHeight(ctx));
   requestAnimationFrame(tick);
 }
 

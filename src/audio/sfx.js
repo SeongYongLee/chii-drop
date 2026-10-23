@@ -6,8 +6,9 @@ import { playSoftContact } from './soft-contact.js';
 // CC0 녹음 편집본을 우선 사용하고 자료가 없으면 직접 합성한 소리로 대체한다.
 const PENTATONIC = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21];
 
-function createSfx() {
-  return { context: null, master: null, enabled: true, volume: 0.6, buffers: new Map() };
+function createSfx({ recorded = false } = {}) {
+  // 일반 게임은 개발·배포 모두 같은 합성음을 쓴다. 녹음 비교는 명시적인 개발 용도다.
+  return { context: null, master: null, enabled: true, volume: 0.6, recorded, buffers: new Map() };
 }
 
 // 정지된 컨텍스트에서도 파일 준비는 가능하다. 첫 입력 전 로딩 화면에서 끝낸다.

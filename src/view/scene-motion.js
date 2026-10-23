@@ -1,6 +1,7 @@
 import { PALETTE, UI_FONT, flower } from './festival.js';
 import { drawBanner } from './renderer.js';
 import { entranceProgress, reducedUiMotion } from './ui-motion.js';
+import { screenHeight } from '../app/screen.js';
 
 function drawFloorCompletion(ctx, x, y, age = 18, quiet = false) {
   const t = entranceProgress(age, 16, quiet);
@@ -36,11 +37,12 @@ function drawVictoryPetals(ctx, age) {
 }
 
 function drawResultPanel(ctx, title, sub, { age = 0, won = false, quiet = false } = {}) {
-  if (won && !quiet) drawVictoryPetals(ctx, age);
+  const center = screenHeight(ctx) / 2;
+  if (won && !quiet) { ctx.save(); ctx.translate(0, center - 270); drawVictoryPetals(ctx, age); ctx.restore(); }
   const t = entranceProgress(age, 18, quiet);
-  ctx.save(); ctx.translate(480, 270 + 18 * (1 - t));
+  ctx.save(); ctx.translate(480, center + 18 * (1 - t));
   ctx.scale(.96 + .04 * t, .78 + .22 * t);
-  ctx.translate(-480, -270);
+  ctx.translate(-480, -center);
   ctx.globalAlpha = .45 + .55 * t;
   drawBanner(ctx, title, sub);
   ctx.restore();

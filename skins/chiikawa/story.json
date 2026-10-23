@@ -1,0 +1,8775 @@
+{
+  "characters": {
+    "player": {
+      "name": "치이카와",
+      "charId": "chiikawa",
+      "voice": {
+        "pitch": 620,
+        "wave": "sine",
+        "rate": 2,
+        "spread": 3,
+        "length": 0.05
+      }
+    },
+    "companion": {
+      "name": "하치와레",
+      "charId": "hachiware",
+      "voice": {
+        "pitch": 430,
+        "wave": "triangle",
+        "rate": 2,
+        "spread": 4,
+        "length": 0.055
+      }
+    },
+    "f1-o01": {
+      "name": "회색 아이",
+      "charId": "gray-one"
+    },
+    "f1-o02": {
+      "name": "벌레",
+      "charId": "bug"
+    },
+    "f1-o03": {
+      "name": "두부 괴물",
+      "charId": "tofu"
+    },
+    "f1-o04": {
+      "name": "오믈렛 군",
+      "charId": "omelet"
+    },
+    "f1-o05": {
+      "name": "아메바",
+      "charId": "amoeba"
+    },
+    "f1-o06": {
+      "name": "가루 벌레",
+      "charId": "powder-bug"
+    },
+    "f1-o07": {
+      "name": "복어 괴물",
+      "charId": "fugu"
+    },
+    "f1-o08": {
+      "name": "고블린",
+      "charId": "goblin"
+    },
+    "f2-o01": {
+      "name": "시사",
+      "charId": "shisa"
+    },
+    "f2-o02": {
+      "name": "쿠리만쥬",
+      "charId": "kurimanju",
+      "voice": {
+        "pitch": 240,
+        "wave": "sine",
+        "rate": 3,
+        "spread": 2,
+        "length": 0.07
+      }
+    },
+    "f2-o03": {
+      "name": "헌책방",
+      "charId": "furuhonya"
+    },
+    "f2-o04": {
+      "name": "파자마 파티즈 초록",
+      "charId": "pajama-green"
+    },
+    "f2-o05": {
+      "name": "개미귀신",
+      "charId": "antlion"
+    },
+    "f2-o06": {
+      "name": "문어 괴물",
+      "charId": "octopus"
+    },
+    "f3-o01": {
+      "name": "가면 키메라",
+      "charId": "mask-chimera"
+    },
+    "f3-o02": {
+      "name": "가위바위보",
+      "charId": "rps"
+    },
+    "f3-o03": {
+      "name": "중지 괴물",
+      "charId": "chushi"
+    },
+    "f3-o04": {
+      "name": "포셰트 갑옷 씨",
+      "charId": "pochette-armor"
+    },
+    "f4-o01": {
+      "name": "데카츠요",
+      "charId": "dekatsuyo"
+    },
+    "f4-o02": {
+      "name": "장수풍뎅이",
+      "charId": "beetle"
+    },
+    "f4-o03": {
+      "name": "아노코",
+      "charId": "anoko"
+    },
+    "fixed01": {
+      "name": "키메라",
+      "charId": "chimera"
+    },
+    "fixed02": {
+      "name": "우사기",
+      "charId": "usagi",
+      "voice": {
+        "pitch": 520,
+        "wave": "square",
+        "rate": 1,
+        "spread": 7,
+        "length": 0.04
+      }
+    },
+    "fixed03": {
+      "name": "모몽가",
+      "charId": "momonga",
+      "voice": {
+        "pitch": 580,
+        "wave": "triangle",
+        "rate": 2,
+        "spread": 6,
+        "length": 0.05
+      }
+    },
+    "fixed04": {
+      "name": "큰 새 괴물",
+      "charId": "big-bird"
+    },
+    "final": {
+      "name": "랏코",
+      "charId": "rakko",
+      "voice": {
+        "pitch": 200,
+        "wave": "triangle",
+        "rate": 3,
+        "spread": 2,
+        "length": 0.065
+      }
+    },
+    "secret01": {
+      "name": "명찰을 단 손님",
+      "charId": "p-momonga",
+      "voice": {
+        "pitch": 520,
+        "wave": "triangle",
+        "rate": 3,
+        "spread": 3,
+        "length": 0.055
+      },
+      "storySilhouette": {
+        "body": "#dcdcdc",
+        "ear": "pointy"
+      }
+    },
+    "secret02": {
+      "name": "자리를 남겨두는 손님",
+      "charId": "p-kurimanju",
+      "voice": {
+        "pitch": 260,
+        "wave": "sine",
+        "rate": 3,
+        "spread": 1,
+        "length": 0.07
+      },
+      "storySilhouette": {
+        "body": "#e6c08a",
+        "ear": "none"
+      }
+    },
+    "secret03": {
+      "name": "박수 치는 손님",
+      "charId": "p-hachiware",
+      "voice": {
+        "pitch": 400,
+        "wave": "triangle",
+        "rate": 3,
+        "spread": 3,
+        "length": 0.06
+      },
+      "storySilhouette": {
+        "body": "#d6e2f3",
+        "ear": "pointy"
+      }
+    },
+    "secret04": {
+      "name": "시간을 재는 손님",
+      "charId": "p-usagi",
+      "voice": {
+        "pitch": 470,
+        "wave": "sine",
+        "rate": 3,
+        "spread": 2,
+        "length": 0.06
+      },
+      "storySilhouette": {
+        "body": "#ffeab0",
+        "ear": "long"
+      }
+    },
+    "secretFinal": {
+      "name": "???",
+      "charId": "p-chiikawa",
+      "voice": {
+        "pitch": 560,
+        "wave": "sine",
+        "rate": 3,
+        "spread": 2,
+        "length": 0.06
+      },
+      "storyForm": {
+        "body": "#b6a1ad",
+        "face": "#eee2dd",
+        "ribbon": "#ba8298",
+        "charId": "p-chiikawa-large"
+      },
+      "storySilhouette": {
+        "body": "#e6cfd9",
+        "ear": "none"
+      }
+    }
+  },
+  "scenes": {
+    "opening": [
+      {
+        "text": "풀을 담은 자루들이 탑 앞에 줄지어 놓여 있다.",
+        "visual": "tower",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "끝났다아…… 손 씻었는데도 풀 냄새 나.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 손 냄새를 맡아 보고 작게 웃는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응.",
+        "mood": "happy",
+        "cast": {
+          "player": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "쉬면서 한 판씩 하재. 위층엔 선생님도 와 계셔.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "치이카와의 눈이 작은 우승컵에서 계단 위로 옮겨 간다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "저기까지 올라가면 겨룰 수 있대. 나도 구경하러 같이 갈게.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "하치와레가 명찰의 접힌 부분을 펴 준다. 치이카와는 양손으로 받아 단다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "여긴 참가 간식. 저건 끝나고 다 같이 먹을 거야.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "우사기가 두 바구니를 한꺼번에 들더니 하나씩 무게를 재 본다."
+      },
+      {
+        "who": "companion",
+        "text": "앗, 고르는 중이야? 아직 나눠 주는 거 아닌데!",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "우사기는 웃는 얼굴로 두 바구니를 모두 안고 계단을 뛰어 오른다."
+      },
+      {
+        "text": "치이카와가 먼저 빈 자루 하나를 접어 들고 뒤따른다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "응, 부스러기 담을 것도 있어야지. 기다려, 나도!",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "게시판에는 손글씨 대진표. 아직 쓰지 않은 명찰 하나가 그 옆에서 흔들린다."
+      }
+    ],
+    "floor1.start": [
+      {
+        "text": "1층. 열린 문으로 풀 냄새와 응원 소리가 들어온다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "바람 들어오니까 시원하다. 명찰만 자꾸 돌아가네.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 뒤집힌 자기 명찰을 바로 돌린다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "하치와레도 따라 내려다본다. 그의 명찰도 거꾸로다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "아, 나도였어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "흐……",
+        "mood": "happy",
+        "cast": {
+          "player": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "이제 서로 알아보겠다. 첫 경기 보러 가자.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      }
+    ],
+    "floor2.start": [
+      {
+        "text": "2층 쉼터. 계단참에 물병과 새 컵들이 놓여 있다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "한 층 올라왔는데 벌써 목마르네. 너도?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 고개를 끄덕이며 컵을 두 개 고른다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "고마워. 반만 따라도 돼. 또 쏟을 것 같아.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "하치와레가 자기 컵을 내려놓다가 물방울 하나를 흘린다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 웃으며 냅킨을 건넨다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "응. 반만 따르길 잘했다.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      }
+    ],
+    "floor3.start": [
+      {
+        "text": "3층 창가. 한쪽 의자에만 햇빛이 길게 걸쳐 있다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "저긴 따뜻하고, 여긴 바람 들어와. 어디 앉을래?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 두 자리를 번갈아 보다가 의자를 조금씩 당긴다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "text": "햇빛의 끝에 의자 두 개가 나란히 놓인다."
+      },
+      {
+        "who": "companion",
+        "text": "아, 반씩! 그게 좋겠다.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "자리에 앉으려는데 어디선가 짧은 박수 소리가 들린다."
+      },
+      {
+        "who": "companion",
+        "text": "벌써 경기 끝난 데도 있나 봐. 우리도 조금만 쉬고 가자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "floor4.start": [
+      {
+        "text": "4층. 위에서 끌리는 의자 소리가 가까이 들린다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "거의 다 왔어. 나까지 좀 떨린다.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 간식 바구니를 내려놓고 찌그러진 봉지를 편다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "안 부서진 건 이거 하나네. 먹을래?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 봉지를 흔들어 보고 바구니 안쪽에 다시 놓는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "으응.",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "나중에? 좋아. 끝나면 같이 먹자.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "둘이 냅킨을 받쳐 봉지가 더 눌리지 않게 한다."
+      }
+    ],
+    "fixed.appear": [
+      {
+        "who": "companion",
+        "text": "어, 대진표가 넘어갔어. 이 층의 마지막 상대인가 봐.",
+        "mood": "idle",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 자기 명찰을 확인하고 한 걸음 나선다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "응. 나도 바로 뒤에 있을게.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "hidden.appear": [
+      {
+        "text": "다음 이름을 확인하는데 옆에서 누군가 기다리고 있다.",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "아직 안 했어? 여기 자리 있어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 자기 짐을 당겨 빈자리를 만든다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응.",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "final.appear": [
+      {
+        "text": "마지막 계단 위에서 망토 자락이 움직인다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "final": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "선생님이다. 우리 기다리고 계셨나 봐.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 손바닥을 닦고 계단을 오른다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      }
+    ],
+    "fixed01.appear": [
+      {
+        "text": "출입구에 놓았던 빈 자루가 풀숲 쪽으로 끌려간다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "fixed01": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "어? 저거 우리가 가져온 건데.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 부르려다 날개 끝을 보고 멈춘다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "앗……",
+        "mood": "sad",
+        "cast": {
+          "player": {
+            "mood": "sad",
+            "motion": "settle"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "잠깐. 같이 가자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "fixed02.appear": [
+      {
+        "text": "간식 테이블 아래에서 포장지가 바스락거린다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "fixed02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "우사기? 거기서 골랐어?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "우사기가 두 손을 등 뒤로 감춘 채 맞은편에 앉는다."
+      },
+      {
+        "text": "등 뒤로 빈 포장지 한 조각이 내려온다."
+      },
+      {
+        "who": "companion",
+        "text": "……다 먹고 나서 고르는 거야?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "fixed03.appear": [
+      {
+        "text": "모몽가가 상품 상자를 옆으로 밀고 한가운데 앉는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "fixed03": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "fixed03",
+        "text": "거긴 안 보이잖아. 여기서 날 봐.",
+        "mood": "idle",
+        "cast": {
+          "fixed03": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 상자를 받쳐 떨어지지 않게 옮긴다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "응, 보고 있어. 상자도 같이 보고 있었어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "fixed03",
+        "text": "상자 말고 나!",
+        "mood": "idle",
+        "cast": {
+          "fixed03": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "fixed04.appear": [
+      {
+        "text": "큰 날갯짓에 난간의 리본들이 일제히 펄럭인다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "fixed04": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "간식 바구니 하나가 높은 난간 끝에 걸려 있다."
+      },
+      {
+        "who": "companion",
+        "text": "우리 거야. 가져가면 안 되는데.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 빈 자루를 펼쳐 아래에 받친다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "응. 떨어질지도 모르니까.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f1-o01.before": [
+      {
+        "text": "회색 아이가 명찰의 끈을 만지작거린다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o01": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "그거 자꾸 뒤집히지? 우리 것도 그랬어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 명찰을 펴 보이며 고개를 끄덕인다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "f1-o01",
+        "text": "응…….",
+        "mood": "idle",
+        "cast": {
+          "f1-o01": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "하치와레가 의자를 당기자 두 사람도 동시에 의자를 당긴다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "앗, 아직 시작 아니야. 앉는 거부터.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "회색 아이와 치이카와가 서로 보고 조금 웃는다."
+      },
+      {
+        "who": "player",
+        "text": "응.",
+        "mood": "happy",
+        "cast": {
+          "player": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "준비되면 알려 줘. 둘 다 기다릴 수 있어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f1-o01.win": [
+      {
+        "text": "회색 아이가 자기 필드를 보고, 치이카와를 보고, 작게 손뼉을 친다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o01": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와도 마주 손뼉을 치다가 자기 명찰을 떨어뜨린다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "앗!",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "회색 아이가 먼저 주워 건넨다."
+      },
+      {
+        "who": "companion",
+        "text": "고마워! 아까보다 덜 떨리는 것 같아.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      }
+    ],
+    "f1-o01.lose": [
+      {
+        "text": "치이카와가 명찰을 꼭 쥔다. 회색 아이는 의자를 밀지 않고 기다린다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o01": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "조금만 손 풀고 할까?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 한 번 쥐었다 편 뒤 경기대에 손을 얹는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응.",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f1-o02.before": [
+      {
+        "text": "작은 벌레가 의자 다리를 타고 올라온다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "와……!",
+        "mood": "sad",
+        "cast": {
+          "player": {
+            "mood": "sad",
+            "motion": "settle"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "어, 여기로 온다. 가방 잠깐 옮길게.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 가방을 들자 벌레도 늘어진 끈으로 방향을 바꾼다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 끈을 들어 올렸다가 자기 얼굴 쪽으로 더 가까워진 걸 깨닫는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "앗!",
+        "mood": "sad",
+        "cast": {
+          "player": {
+            "mood": "sad",
+            "motion": "settle"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "아래로, 아래로 내려 보자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "가방을 바닥에 놓자 벌레가 맞은편으로 돌아간다."
+      },
+      {
+        "who": "companion",
+        "text": "……응. 거기 있으면 여기서는 할 수 있겠다.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f1-o02.win": [
+      {
+        "text": "벌레가 책상 모서리를 따라 내려간다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 가방 안을 들여다보고 바닥까지 손으로 짚어 본다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "없어?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응.",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "다행이다. 나도 가방 한번 봐야겠다.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f1-o02.lose": [
+      {
+        "text": "치이카와가 손을 무릎 위에 감춘다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "갑자기 가까워져서 놀랐지. 나도.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "벌레가 멈춘 걸 확인하고 의자를 조금 뒤로 옮긴다."
+      },
+      {
+        "text": "치이카와가 벌레와 거리를 재 본 뒤 다시 손을 올린다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "offer"
+          }
+        }
+      }
+    ],
+    "f1-o03.before": [
+      {
+        "text": "두부처럼 생긴 것이 빈 접시 위에서 미끄러진다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o03": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "저기 두부도 있어. 간식이 꽤…….",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "접시가 저절로 돌아서자 하치와레의 말이 멎는다."
+      },
+      {
+        "text": "치이카와도 집어 들었던 젓가락을 조용히 내려놓는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "……먹는 게 아니었나 봐.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "으응.",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "접시가 경기대 모서리에 닿는다. 치이카와가 떨어지지 않게 받친다."
+      },
+      {
+        "who": "companion",
+        "text": "여기 두면 안 떨어지겠다. 우리는 이쪽에 앉자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f1-o03.win": [
+      {
+        "text": "경기가 끝나자 접시가 다시 가장자리로 미끄러진다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o03": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 두 손을 내밀고 하치와레가 반대편을 받친다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "offer"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "이겼는데도 한 번 더 바쁘네.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "접시가 멈추자 치이카와가 자기 손을 턴다."
+      },
+      {
+        "who": "player",
+        "text": "후…….",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f1-o03.lose": [
+      {
+        "text": "치이카와가 필드보다 접시를 먼저 본다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o03": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "계속 떨어질 것 같지? 밑에 이거 받칠게.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "접은 냅킨을 접시 아래에 대자 미끄러짐이 멎는다."
+      },
+      {
+        "text": "치이카와가 확인하고 다시 앞을 본다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      }
+    ],
+    "f1-o04.before": [
+      {
+        "text": "노란 오믈렛 모양의 상대 앞에 케첩 얼룩이 찍혀 있다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o04": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 자기 배를 누른다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "냄새 나니까 더 배고프다.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응…….",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "하치와레가 간식 봉지를 집었다가 상대와 번갈아 본다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "우리 건 작네. 아, 크기 비교하고 있었어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 웃음을 참다가 고개를 숙인다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "이건 끝나고 먹자. 여기 잘 보이는 데 둘게.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      }
+    ],
+    "f1-o04.win": [
+      {
+        "text": "치이카와가 필드에서 눈을 떼자마자 간식 봉지로 손을 뻗는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "offer"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o04": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "응. 이제 먹어도 돼.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "봉지가 뜻대로 뜯어지지 않자 이번에는 하치와레가 양쪽을 잡는다."
+      },
+      {
+        "text": "둘이 조심해서 벌리자 작은 과자가 하나 나온다."
+      },
+      {
+        "who": "companion",
+        "text": "기다린 것보다 더 작다…… 반씩 먹을까?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f1-o04.lose": [
+      {
+        "text": "치이카와가 입을 꾹 다문다. 배에서 작은 소리가 난다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o04": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "나도 계속 보고 있었어. 간식 쪽.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "하치와레가 봉지를 열어 한 조각씩 나눈다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "이거 먹고 이번엔 필드 보자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f1-o05.before": [
+      {
+        "text": "말랑한 상대가 의자 틈으로 흘러내렸다가 다시 모인다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o05": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "앉기 불편한가 봐.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 작은 받침을 밀어 넣는다. 상대가 그 위로 모인다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응!",
+        "mood": "happy",
+        "cast": {
+          "player": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "안심하고 손을 떼자 받침이 의자 사이로 기울어진다."
+      },
+      {
+        "text": "치이카와가 얼른 바로잡는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "아, 받침이 더 작았어. 의자 말고 여기 두자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "낮은 상자 위에 옮기자 말랑한 모양이 멎는다."
+      },
+      {
+        "who": "companion",
+        "text": "이제 서로 보이네. 됐다.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      }
+    ],
+    "f1-o05.win": [
+      {
+        "text": "상대가 내려오고 받침에 작은 물자국이 남는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o05": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 닦으려 하자 받침 한쪽이 아직 출렁인다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "……?",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "아직 다 안 내려갔나 봐. 조금 기다리자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "움직임이 멎은 뒤에 둘이 받침을 정리한다."
+      }
+    ],
+    "f1-o05.lose": [
+      {
+        "text": "출렁이던 상대가 멈추자 치이카와의 손도 함께 멎는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o05": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "나도 보고 있으면 자꾸 움직이는 것 같아.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 자기 손을 눌러 잠깐 가만히 둔다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "그 뒤 먼저 경기대에 손을 얹는다."
+      }
+    ],
+    "f1-o06.before": [
+      {
+        "text": "상대가 움직일 때마다 희미한 가루가 날린다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o06": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "흐…… 재채기 나올 것 같아.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 냅킨 한 장을 꺼낸다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "하치와레가 받으려는 순간 재채기를 한다. 냅킨이 뒤집힌다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "와!",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "미안. 받기 전에 나와 버렸어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 새 냅킨을 반으로 접어 코 앞에 댄다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "아, 그렇게. 나도. 고마워.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "둘이 잠깐 숨을 고르고 맞은편을 본다."
+      }
+    ],
+    "f1-o06.win": [
+      {
+        "text": "가루가 가라앉을 때까지 둘은 냅킨을 내리지 않는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o06": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "……이겼다. 이제 말해도 되겠지?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "말을 마치기도 전에 둘이 같이 재채기를 한다."
+      },
+      {
+        "text": "치이카와가 웃느라 냅킨 뒤로 얼굴을 숨긴다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "아직 아니었네.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      }
+    ],
+    "f1-o06.lose": [
+      {
+        "text": "치이카와가 눈을 비비려다 손에 묻은 가루를 본다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o06": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "잠깐, 이걸로 닦자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "하치와레가 물을 조금 묻힌 냅킨을 건넨다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 손을 닦고 새 냅킨을 접어 옆에 둔다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      }
+    ],
+    "f1-o07.before": [
+      {
+        "text": "복어 모양의 상대가 부풀어 경기대 표지판을 가린다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o07": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "어, 시작하는 표시가 안 보여.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 오른쪽으로 몸을 기울인다. 상대도 오른쪽으로 기운다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "……?",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "왼쪽으로 옮겨 봐도 둥근 몸이 다시 앞을 가린다."
+      },
+      {
+        "who": "companion",
+        "text": "둘 다 같은 쪽으로 피하고 있나 봐.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "하치와레가 옆에서 표지판을 돌려 놓는다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "이제 보여?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 자기 필드와 표지판을 차례로 보고 고개를 끄덕인다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f1-o07.win": [
+      {
+        "text": "둥근 몸이 가라앉으며 표지판이 다시 보인다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o07": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "하치와레가 글씨를 읽다가 치이카와를 돌아본다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "아, 이건 끝났다는 표시였어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 표지판과 하치와레를 번갈아 본다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "그래도 지금은 맞네.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      }
+    ],
+    "f1-o07.lose": [
+      {
+        "text": "치이카와가 표지판을 들여다보다 자기 필드를 본다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o07": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "표시는 내가 볼게. 너는 앞에 거 보고 있어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응.",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 손가락으로 자기 필드의 시작 위치를 짚는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      }
+    ],
+    "f1-o08.before": [
+      {
+        "text": "고블린들이 의자 하나를 서로 자기 쪽으로 당긴다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o08": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "저러다 넘어지겠다.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 옆의 빈 의자를 가리킨다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "하나를 가져다 놓자 고블린 둘이 새 의자 쪽으로 옮겨 간다."
+      },
+      {
+        "who": "companion",
+        "text": "하나 더 있어야겠네.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 다음 의자까지 끌어다 놓는다. 이제 다들 앉는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "그중 둘이 동시에 경기대 앞으로 손을 뻗는다."
+      },
+      {
+        "who": "companion",
+        "text": "앉는 건 같이 앉아도 되는데, 경기는 한 명씩이야.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "고블린들이 서로를 보다가 한 명만 남는다."
+      }
+    ],
+    "f1-o08.win": [
+      {
+        "text": "고블린들이 누가 의자를 치울지 서로 가리킨다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o08": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 자기 의자를 들자, 한 고블린이 그 뒤를 따른다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "나머지도 따라 일어나다가 의자끼리 부딪힌다."
+      },
+      {
+        "who": "companion",
+        "text": "급하게 안 해도 돼. 하나씩.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 먼저 의자 놓을 자리를 비워 준다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      }
+    ],
+    "f1-o08.lose": [
+      {
+        "text": "상대편 의자들이 떠들썩하게 흔들린다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f1-o08": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 다시 경기대를 가리키자 이번에도 두 손이 올라온다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "아까 하던 사람하고 한 번 더야.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 의자에 앉을 때까지 고블린들이 자리를 다시 바꾼다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      }
+    ],
+    "fixed01.before": [
+      {
+        "text": "키메라가 빈 자루를 끌어안고 이쪽을 본다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "fixed01": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "……!",
+        "mood": "sad",
+        "cast": {
+          "player": {
+            "mood": "sad",
+            "motion": "settle"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "안에는 아무것도 없어. 풀도 다 꺼냈는데.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "자루가 뒤로 끌리자 매듭 끝이 치이카와의 발에 닿는다."
+      },
+      {
+        "text": "치이카와가 끈을 집었다가 맞은편을 보고 손을 멈춘다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "치이카와. 혼자 당기지는 말자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "하치와레가 곁에 서자 치이카와가 한 번 숨을 삼킨다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "끈을 느슨하게 잡은 채 경기대 앞에 선다."
+      },
+      {
+        "who": "player",
+        "text": "응…….",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "fixed01.win": [
+      {
+        "text": "키메라가 끈을 놓고 풀숲으로 물러난다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "fixed01": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 자루를 끌어오다가 손끝이 떨리는 걸 본다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "돌아왔네. 같이 접을까?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "두 사람이 마주 잡고 접자 자루 안의 풀 한 가닥이 떨어진다."
+      },
+      {
+        "who": "companion",
+        "text": "앗, 하나 남아 있었어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 풀을 주워 내려다보다 작게 숨을 놓는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      }
+    ],
+    "fixed01.lose": [
+      {
+        "text": "치이카와의 손에서 끈이 빠져나간다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "fixed01": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "쫓으려던 발이 멈춘다. 하치와레가 바로 옆으로 다가온다."
+      },
+      {
+        "who": "companion",
+        "text": "응. 여기서 같이 하자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 제자리로 돌아와 다시 손을 올린다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "offer"
+          }
+        }
+      }
+    ],
+    "f2-o01.before": [
+      {
+        "text": "시사가 간식 테이블의 물기를 닦고 있다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f2-o01": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "f2-o01",
+        "text": "이제 됐어요. 아, 여기 한 군데만 더…….",
+        "mood": "idle",
+        "cast": {
+          "f2-o01": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "닦아 낸 자리를 확인한 시사가 행주를 반듯하게 접는다."
+      },
+      {
+        "who": "companion",
+        "text": "시사도 한 판 할래? 내가 그동안 여기 볼게.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "who": "f2-o01",
+        "text": "정말요? 그럼 부탁드려도 될까요?",
+        "mood": "happy",
+        "cast": {
+          "f2-o01": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 행주를 받으려다 경기대와 자기 명찰을 본다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "아…….",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "넌 나랑 바꾸면 경기를 누가 해?",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "시사가 웃으며 경기대 맞은편에 앉는다."
+      },
+      {
+        "who": "f2-o01",
+        "text": "그럼 전 다녀올게요!",
+        "mood": "idle",
+        "cast": {
+          "f2-o01": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f2-o01.win": [
+      {
+        "who": "f2-o01",
+        "text": "아…… 아쉽네요. 한 번 더 이어질 줄 알았어요.",
+        "mood": "idle",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f2-o01": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "시사가 자기 필드를 다시 보고 고개를 끄덕인다."
+      },
+      {
+        "who": "companion",
+        "text": "여긴 다 닦았어. 근데 컵을 놓으면 또 젖네.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "f2-o01",
+        "text": "밑에 냅킨 받치면 괜찮아요. 이렇게요.",
+        "mood": "idle",
+        "cast": {
+          "f2-o01": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 자기 컵 밑에도 한 장 넣는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "f2-o01",
+        "text": "끝나고 같이 한 잔 해요.",
+        "mood": "happy",
+        "cast": {
+          "f2-o01": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      }
+    ],
+    "f2-o01.lose": [
+      {
+        "who": "f2-o01",
+        "text": "물 좀 드실래요? 여기요.",
+        "mood": "idle",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f2-o01": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 컵을 받아 마시고 두 손으로 내려놓는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "컵 밑에 냅킨도 있었어. 꼼꼼하다.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "시사가 쑥스럽게 웃고 자기 자리로 돌아간다."
+      }
+    ],
+    "f2-o02.before": [
+      {
+        "text": "쿠리만쥬가 작은 안주 봉지를 접어 빈 의자에 놓는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f2-o02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "여기 앉아도 돼?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "쿠리만쥬가 봉지를 옮기고 의자를 툭툭 두드린다."
+      },
+      {
+        "text": "치이카와가 앉자 간식 한 조각이 냅킨 위로 밀려온다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응!",
+        "mood": "happy",
+        "cast": {
+          "player": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "바로 집으려는 손 앞에 쿠리만쥬가 손바닥을 펴 보인다."
+      },
+      {
+        "text": "손을 닦으라는 뜻이다. 치이카와가 얼른 물수건을 찾는다."
+      },
+      {
+        "who": "companion",
+        "text": "아, 나도 아직 안 닦았어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "쿠리만쥬는 고개를 끄덕이고 남은 봉지를 반듯하게 세워 둔다."
+      }
+    ],
+    "f2-o02.win": [
+      {
+        "text": "쿠리만쥬가 남겨 두었던 한 조각을 집어 천천히 맛본다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f2-o02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와도 따라 한입 먹었다가 생각보다 단단해서 눈을 동그랗게 뜬다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "음……!",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "쿠리만쥬가 더 작게 부순 조각을 이쪽에 놓는다."
+      },
+      {
+        "who": "companion",
+        "text": "고마워. 이 크기가 딱 좋다.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 이번에는 천천히 씹고 고개를 끄덕인다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f2-o02.lose": [
+      {
+        "text": "쿠리만쥬가 물병을 이쪽으로 옮긴다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f2-o02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 한 모금 마시고 뚜껑을 닫으려다 조금 삐뚤게 올린다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "쿠리만쥬가 가볍게 바로잡아 준다."
+      },
+      {
+        "who": "companion",
+        "text": "우리도 조금 천천히 할까?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f2-o03.before": [
+      {
+        "text": "헌책방이 작은 책을 덮고 경기대 앞에 놓는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f2-o03": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "읽던 데 표시 안 해도 돼?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "헌책방이 책을 다시 펴 보지만 손가락을 뺀 자리를 찾지 못한다."
+      },
+      {
+        "text": "치이카와가 깨끗한 종이 조각을 접어 건넨다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응.",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "헌책방은 받아서 책 사이에 끼운 뒤 모서리를 조금만 내놓는다."
+      },
+      {
+        "who": "companion",
+        "text": "너무 조금 나왔나? 아, 그래도 보인다.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "헌책방이 종이 끝을 한번 눌러 확인하고 치이카와에게 고개를 숙인다."
+      },
+      {
+        "text": "둘이 동시에 인사하고는 서로 보고 웃는다."
+      }
+    ],
+    "f2-o03.win": [
+      {
+        "text": "헌책방이 책을 펴서 종이가 끼워진 곳을 보여 준다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f2-o03": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "찾았다. 여기였구나.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 책에 가까이 얼굴을 기울인다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "헌책방이 두 사람이 볼 수 있게 책을 조금 돌린다."
+      },
+      {
+        "who": "companion",
+        "text": "한 장만 보고 가도 돼?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "헌책방이 고개를 끄덕이고 자기 의자를 옆으로 당긴다."
+      }
+    ],
+    "f2-o03.lose": [
+      {
+        "text": "헌책방이 책을 폈다가 다시 조심히 덮는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f2-o03": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 미안한 듯 올려다보자 책갈피 끝을 보여 준다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "이번엔 표시해 뒀으니까 괜찮대.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "헌책방이 치이카와의 손이 올라올 때까지 기다린다."
+      }
+    ],
+    "f2-o04.before": [
+      {
+        "text": "초록 파자마의 참가자가 무릎 위로 박자를 짚는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f2-o04": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "그거 듣고 있으면 자꾸 따라 하게 돼.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 발끝으로 박자를 맞춘다. 하치와레도 무릎을 두드린다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "박자가 한 번 어긋나자 셋이 함께 멈춘다."
+      },
+      {
+        "who": "player",
+        "text": "……?",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "초록 파자마가 손가락으로 느리게 다시 센다."
+      },
+      {
+        "who": "companion",
+        "text": "아, 내가 하나 빨랐어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "같은 순간에 손이 내려오자 모두 작게 고개를 끄덕인다."
+      },
+      {
+        "who": "companion",
+        "text": "이번엔 맞았다. 이 속도로 시작하자.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      }
+    ],
+    "f2-o04.win": [
+      {
+        "text": "초록 파자마가 작은 박수를 친다. 치이카와도 따라 친다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f2-o04": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "이번에는 나도 맞출게.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "첫 박수부터 하치와레의 손이 조금 늦는다."
+      },
+      {
+        "text": "치이카와가 웃으며 느리게 한 번 더 친다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "고마워. 이제 알겠어!",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      }
+    ],
+    "f2-o04.lose": [
+      {
+        "text": "치이카와가 무릎을 두드려 방금 박자를 되짚는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f2-o04": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "초록 파자마가 맞은편에서 같은 속도로 손을 내린다."
+      },
+      {
+        "who": "companion",
+        "text": "응. 빨라지지 않아도 돼.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 손을 멈춘 뒤 경기대 위로 옮긴다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      }
+    ],
+    "f2-o05.before": [
+      {
+        "text": "경기대 다리 아래로 작은 모래 웅덩이가 생겼다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f2-o05": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "컵이 자꾸 한쪽으로 기우네.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 컵을 옮긴다. 잠깐 뒤 옮긴 쪽도 기울어진다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "앗……!",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "아래에 뭔가 있어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "모래 아래에서 상대가 드러나자 치이카와가 발을 뒤로 뺀다."
+      },
+      {
+        "text": "하치와레가 물병과 컵을 단단한 선반으로 옮긴다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "발도 여기 두자. 저쪽은 안 밟고.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 단단한 바닥을 확인하고 자리를 잡는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      }
+    ],
+    "f2-o05.win": [
+      {
+        "text": "모래가 잦아들고 기울던 경기대가 멎는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f2-o05": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "컵부터 치우길 잘했어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 내려놓은 컵을 살핀다. 물은 조금밖에 남지 않았다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "음…….",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "새로 따라 줄게. 이번엔 선반에서 마시자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "둘이 선반 앞에 나란히 선다."
+      }
+    ],
+    "f2-o05.lose": [
+      {
+        "text": "선반 아래로 컵 하나가 미끄러진다. 하치와레가 붙잡는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f2-o05": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "괜찮아. 안 깨졌어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 선반 안쪽을 비워 더 깊이 놓는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "두 사람이 발밑을 확인하고 경기대로 돌아선다."
+      }
+    ],
+    "f2-o06.before": [
+      {
+        "text": "문어 모양의 상대가 여러 팔로 냅킨을 접는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f2-o06": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "한 번에 그렇게 많이? 빠르다.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "냅킨 한 장이 펴지자 다른 팔들이 그것을 잡으러 움직인다."
+      },
+      {
+        "text": "접혀 있던 나머지도 우르르 풀린다."
+      },
+      {
+        "who": "player",
+        "text": "와…….",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "아, 그쪽을 잡으면 여기가 풀리는구나.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 자기 쪽으로 온 한 장을 반듯하게 접어 놓는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "상대의 팔 하나가 그 냅킨 앞에서 잠깐 멈춘다."
+      },
+      {
+        "who": "companion",
+        "text": "우리도 한 장씩 해 보자. 끝나고.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      }
+    ],
+    "f2-o06.win": [
+      {
+        "text": "냅킨 한 장이 천천히 치이카와 앞에 놓인다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f2-o06": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "아까보다 여러 번 접혀 작은 네모가 되어 있다."
+      },
+      {
+        "who": "companion",
+        "text": "이번엔 안 풀렸다!",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 받아 펴 보려다 상대를 보고 손을 멈춘다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "……응.",
+        "mood": "happy",
+        "cast": {
+          "player": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "접힌 모양 그대로 조심히 옆에 놓는다."
+      }
+    ],
+    "f2-o06.lose": [
+      {
+        "text": "치이카와가 필드 옆에 흩어진 냅킨을 한데 모은다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f2-o06": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "다 접으려면 한참 걸리겠다.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 한 장만 골라 접어 모서리에 둔다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "응. 나머지는 끝나고 하자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "fixed02.before": [
+      {
+        "who": "companion",
+        "text": "이번엔 이긴 쪽부터 간식 고르기래.",
+        "mood": "happy",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          },
+          "fixed02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "우사기가 등 뒤의 포장지를 다른 손으로 옮긴다."
+      },
+      {
+        "text": "치이카와가 바닥에 떨어진 조각을 집어 들어 보인다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "……?",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "그건 벌써 골랐어?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "fixed02",
+        "text": "흐이!",
+        "mood": "happy",
+        "cast": {
+          "fixed02": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "우사기가 웃으며 빈손을 양쪽으로 펴 보인다."
+      },
+      {
+        "who": "companion",
+        "text": "손에 없는 건 알겠는데…… 포장지가.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "우사기는 포장지를 접어 바구니 옆에 놓고 먼저 자리에 앉는다."
+      },
+      {
+        "text": "치이카와도 봉지를 내려놓고 의자를 당긴다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "알았어. 남은 것 중에서 고르는 걸로!",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      }
+    ],
+    "fixed02.win": [
+      {
+        "text": "우사기가 바구니를 치이카와 앞으로 쑥 민다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "fixed02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 작은 봉지를 골랐다가 다시 바구니를 본다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        }
+      },
+      {
+        "text": "우사기가 바로 옆의 큰 봉지를 집는다."
+      },
+      {
+        "who": "player",
+        "text": "앗…….",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "고르는 순서는 지켰네.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "우사기가 큰 봉지를 흔들어 보인다. 안에서는 부스러기 소리가 난다."
+      },
+      {
+        "text": "치이카와가 자기 봉지의 온전한 과자를 보고 작게 웃는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      }
+    ],
+    "fixed02.lose": [
+      {
+        "text": "우사기가 과자 하나를 높이 들고 훌쩍 의자에 앉는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "fixed02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "고르는 건 빠르다.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 빈 포장지를 한데 모으고 손을 편다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "우사기가 한입 먹더니 남은 과자를 바구니 위에 내려놓는다."
+      },
+      {
+        "who": "companion",
+        "text": "응, 한 번 더 하려고 기다리네.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f3-o01.before": [
+      {
+        "text": "가면의 눈구멍 너머에서 시선이 움직인다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f3-o01": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 한 발 물러난다. 하치와레도 같은 곳을 본다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "recoil"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "……방금 움직였지?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응…….",
+        "mood": "sad",
+        "cast": {
+          "player": {
+            "mood": "sad",
+            "motion": "settle"
+          }
+        }
+      },
+      {
+        "text": "가면이 기울자 경기대 위로 긴 그림자가 드리운다."
+      },
+      {
+        "text": "치이카와가 자기 의자를 그림자 밖으로 옮긴다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "거기면 괜찮겠어? 나도 옆에 있을게.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 고개를 끄덕인다. 그림자는 더 가까이 오지 않는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "서로의 위치를 확인한 뒤에야 손을 올린다."
+      }
+    ],
+    "f3-o01.win": [
+      {
+        "text": "가면이 창가의 그늘로 물러난다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f3-o01": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 내려오려다 한 번 더 돌아본다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "저기 있어. 움직이지는 않네.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 가방 끈을 잡는다. 하치와레도 함께 자리에서 일어난다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "같이 가자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f3-o01.lose": [
+      {
+        "text": "치이카와가 하치와레의 소매를 붙잡는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f3-o01": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "하치와레가 잡힌 쪽 팔을 그대로 둔다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "응. 여기 있어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 잠깐 숨을 고른 뒤 자기 손을 놓는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      }
+    ],
+    "f3-o02.before": [
+      {
+        "text": "상대가 경기 시작 전에 손을 내민다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f3-o02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "가위바위보부터 하자는 건가?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 늦게 손을 냈다가 얼른 등 뒤로 숨긴다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "아…….",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "맞은편 손도 움직임을 멈춘다."
+      },
+      {
+        "who": "companion",
+        "text": "아직 아무도 제대로 못 봤어. 한 번 더 해도 돼?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 손을 앞으로 가져온다. 이번에는 같은 높이에 둔다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "응. 이번엔 같이.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "두 손이 한번 움직인 뒤 경기대 위로 내려온다."
+      }
+    ],
+    "f3-o02.win": [
+      {
+        "text": "치이카와가 일어서다가 다시 손을 내민다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "approach"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f3-o02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "그것도 한 번 더 하고 싶어?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응!",
+        "mood": "happy",
+        "cast": {
+          "player": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "맞은편 손이 올라오자 치이카와가 이번엔 서두르지 않고 기다린다."
+      },
+      {
+        "who": "companion",
+        "text": "경기 끝나니까 오히려 여유 있네.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      }
+    ],
+    "f3-o02.lose": [
+      {
+        "text": "치이카와가 자기 손을 들여다보다 작게 고개를 젓는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "look"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f3-o02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "손 쪽이 계속 신경 쓰여?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 손을 무릎에 한 번 눌렀다가 필드 쪽으로 옮긴다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "응. 이번엔 저쪽부터 보자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f3-o03.before": [
+      {
+        "text": "상대가 손을 들어 보인다. 주위의 움직임이 잠깐 멎는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f3-o03": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와는 의자를 반쯤 당긴 자세로 멈춰 있다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "지금은…… 기다리는 건가?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "상대의 손이 조금 내려온다. 치이카와도 의자를 조금 당긴다."
+      },
+      {
+        "text": "손이 다시 올라가자 치이카와가 그대로 굳는다."
+      },
+      {
+        "who": "player",
+        "text": "으…….",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "다리 아프겠다. 아직 시작 안 했으니까 앉아도 되지?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손이 경기대 쪽으로 내려온다. 치이카와가 얼른 앉는다."
+      },
+      {
+        "who": "companion",
+        "text": "……앉는 게 제일 어려웠네.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f3-o03.win": [
+      {
+        "text": "치이카와가 일어서려다 상대 손을 다시 본다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f3-o03": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "응. 끝났어. 이번에는 괜찮아.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 천천히 일어나자 상대도 자리를 옮긴다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "후…….",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "하치와레가 의자를 밀어 넣다가 잠깐 손을 멈추고 둘이 웃는다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        }
+      }
+    ],
+    "f3-o03.lose": [
+      {
+        "text": "치이카와가 의자에 깊이 앉아 다리를 쉬게 한다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f3-o03": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "이번엔 처음부터 앉아 있자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "맞은편 손이 올라오지만 치이카와는 자기 자리를 지킨다."
+      },
+      {
+        "text": "손이 내려온 뒤 함께 경기대를 본다."
+      }
+    ],
+    "f3-o04.before": [
+      {
+        "text": "포셰트 갑옷 씨가 참가 메달의 끈을 묶고 있다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f3-o04": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "f3-o04",
+        "text": "이러면 목 뒤가 덜 까슬거리겠지?",
+        "mood": "idle",
+        "cast": {
+          "f3-o04": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 매듭을 만져 보고 고개를 끄덕인다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "f3-o04",
+        "text": "조금 만져 봐도 괜찮아. 단단히 묶었거든.",
+        "mood": "idle",
+        "cast": {
+          "f3-o04": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 조심히 당겨 본다. 매듭이 버틴다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "와!",
+        "mood": "happy",
+        "cast": {
+          "player": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "아, 풀리나 보고 있었구나. 난 늘어나는 줄 알았어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "f3-o04",
+        "text": "늘어나면 안 되는데. 이건 끝나고 달아 줄게.",
+        "mood": "idle",
+        "cast": {
+          "f3-o04": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "갑옷 씨가 메달을 상자에 넣고 경기대 앞에 앉는다."
+      },
+      {
+        "who": "f3-o04",
+        "text": "나도 한 판 해 볼까.",
+        "mood": "happy",
+        "cast": {
+          "f3-o04": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      }
+    ],
+    "f3-o04.win": [
+      {
+        "who": "f3-o04",
+        "text": "어머, 벌써 끝났네. 매듭 생각도 안 났어.",
+        "mood": "idle",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f3-o04": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "갑옷 씨가 다듬은 새 끈을 작은 봉투에 넣어 치이카와에게 건넨다."
+      },
+      {
+        "who": "companion",
+        "text": "정말 안 까슬거려?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 끈을 손등에 대 보고 고개를 끄덕인다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "f3-o04",
+        "text": "다행이다. 그게 제일 신경 쓰였거든.",
+        "mood": "happy",
+        "cast": {
+          "f3-o04": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 새 끈을 가만히 쥐고 웃는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      }
+    ],
+    "f3-o04.lose": [
+      {
+        "who": "f3-o04",
+        "text": "쉬었다 해도 돼. 이 끈만 정리할게.",
+        "mood": "idle",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f3-o04": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 긴 끈의 끝을 받쳐 바닥에 닿지 않게 한다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "f3-o04",
+        "text": "고마워. 자, 다 됐다.",
+        "mood": "idle",
+        "cast": {
+          "f3-o04": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "갑옷 씨가 상자를 닫고 다시 자리에 앉는다."
+      }
+    ],
+    "fixed03.before": [
+      {
+        "who": "fixed03",
+        "text": "참가한 상도 주고, 이기는 상도 줘.",
+        "mood": "idle",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "fixed03": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "참가 간식은 있는데, 이기는 건 아직 모르지.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "fixed03",
+        "text": "내가 이기면 되잖아.",
+        "mood": "idle",
+        "cast": {
+          "fixed03": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "모몽가가 두 손을 내민다. 치이카와는 바구니를 자기 쪽으로 당긴다."
+      },
+      {
+        "who": "player",
+        "text": "으응.",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "fixed03",
+        "text": "지금 달라니까.",
+        "mood": "idle",
+        "cast": {
+          "fixed03": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "아직 경기도 안 했어. 먼저 앉을까?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 자기 의자에 앉자 모몽가도 맞은편으로 몸을 돌린다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "fixed03",
+        "text": "그럼 날 보고 놀라. 잘하는 거 보면!",
+        "mood": "happy",
+        "cast": {
+          "fixed03": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "응. 그건 보고 나서 해 볼게.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "fixed03.win": [
+      {
+        "text": "모몽가가 필드에서 눈을 떼고 두 손을 내민다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "fixed03": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "fixed03",
+        "text": "참가한 건 했지? 그거 줘.",
+        "mood": "idle",
+        "cast": {
+          "fixed03": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 간식 봉지를 건넨다. 모몽가가 무게를 재듯 흔든다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "fixed03",
+        "text": "나한테 줄 거면 큰 걸 골라야지.",
+        "mood": "idle",
+        "cast": {
+          "fixed03": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 고개를 젓고 바구니 안을 보여 준다. 봉지는 모두 같은 크기다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "그중에서 직접 골라도 돼.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "모몽가는 한참 바꾸다가 처음 받은 봉지를 다시 집는다."
+      }
+    ],
+    "fixed03.lose": [
+      {
+        "who": "fixed03",
+        "text": "봤지? 놀랐지? 더 놀라 봐.",
+        "mood": "happy",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "fixed03": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 필드를 보고 고개를 끄덕인다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "지금 건 잘 봤어. 그런데 우승 상품은 아직 위에 있어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "fixed03",
+        "text": "그럼 또 봐. 한 번 더 보여 줄 테니까.",
+        "mood": "idle",
+        "cast": {
+          "fixed03": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "모몽가가 봉지를 옆에 놓고 먼저 자세를 잡는다."
+      }
+    ],
+    "f4-o01.before": [
+      {
+        "text": "커다란 존재가 계단 아래에서 올라오는 발소리에 고개를 든다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f4-o01": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 멈춘다. 상대의 큰 손도 난간 위에서 멈춘다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "우리…… 지나가도 돼?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "큰 손이 난간에서 떨어진다. 경기대 사이로 좁은 길이 생긴다."
+      },
+      {
+        "text": "치이카와가 한 발 다가갔다가 손 안의 접힌 자루를 내려다본다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응…….",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "자루를 자기 쪽에 내려놓고 상대에게 고개를 조금 숙인다."
+      },
+      {
+        "who": "companion",
+        "text": "다음 경기는 여기인가 봐. 나도 이쪽에 있을게.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와는 상대의 얼굴을 확인하고 자리를 잡는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      }
+    ],
+    "f4-o01.win": [
+      {
+        "text": "큰 손이 난간 옆으로 물러난다. 아래층의 웃음소리가 다시 들린다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f4-o01": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 자루를 집다가 손잡이를 놓친다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        }
+      },
+      {
+        "text": "상대의 손이 먼저 움직였다가 멈춘다. 치이카와가 직접 주워 든다."
+      },
+      {
+        "who": "player",
+        "text": "응.",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "짧게 고개를 숙이고 좁은 길을 돌아간다."
+      },
+      {
+        "who": "companion",
+        "text": "천천히 가자. 계단도 좁네.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f4-o01.lose": [
+      {
+        "text": "치이카와가 계단 쪽을 한 번 본다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f4-o01": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "상대는 자리를 옮기지 않고 기다린다."
+      },
+      {
+        "who": "companion",
+        "text": "한 번 더 할래?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 고개를 끄덕이고 경기대 쪽으로 몸을 돌린다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "f4-o02.before": [
+      {
+        "text": "장수풍뎅이처럼 보이는 상대가 간식 바구니의 그림자에 숨어 있다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f4-o02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "여기 있었어? 바구니 가져가야 하는데.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 손잡이를 잡자 상대가 같은 방향으로 움직인다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 손을 놓는다. 상대도 멎는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "……?",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "바구니 따라오는 건가?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "하치와레가 바구니를 조금 옮기려다 상대의 움직임을 보고 다시 내려놓는다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "……먼저 이쪽부터 보자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 바구니와 거리를 두고 경기대 앞에 선다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      }
+    ],
+    "f4-o02.win": [
+      {
+        "text": "상대가 손잡이에서 떨어진다. 치이카와는 바로 손을 뻗지 않는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f4-o02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "잠깐. 안쪽도 한번 볼게.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "바구니 안을 확인한 하치와레가 손잡이를 잡아 준다."
+      },
+      {
+        "text": "치이카와가 반대쪽을 받친다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "응. 이번엔 둘이 들자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "바구니가 움직여도 그림자 속에서는 아무것도 따라오지 않는다."
+      }
+    ],
+    "f4-o02.lose": [
+      {
+        "text": "치이카와가 바구니 쪽으로 가려던 손을 거둔다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f4-o02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "그건 그대로 두자. 내가 보고 있을게.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 빈손을 펴 보인 뒤 다시 경기대에 올린다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "손잡이가 흔들리지 않는 걸 한 번 더 확인한다."
+      }
+    ],
+    "f4-o03.before": [
+      {
+        "text": "커다란 그림자 앞에 작은 꽃 하나가 떨어져 있다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f4-o03": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 꽃을 집으려 몸을 낮춘다. 위쪽에서 그림자가 움직인다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "앗……!",
+        "mood": "sad",
+        "cast": {
+          "player": {
+            "mood": "sad",
+            "motion": "settle"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "치이카와. 이쪽으로.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 물러난다. 꽃은 여전히 같은 자리에 있다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "recoil"
+          }
+        }
+      },
+      {
+        "text": "상대가 꽃 너머에서 이쪽을 내려다본다."
+      },
+      {
+        "who": "companion",
+        "text": "지금은 안 주워도 돼.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 잠깐 망설이다 자기 발을 뒤로 당긴다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "꽃을 사이에 둔 채, 두 사람과 큰 그림자가 마주 선다."
+      }
+    ],
+    "f4-o03.win": [
+      {
+        "text": "큰 그림자가 물러간다. 꽃은 그 자리에 눌리지 않고 남아 있다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f4-o03": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 다시 손을 내밀려다가 주변을 살핀다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "offer"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "길은 이쪽이야.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 손을 거두고 꽃을 밟지 않게 돌아간다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "계단에 다다라 한 번 돌아본다. 꽃의 주인은 보이지 않는다."
+      }
+    ],
+    "f4-o03.lose": [
+      {
+        "text": "치이카와가 자기 발밑과 꽃 쪽을 번갈아 본다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "look"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "f4-o03": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "응. 아직 거기 있어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 꽃에서 조금 더 떨어진 자리에 선다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "하치와레도 곁에서 같은 쪽을 바라본다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      }
+    ],
+    "fixed04.before": [
+      {
+        "text": "커다란 새가 난간의 바구니를 부리로 밀어 본다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "fixed04": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "안에 과자 있어. 떨어지면 다 부서질 텐데.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 접어 들고 온 빈 자루를 펼친다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "높이를 재 보고 한쪽 끝을 하치와레에게 건넨다."
+      },
+      {
+        "who": "companion",
+        "text": "여기 받치게? 응, 이쪽 잡을게.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "새가 날개를 움직인다. 자루가 펄럭이자 치이카와가 힘을 준다."
+      },
+      {
+        "who": "player",
+        "text": "읏……!",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "경기할 동안은 끝을 발로 눌러 놓자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 자루 위치를 확인하고 자리를 잡는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "새의 긴 그림자가 경기대까지 닿는다."
+      }
+    ],
+    "fixed04.win": [
+      {
+        "text": "바구니가 난간에서 떨어진다. 둘이 펼친 자루 안으로 들어온다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "fixed04": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "받았다! ……안 쏟아졌어?",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 자루 안을 확인하고 고개를 끄덕인다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응!",
+        "mood": "happy",
+        "cast": {
+          "player": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "둘이 바구니를 옮기자 바닥에서 과자 부스러기가 조금 떨어진다."
+      },
+      {
+        "who": "companion",
+        "text": "부서진 건 우리 먹자. 멀쩡한 건 위로 가져가고.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 안쪽에 남겨 둔 온전한 봉지를 한 번 더 확인한다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      }
+    ],
+    "fixed04.lose": [
+      {
+        "text": "새가 날개를 접자 흔들리던 바구니도 잠깐 멎는다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "fixed04": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "아직 안 떨어졌어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 발밑의 자루 끝을 다시 눌러 본다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응.",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "바구니를 한 번 올려다보고 경기대로 돌아선다."
+      }
+    ],
+    "final.before": [
+      {
+        "text": "꼭대기. 랏코가 경기대 다리를 눌러 흔들림을 확인한다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "final": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "final",
+        "text": "왔구나.",
+        "mood": "idle",
+        "cast": {
+          "final": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "선생님! 우리 여기까지 올라왔어요.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 인사하다가 자기 손을 내려다본다. 손바닥이 젖어 있다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "who": "final",
+        "text": "닦고 앉아라. 기다리마.",
+        "mood": "idle",
+        "cast": {
+          "final": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 손을 닦고 스스로 의자를 당긴다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "나도 괜히 손 닦게 되네. 경기하는 건 넌데.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "랏코가 우승컵 옆의 작은 과자를 힐끗 본다."
+      },
+      {
+        "who": "final",
+        "text": "……저건 끝나고 주는 건가?",
+        "mood": "idle",
+        "cast": {
+          "final": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "네! 끝나고 같이 먹으려고요.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "랏코가 곧바로 자세를 고친다. 치이카와도 고개를 든다."
+      },
+      {
+        "who": "final",
+        "text": "좋다. 준비됐으면 시작하지.",
+        "mood": "idle",
+        "cast": {
+          "final": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "final.win": [
+      {
+        "text": "랏코가 끝난 필드를 보고 고개를 끄덕인다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "final": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "final",
+        "text": "잘했다.",
+        "mood": "idle",
+        "cast": {
+          "final": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와는 바로 일어나지 못하다가 자기 쪽 승리 표시를 다시 본다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "와……!",
+        "mood": "win",
+        "cast": {
+          "player": {
+            "mood": "win",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "이겼어! 네가!",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "랏코가 우승컵을 두 손으로 내민다. 치이카와도 두 손으로 받는다."
+      },
+      {
+        "who": "final",
+        "text": "끝났으니 손부터 쉬어라.",
+        "mood": "idle",
+        "cast": {
+          "final": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "랏코의 눈이 잠깐 과자 쪽으로 돌아간다. 하치와레가 웃으며 바구니를 연다."
+      }
+    ],
+    "final.lose": [
+      {
+        "who": "final",
+        "text": "한숨 돌려라. 아직 손에 힘이 들어가 있다.",
+        "mood": "idle",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "final": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 손을 쥐었다 편다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "물 여기 있어. 응원도 조금만 천천히 할게.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 한 모금 마신 뒤 스스로 의자를 다시 당긴다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "final",
+        "text": "좋다. 준비됐을 때 해라.",
+        "mood": "idle",
+        "cast": {
+          "final": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "secret01.appear": [
+      {
+        "text": "계단 옆에서 낡은 끈의 명찰이 흔들린다.",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secret01": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "secret01",
+        "text": "간식 주는 데가 여기야?",
+        "mood": "idle",
+        "cast": {
+          "secret01": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "응. 경기하는 데도 여기고.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님이 대진표보다 바구니 안을 먼저 살핀다."
+      },
+      {
+        "who": "secret01",
+        "text": "그럼 잘 찾아왔네.",
+        "mood": "happy",
+        "cast": {
+          "secret01": {
+            "mood": "happy",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 손님의 명찰을 보려는데 접힌 부분이 손 아래로 가려진다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      }
+    ],
+    "secret01.before": [
+      {
+        "who": "secret01",
+        "text": "큰 걸로 줘. 작은 것도 하나 주고.",
+        "mood": "idle",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secret01": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "두 개? 친구랑 나눠 먹게?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "secret01",
+        "text": "내가 큰 거 받았다고 보여 줄 거야.",
+        "mood": "idle",
+        "cast": {
+          "secret01": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님이 두 손을 내민다. 치이카와는 손 위에 명찰 끈부터 올려 준다."
+      },
+      {
+        "text": "낡은 끈이 경기대 아래까지 늘어져 있었다."
+      },
+      {
+        "who": "secret01",
+        "text": "그거 말고 간식.",
+        "mood": "idle",
+        "cast": {
+          "secret01": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "아, 걸릴까 봐 그랬나 봐. 간식은 경기 끝나고.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님이 끈을 목에 감아 짧게 만든다. 접힌 이름은 여전히 보이지 않는다."
+      },
+      {
+        "who": "secret01",
+        "text": "그럼 빨리 해. 배고파지잖아.",
+        "mood": "idle",
+        "cast": {
+          "secret01": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 자기 바구니를 내려놓고 맞은편에 앉는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      }
+    ],
+    "secret01.win": [
+      {
+        "who": "secret01",
+        "text": "흥. 간식은 주는 거지?",
+        "mood": "idle",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secret01": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 봉지 둘을 건넨다. 손님이 더 큰 것부터 고른다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "작은 건?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "secret01",
+        "text": "기다리는 애 거야.",
+        "mood": "idle",
+        "cast": {
+          "secret01": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님이 작은 봉지도 구겨지지 않게 큰 것 밑에 받친다."
+      },
+      {
+        "text": "치이카와가 참가 메달을 내밀자 손님이 비어 있는 손가락으로 받아 건다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "offer"
+          }
+        }
+      },
+      {
+        "who": "secret01",
+        "text": "이건 반짝거리네. 나한테 잘 어울리지?",
+        "mood": "happy",
+        "cast": {
+          "secret01": {
+            "mood": "happy",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "고개를 들고 웃던 손님이 간식 봉지 하나를 다시 반듯하게 편다."
+      }
+    ],
+    "secret01.lose": [
+      {
+        "who": "secret01",
+        "text": "한 번 더 하면 또 주는 거야?",
+        "mood": "idle",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secret01": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "참가 간식은 한 번씩인데.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "secret01",
+        "text": "그럼 이긴 기념으로 줘.",
+        "mood": "idle",
+        "cast": {
+          "secret01": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 고개를 젓고 바구니 뚜껑을 덮는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "text": "손님은 입을 삐죽 내밀다가 치이카와가 앉자 맞은편으로 돌아선다."
+      }
+    ],
+    "secret02.appear": [
+      {
+        "text": "옆방 테이블에 컵이 하나씩 놓인다. 다섯 개가 나란히 모인다.",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secret02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "손님이 끝의 컵에 냅킨을 덮고 보온병 옆으로 당긴다."
+      },
+      {
+        "who": "companion",
+        "text": "친구들 자리 맡아 둔 거야?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 앉으려다 컵을 보고 발을 멈춘다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "손님이 다른 의자를 당겨 주고 새 컵 두 개를 가져온다."
+      },
+      {
+        "who": "companion",
+        "text": "아, 우리 건 따로. 고마워.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "secret02.before": [
+      {
+        "text": "치이카와가 새 컵을 두 손으로 받는다. 아직 조금 뜨겁다.",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secret02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "호…….",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "금방 따라 준 거네. 천천히 마시자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님은 자기 차를 한 모금 마시고 고개를 끄덕인다."
+      },
+      {
+        "text": "치이카와가 따라 마시려다 김을 보고 잠깐 더 분다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "손님이 빈 받침을 치이카와 컵 밑으로 밀어 준다."
+      },
+      {
+        "who": "companion",
+        "text": "들고 있지 말고 놓으라는 건가 봐.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 컵을 놓자 두 손이 편해진다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응.",
+        "mood": "happy",
+        "cast": {
+          "player": {
+            "mood": "happy",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님이 자기 컵을 치우고 맞은편에 앉는다. 덮어 둔 다섯 번째 컵은 건드리지 않는다."
+      }
+    ],
+    "secret02.win": [
+      {
+        "text": "손님이 낡은 컵의 가장자리를 엄지로 문지른다.",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secret02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 여분의 새 컵 하나를 건넨다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "이쪽은 안 뜨겁게 받칠 수도 있어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님이 고개를 숙여 받고 다섯 번째 컵과 바꾼다."
+      },
+      {
+        "text": "새 컵에 다시 냅킨을 덮은 뒤 다섯 잔을 쟁반에 모은다."
+      },
+      {
+        "text": "치이카와가 참가 메달을 내밀자 손님은 조심히 주머니에 넣는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "offer"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "그 컵은 씻어 둘게.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님은 빈 낡은 컵만 남겨 두고 쟁반을 들고 안쪽으로 돌아간다."
+      }
+    ],
+    "secret02.lose": [
+      {
+        "text": "손님이 먼저 차를 한 모금 마신다. 치이카와도 자기 컵을 잡는다.",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secret02": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "이제 딱 마시기 좋네.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 고개를 끄덕이고 마지막 한 모금을 마신다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "컵을 안전한 곳에 놓은 뒤 둘이 같은 순간에 자세를 고친다."
+      }
+    ],
+    "secret03.appear": [
+      {
+        "text": "창가에서 박수 소리가 난다. 북슬북슬한 손님이 혼자 앉아 있다.",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secret03": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "여기서 보고 있었구나.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "secret03",
+        "text": "응! 여기서는 잘 보이더라.",
+        "mood": "happy",
+        "cast": {
+          "secret03": {
+            "mood": "happy",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님이 옆 의자의 과자 봉지를 집어 무릎 위에 놓는다."
+      },
+      {
+        "who": "secret03",
+        "text": "앉을래? 바람도 들어와.",
+        "mood": "idle",
+        "cast": {
+          "secret03": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 빈자리를 한번 보고 손님 쪽으로 고개를 끄덕인다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "secret03.before": [
+      {
+        "who": "secret03",
+        "text": "이번엔 나도 해 보고 싶어.",
+        "mood": "happy",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secret03": {
+            "mood": "happy",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "좋아. 여기 앉아!",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님도 동시에 자기 옆 의자를 당긴다. 둘의 목소리가 겹친다."
+      },
+      {
+        "who": "secret03",
+        "text": "아, 나는 저쪽이지.",
+        "mood": "idle",
+        "cast": {
+          "secret03": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 웃으며 두 의자 사이를 지나 자기 자리에 앉는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "둘 다 옆에서 볼 생각부터 했네.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "secret03",
+        "text": "보고 있으면 하고 싶어져. 하다가도 또 보고 싶고.",
+        "mood": "idle",
+        "cast": {
+          "secret03": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님이 자리에서 필드를 한 번 살핀다."
+      },
+      {
+        "who": "secret03",
+        "text": "준비됐어?",
+        "mood": "idle",
+        "cast": {
+          "secret03": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 손을 얹자 손님도 웃으며 자기 손을 올린다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "offer"
+          }
+        }
+      }
+    ],
+    "secret03.win": [
+      {
+        "who": "secret03",
+        "text": "와, 졌다. 나도 아직 이어질 줄 알았는데.",
+        "mood": "idle",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secret03": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님이 자기 손을 펴 보더니 웃는다."
+      },
+      {
+        "who": "secret03",
+        "text": "집중하면 손에 힘 들어가는 것도 비슷하네.",
+        "mood": "happy",
+        "cast": {
+          "secret03": {
+            "mood": "happy",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 자기 손바닥을 내려다보고 같이 웃는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "간식도 가져가. 구경한 몫이랑 경기한 몫!",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 참가 메달을 건넨다. 손님이 목에 걸어 본다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "secret03",
+        "text": "이거 보여 주면 자기도 하고 싶다고 할 것 같아.",
+        "mood": "idle",
+        "cast": {
+          "secret03": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "친구도 같이 오면 되지. 아직 시간 있어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님은 간식 봉지를 접으며 고개를 끄덕인다."
+      }
+    ],
+    "secret03.lose": [
+      {
+        "who": "secret03",
+        "text": "한 번 더 할래? 나도 아까 생각한 게 있어.",
+        "mood": "idle",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secret03": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 손을 쥐었다가 펴고 고개를 끄덕인다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "그럼 나는 여기서 응원할게.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님이 옆의 빈 의자를 조금 당겨 하치와레 쪽으로 밀어 준다."
+      },
+      {
+        "text": "치이카와가 먼저 손을 올리고 손님을 기다린다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "offer"
+          }
+        }
+      }
+    ],
+    "secret04.appear": [
+      {
+        "text": "복도 끝에서 조용한 손님이 문틈을 살핀다. 가위 같은 귀가 기울어진다.",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secret04": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "대회는 이쪽이야. 거긴 길이 막혔나 봐.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님이 문을 닫더니 경기대까지 단숨에 걸어온다."
+      },
+      {
+        "text": "의자를 돌려 자기 쪽으로 당기는 동작에는 망설임이 없다."
+      },
+      {
+        "text": "치이카와가 한 걸음 비켜 주자 손님이 턱을 한번 든다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      }
+    ],
+    "secret04.before": [
+      {
+        "text": "손님이 경기대와 위층 계단을 차례로 가리킨다.",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secret04": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "우리랑 하고 올라가려고?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님은 대답 대신 앉아서 치이카와 쪽 자리를 손바닥으로 두드린다."
+      },
+      {
+        "who": "player",
+        "text": "응.",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 앉자 손님이 작은 봉지 하나를 꺼내 옆에 둔다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "그건 나중에 먹을 거야? 우리도 하나 남겨 놨어.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님이 입꼬리를 올리고 봉지의 접힌 끝을 단단히 누른다."
+      },
+      {
+        "text": "그다음에는 필드 쪽으로 손을 돌린다."
+      },
+      {
+        "who": "companion",
+        "text": "아, 경기는 지금. 응, 시작하자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      }
+    ],
+    "secret04.win": [
+      {
+        "text": "손님이 자기 봉지를 챙기고 벌떡 일어난다.",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secret04": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 참가 메달과 접은 안내문을 함께 건넨다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "손님은 메달을 목에 걸고 안내문을 펼친다. 손가락으로 빈 칸을 짚는다."
+      },
+      {
+        "who": "companion",
+        "text": "아직 안 한 친구가 있어? 같이 와도 돼.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님이 종이를 접자 치이카와가 복도 쪽으로 한 발 옮긴다."
+      },
+      {
+        "text": "손님이 팔을 펴서 앞을 가볍게 막는다. 치이카와가 멈춘다."
+      },
+      {
+        "text": "그는 밝은 계단을 가리키고 먼저 어두운 쪽 문을 닫는다."
+      },
+      {
+        "who": "companion",
+        "text": "……우린 위로 가라는 건가 봐.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "닫힌 문은 다시 움직이지 않는다. 치이카와가 계단 쪽으로 몸을 돌린다."
+      }
+    ],
+    "secret04.lose": [
+      {
+        "text": "손님이 봉지를 집었다가 치이카와의 손을 본다.",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secret04": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 그대로 경기대에 손을 올리고 기다린다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "offer"
+          }
+        }
+      },
+      {
+        "text": "손님이 짧게 웃는 표정을 짓더니 봉지를 다시 내려놓는다."
+      },
+      {
+        "who": "companion",
+        "text": "응, 아직 안 끝내고 싶대.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님이 치이카와 쪽을 한번 가리키고 다시 자세를 잡는다."
+      }
+    ],
+    "ceremony": [
+      {
+        "text": "시상대 앞에 친구들이 모인다. 우승컵 옆으로 작은 메달들이 펼쳐져 있다.",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "하치와레가 메달을 하나 골라 치이카와의 목에 걸어 준다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "가운데 서 봐. 끈이 돌아갔나?",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 자기 메달을 양손으로 바로잡는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응!",
+        "mood": "win",
+        "cast": {
+          "player": {
+            "mood": "win",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "응, 잘 보인다. 사진에도 꼭 나와야지.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "하치와레가 카메라를 낮은 상자 위에 올리고 바닥에 서 있을 자리를 표시한다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "불 깜빡이면 찍히는 거야. 나도 금방 갈게.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "하치와레가 뛰어들자 우사기가 바구니를 들고 옆으로 옮긴다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "첫 사진에는 바구니가 치이카와의 얼굴 절반을 가린다."
+      },
+      {
+        "who": "player",
+        "text": "앗…….",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "이건 간식 사진이네. 우리도 한번 나오자!",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "우사기가 바구니를 아래로 내린다. 치이카와가 손잡이 한쪽을 같이 잡는다."
+      },
+      {
+        "text": "카메라 불이 다시 깜빡인다. 오늘 함께한 참가자들이 나란히 선다."
+      },
+      {
+        "text": "찰칵. 치이카와가 화면 속 우승컵을 손끝으로 가리킨다.",
+        "visual": "photo"
+      },
+      {
+        "who": "companion",
+        "text": "이번엔 다 나왔다. 네 메달도!",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 우승컵을 식탁 옆에 놓고 친구에게 빈 접시를 건넨다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "고생했어. 이제 진짜 먹자.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      }
+    ],
+    "done": [
+      {
+        "text": "접힌 자루와 우승컵을 들고 친구들이 탑을 내려간다.",
+        "visual": "tower",
+        "stage": {
+          "quiet": false,
+          "transitionFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "하치와레가 간식 봉지 바닥을 내려다본다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "부스러기 남았어. 이거 그냥 먹으면…….",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 멈춰 서서 봉지를 같이 들여다본다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응!",
+        "mood": "happy",
+        "cast": {
+          "player": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "둘이 번갈아 손가락으로 작은 조각을 집는다."
+      },
+      {
+        "who": "companion",
+        "text": "이렇게 먹으니까 더 많이 먹는 기분이네.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "hop"
+          }
+        }
+      },
+      {
+        "text": "친구들이 부르는 소리에 두 사람이 봉지를 접고 나란히 따라간다."
+      }
+    ],
+    "secretFinal.invite": [
+      {
+        "text": "치우던 대진표 사이에서 접힌 종이가 떨어진다.",
+        "visual": "invitation",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secretFinal": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "작은 표시 다섯 개 아래에 이름 없는 한 칸이 그려져 있다."
+      },
+      {
+        "who": "companion",
+        "text": "아직 한 자리 비었네. 뒷면에도 이름은 없고.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 종이를 펴려고 손을 얹자 계단 끝에서 명찰 끈이 흔들린다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "손님 넷이 모여 있다. 네 사람의 목에 참가 메달이 걸려 있다."
+      },
+      {
+        "who": "companion",
+        "text": "다 같이 왔구나. 아직 안 한 친구는?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "한 손님이 안쪽을 가리킨다. 다른 손님은 함께 온 이들의 컵을 모아 든다."
+      },
+      {
+        "text": "하치와레가 종이의 빈 칸과 손님들이 가리킨 방향을 번갈아 본다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "거기서 기다려? 그럼 우리도 가 볼까?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 남겨 둔 과자 봉지와 카메라, 여분의 참가 메달을 챙긴다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응.",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "안내판 뒤의 문이 열린다. 네 손님이 먼저 길을 비켜 준다."
+      }
+    ],
+    "secretFinal.before": [
+      {
+        "text": "문 안쪽. 오래된 의자 네 개와 낮은 경기대가 있다.",
+        "visual": "inside",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42,
+          "phase": "gather"
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secretFinal": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "네 손님이 한쪽으로 비켜 선다. 리본을 단 작은 윤곽이 고개를 든다."
+      },
+      {
+        "text": "치이카와가 멈춘다. 맞은편에서도 올리던 손이 멈춘다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "recoil"
+          },
+          "secretFinal": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "……?",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "네가 기다리고 있었구나.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "상대가 고개를 끄덕이고 경기대를 한번 두드린다."
+      },
+      {
+        "text": "치이카와가 자기 명찰과 상대의 리본을 번갈아 본다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "하고 싶었어? 아직 괜찮아. 한 판 더 할 수 있지.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 스스로 의자를 당긴다. 상대의 고개도 조금 올라간다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응.",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "손님 하나가 다섯 컵을 옆 테이블에 놓고 끝의 컵을 상대 쪽으로 당긴다."
+      },
+      {
+        "who": "companion",
+        "text": "간식도 가져왔어. 끝나면 다 같이 먹자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 아껴 둔 봉지를 컵 옆에 놓는다. 상대가 그 봉지를 잠깐 바라본다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "text": "두 사람이 같은 순간에 필드 쪽으로 몸을 돌린다."
+      }
+    ],
+    "secretFinal.fever": [
+      {
+        "text": "작은 윤곽이 흔들린다. 가려져 있던 큰 몸이 드러나며 경기대 위를 덮는다.",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 48,
+          "phase": "unveil",
+          "hostForm": "large",
+          "duration": 120,
+          "pauseFrames": 40
+        },
+        "cast": {
+          "player": {
+            "mood": "sad",
+            "motion": "recoil"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secretFinal": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        },
+        "visual": "reveal"
+      },
+      {
+        "text": "치이카와가 움찔해 의자에서 내려온다.",
+        "cast": {
+          "player": {
+            "mood": "sad",
+            "motion": "recoil"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "앗……!",
+        "mood": "sad",
+        "cast": {
+          "player": {
+            "mood": "sad",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "상대도 움직임을 멈춘다. 객석의 넷은 의자를 뒤로 옮기고 기다린다.",
+        "stage": {
+          "phase": "wait",
+          "pauseFrames": 18,
+          "transitionFrames": 42
+        }
+      },
+      {
+        "who": "companion",
+        "text": "……리본은 그대로야.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 문 쪽을 본다. 길을 막는 손은 없다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "큰 손 하나가 경기대 끝에 놓인다. 손가락이 움츠러든 채 더 움직이지 않는다.",
+        "stage": {
+          "phase": "reach",
+          "pauseFrames": 24
+        }
+      },
+      {
+        "text": "치이카와의 시선이 그 손과 간식 봉지 사이를 오간다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "하치와레가 곁에 선다. 치이카와는 잠시 손을 쥐었다 편다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "approach"
+          },
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "……응.",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 다시 의자에 앉는다. 상대가 그제야 손을 원래 자리로 옮긴다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        },
+        "stage": {
+          "phase": "wait",
+          "pauseFrames": 0
+        }
+      },
+      {
+        "text": "남은 경기가 이어진다."
+      }
+    ],
+    "secretFinal.win": [
+      {
+        "text": "상대가 경기대에서 큰 손을 내린다. 변한 몸은 돌아오지 않는다.",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42,
+          "hostForm": "large",
+          "phase": "wait",
+          "pauseFrames": 20
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secretFinal": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        },
+        "visual": "inside"
+      },
+      {
+        "text": "치이카와가 자기 손을 내려다본다. 이번에는 먼저 몸을 편다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "끝까지 했네. 둘 다.",
+        "mood": "happy",
+        "cast": {
+          "companion": {
+            "mood": "happy",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 가져온 참가 메달을 꺼낸다. 두 손으로 받쳐 상대에게 다가간다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응.",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "내민 메달을 큰 손이 손끝으로 받친다. 치이카와가 가까이 놓아 준다.",
+        "stage": {
+          "medal": true,
+          "phase": "reach"
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "offer"
+          }
+        }
+      },
+      {
+        "text": "네 손님도 곁에 모여 자기 메달을 보여 준다."
+      },
+      {
+        "who": "companion",
+        "text": "사진도 찍을래? 다 같이.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "상대가 고개를 끄덕인다. 하치와레가 카메라를 의자 위에 올려놓는다."
+      },
+      {
+        "who": "companion",
+        "text": "조금 떨어뜨려 놓을게. 그래야 위까지 나와.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "켜진 불이 깜빡이자 하치와레도 치이카와 옆으로 달려온다."
+      },
+      {
+        "text": "네 손님이 큰 그림자 곁에 선다. 치이카와가 상대 쪽으로 손을 뻗는다.",
+        "visual": "photo",
+        "stage": {
+          "hostForm": "large",
+          "reach": true,
+          "quiet": true,
+          "pauseFrames": 0,
+          "transitionFrames": 42
+        }
+      },
+      {
+        "text": "찰칵. 사진 안에는 일곱이 모두 있다."
+      },
+      {
+        "text": "치이카와가 찍힌 사진을 가리키고, 그다음 문밖을 가리킨다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응!",
+        "mood": "happy",
+        "cast": {
+          "player": {
+            "mood": "happy",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "아래가 더 넓어. 저기서 같이 먹을까?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "큰 손이 문 쪽으로 움직인다. 치이카와도 손을 펴고 함께 걸어간다."
+      }
+    ],
+    "secretFinal.lose": [
+      {
+        "text": "상대가 경기대에서 손을 뗀다. 더 밀어붙이지 않고 기다린다.",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 42
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "secretFinal": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 한 번 눈을 감았다 뜨고, 자기 손을 편다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "조금 쉬었다가…….",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 의자를 당겨 다시 앉는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "approach"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "응.",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "……응. 그럼 한 번 더. 나도 옆에 있을게.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "맞은편에서도 치이카와가 준비된 걸 확인하고 자세를 고친다."
+      }
+    ],
+    "secretEnding": [
+      {
+        "text": "문턱에서 치이카와가 뒤를 돌아본다. 함께 움직이던 손은 아직 안쪽에 있다.",
+        "stage": {
+          "quiet": true,
+          "transitionFrames": 48,
+          "hostForm": "large",
+          "phase": "reach",
+          "pauseFrames": 24
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        },
+        "visual": "threshold"
+      },
+      {
+        "text": "치이카와가 멈추고 다시 손을 내민다. 손끝 사이에 작은 틈이 남는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "offer"
+          },
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "……여기선 같이 못 나오나?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "네 손님은 문 안에서 컵과 간식 봉지를 내려놓는다."
+      },
+      {
+        "text": "치이카와가 안쪽 테이블과 자기 빈손을 번갈아 본다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "아…….",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "그럼 접시 가져오자. 여기서 먹어도 되잖아.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 카메라를 들고 계단으로 향한다. 하치와레가 마지막으로 문을 돌아본다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "식탁에 돌아온 치이카와가 접시를 하나씩 고른다.",
+        "visual": "table",
+        "stage": {
+          "phase": "prepare",
+          "snacks": 0,
+          "quiet": true,
+          "pauseFrames": 18,
+          "transitionFrames": 48,
+          "layout": "caption"
+        }
+      },
+      {
+        "who": "companion",
+        "text": "다섯 개면 되지? 이쪽 건 깊어서…….",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "하치와레의 말이 멎는다. 치이카와가 접시 하나를 든 채 올려다본다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          },
+          "player": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "who": "companion",
+        "text": "우리가 어디로 가져가려던 거였지?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 계단을 본다. 아까 돌아본 문이 어느 쪽이었는지 떠오르지 않는다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "카메라 화면에 마지막 사진이 보인다. 손을 뻗은 치이카와 옆에 다섯 자리가 비어 있다.",
+        "visual": "memory",
+        "stage": {
+          "hostForm": "large",
+          "reach": true,
+          "fadeGuests": true,
+          "duration": 108,
+          "pauseFrames": 30,
+          "quiet": true,
+          "transitionFrames": 42
+        }
+      },
+      {
+        "who": "companion",
+        "text": "이렇게 떨어져서 섰었나……?",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "치이카와가 화면을 가까이 당긴다. 자기 손끝 너머에는 아무도 없다.",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        }
+      },
+      {
+        "text": "테이블에 놓인 명부를 펼친다. 다섯 이름은 읽히지 않고 승패의 동그라미만 남아 있다.",
+        "visual": "register",
+        "stage": {
+          "quiet": true,
+          "pauseFrames": 18,
+          "transitionFrames": 42
+        }
+      },
+      {
+        "text": "접힌 옛 사진이 명부 사이에서 떨어진다. 모르는 얼굴들 사이에도 빈자리가 있다.",
+        "visual": "oldPhoto",
+        "stage": {
+          "quiet": true,
+          "pauseFrames": 24,
+          "transitionFrames": 48
+        }
+      },
+      {
+        "text": "하치와레가 옛 사진과 카메라 화면을 번갈아 본다. 누구의 이름도 입에 올리지 못한다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "look"
+          }
+        }
+      },
+      {
+        "text": "남은 접시를 포개려는 친구의 손 위로 치이카와가 조용히 손을 올린다.",
+        "visual": "table",
+        "stage": {
+          "phase": "prepare",
+          "snacks": 0,
+          "quiet": true,
+          "pauseFrames": 18,
+          "transitionFrames": 48,
+          "layout": "caption"
+        },
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "offer"
+          }
+        }
+      },
+      {
+        "who": "player",
+        "text": "으응…….",
+        "mood": "idle",
+        "cast": {
+          "player": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "왜 남겨 두려는지 말하지 못한다. 대신 접시를 다시 나란히 놓는다."
+      },
+      {
+        "text": "하치와레가 여분의 과자 봉지를 연다. 치이카와가 다섯 접시에 하나씩 올린다.",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "still"
+          }
+        },
+        "stage": {
+          "snacks": 5,
+          "pauseFrames": 0
+        }
+      },
+      {
+        "who": "companion",
+        "text": "……여기 두자.",
+        "mood": "idle",
+        "cast": {
+          "companion": {
+            "mood": "idle",
+            "motion": "nod"
+          }
+        }
+      },
+      {
+        "text": "두 사람은 잠깐 빈자리를 본다. 다른 친구가 부르자 치이카와가 천천히 고개를 든다."
+      },
+      {
+        "text": "탑 안쪽. 넷이 둘러앉고 큰 몸은 그 곁에 웅크려 있다.",
+        "visual": "inside",
+        "stage": {
+          "hostForm": "large",
+          "phase": "alone",
+          "snacks": 5,
+          "medal": true,
+          "quiet": true,
+          "pauseFrames": 30,
+          "transitionFrames": 60,
+          "layout": "caption"
+        }
+      },
+      {
+        "text": "아껴 가져온 과자 봉지가 다섯 몫으로 나뉜다. 하나가 리본 아래 놓인다."
+      },
+      {
+        "text": "큰 손은 과자보다 먼저 메달을 만진다. 끈 끝에는 조금 전의 매듭이 남아 있다."
+      },
+      {
+        "text": "컵에서 더는 김이 나지 않는다. 문밖의 웃음소리가 멀어지고, 안쪽에는 아무 말도 없다."
+      },
+      {
+        "text": "식탁 위 다섯 접시에는 아무도 손대지 않은 과자가 남아 있다.",
+        "visual": "table",
+        "stage": {
+          "phase": "left",
+          "snacks": 5,
+          "quiet": true,
+          "pauseFrames": 48,
+          "transitionFrames": 72,
+          "layout": "caption"
+        }
+      }
+    ]
+  }
+}

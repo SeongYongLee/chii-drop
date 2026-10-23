@@ -36,7 +36,11 @@ test('업로드 검사는 루트 README만 허용하며 이미 추적된 하위 
   await writeFile(join(folder,'sounds/review/preview.html'),'Local sound review');
   assert.throws(check,(error)=>error.status===1 && error.stderr.includes('로컬 사운드 검토 페이지가 포함됨: sounds/review/preview.html'));
   await rm(join(folder,'sounds/review/preview.html'));
+  await mkdir(join(folder,'skins/chiikawa/pages-runtime'),{recursive:true});
+  await writeFile(join(folder,'skins/chiikawa/pages-runtime/manifest.json'),JSON.stringify({characters:[{id:'actor',name:'Actor'}]}));
+  await writeFile(join(folder,'skins/chiikawa/story.json'),JSON.stringify({characters:{actor:{charId:'actor'}},scenes:{opening:[]}}));
+  assert.match(check(),/검사 통과/);
   await writeFile(join(folder,'story.json'),JSON.stringify(privateScript));
   execFileSync(git,['add','story.json'],options);
-  assert.throws(check,(error)=>error.status===1 && error.stderr.includes('로컬 전용 스토리 대본이 포함됨: story.json'));
+  assert.throws(check,(error)=>error.status===1 && error.stderr.includes('허용 경로 밖의 스토리 대본이 포함됨: story.json'));
 });
