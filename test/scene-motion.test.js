@@ -93,3 +93,13 @@ test('모바일 일시정지 항목은 직접 눌러 재개·재시작·나가�
   }
   assert.equal(quit,1);
 });
+
+test('로컬 대전의 일시정지 나가기는 멀티플레이로 돌아간다',t=>{
+  const h=harness(t);let quit=0;
+  h.app.goToMultiplayer=()=>quit++;
+  h.app.goToSinglePlayer=()=>assert.fail('로컬 대전은 싱글 메뉴로 돌아가지 않는다');
+  const scene=createGameScene({mode:'versus',characters:[{id:'actor-0',name:'1P'},{id:'actor-1',name:'2P'}]});
+  h.app.keyboard.pressed=new Set(['Escape']);scene.update(h.app);h.app.keyboard.pressed.clear();
+  const exit=scene.touchItems(h.app)[2];
+  assert.equal(exit.label,'멀티플레이로');exit.activate();assert.equal(quit,1);
+});

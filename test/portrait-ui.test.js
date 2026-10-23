@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createTitleScene, createMainMenu, createSinglePlayerMenu } from '../src/app/menu-scenes.js';
+import { createTitleScene, createMainMenu, createSinglePlayerMenu, createMultiplayerMenu } from '../src/app/menu-scenes.js';
 import { createGameScene } from '../src/app/game-scene.js';
 import { createKeyboard } from '../src/input/keyboard.js';
 import { MOCK_SKIN } from './fixtures/presentation.js';
@@ -21,7 +21,7 @@ function harness(height=1300){
 test('세로 타이틀·메인·싱글·설정·기록은 큰 캐릭터와 직접 선택 항목을 사용한다',()=>{
   for(const height of [700,1300,1900]){
     const h=harness(height),main=createMainMenu();
-    for(const scene of [createTitleScene(),main,createSinglePlayerMenu()]){scene.draw(h.ctx,h.app);h.check()}
+    for(const scene of [createTitleScene(),main,createSinglePlayerMenu(),createMultiplayerMenu()]){scene.draw(h.ctx,h.app);h.check()}
     for(const label of ['설정','기록']){
       main.touchItems(h.app).find(item=>item.label===label).activate();h.app.scene.draw(h.ctx,h.app);h.check();
     }

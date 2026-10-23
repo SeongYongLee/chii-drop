@@ -50,6 +50,33 @@
         </div>
       </div>
     </section>
-    <script type="module" src="src/app/main.js"></script>
+    <script>
+      // HTML만 새 버전이고 하위 모듈·CSS가 이전 캐시에 남는 배포 전환을 막는다.
+      (async () => {
+        try {
+          const response = await fetch('version.json', { cache: 'no-store', signal: AbortSignal.timeout(15000) });
+          if (!response.ok) throw new Error(`Version HTTP ${response.status}`);
+          const info = await response.json();
+          if (!Array.isArray(info.modules) || !info.modules.includes('src/app/main.js')) throw new Error('Module list missing');
+          const version = info.commit || info.version;
+          const imports = {};
+          for (const path of info.modules) {
+            if (!/^src\/[\w/-]+\.js$/.test(path)) throw new Error('Invalid module path');
+            const url = new URL(path, document.baseURI);
+            imports[url.href] = `${url.href}?v=${encodeURIComponent(version)}`;
+          }
+          const map = document.createElement('script');
+          map.type = 'importmap'; map.textContent = JSON.stringify({ imports });
+          document.head.append(map);
+          document.querySelector('link[rel="stylesheet"]').href = `style.css?v=${encodeURIComponent(version)}`;
+          await import(imports[new URL('src/app/main.js', document.baseURI).href]);
+        } catch (error) {
+          console.error('Game startup failed', error);
+          document.querySelector('[data-loading-stage]').textContent = '게임을 시작하지 못했습니다';
+          document.querySelector('[data-loading-percent]').textContent = '새로고침해 주세요';
+          document.querySelector('[data-loading-detail]').textContent = '연결 상태를 확인한 뒤 다시 시도해 주세요.';
+        }
+      })();
+    </script>
   </body>
 </html>

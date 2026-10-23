@@ -273,6 +273,15 @@ body {
 @media (max-width: 760px) and (orientation: portrait) {
   body { justify-content: flex-start; gap: 8px; }
   .stage { flex: 1; min-height: 0; width: min(100%, 580px); aspect-ratio: auto; }
+  body[data-game-screen="false"] .stage {
+    flex: none; height: clamp(220px, 40dvh, 360px);
+  }
+  body[data-game-screen="false"] .mobile-controls {
+    display: flex; flex-direction: column; flex: 1; min-height: 0;
+  }
+  body[data-game-screen="false"] .mobile-controls > p,
+  body[data-game-screen="false"] .mobile-pad { flex: none; }
+  body[data-game-screen="false"] .mobile-items { flex: 0 1 auto; min-height: 0; }
   #screen { --portrait-game: 1; }
   .mobile-controls { width: min(100%, 580px); }
   .mobile-controls > p { font-size: 13px; margin-bottom: 8px; }

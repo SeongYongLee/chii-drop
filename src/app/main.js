@@ -12,7 +12,7 @@ import { SKIN_DIR, STORY_DIR, loadSkin } from '../view/skins/index.js';
 import { skinImageFiles } from '../view/skins/image-skin.js';
 import { drawFestivalBackground } from '../view/festival.js';
 
-import { createMainMenu, createSinglePlayerMenu, createTitleScene } from './menu-scenes.js';
+import { createMainMenu, createSinglePlayerMenu, createMultiplayerMenu, createTitleScene } from './menu-scenes.js';
 import { SCREEN_HEIGHT, SCREEN_WIDTH, screenHeight, setupScreen } from './screen.js';
 import { loadRecords, loadSettings } from './storage.js';
 import { MODES } from './modes.js';
@@ -62,6 +62,10 @@ const app = {
   goToSinglePlayer() {
     app.singlePlayerMenu ??= createSinglePlayerMenu();
     app.setScene(app.singlePlayerMenu);
+  },
+  goToMultiplayer() {
+    app.multiplayerMenu ??= createMultiplayerMenu();
+    app.setScene(app.multiplayerMenu);
   },
   applySettings() {
     setSfxOptions(app.sfx, { enabled: app.settings.sfx, volume: app.settings.volume / 10 });

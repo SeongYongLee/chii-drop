@@ -316,6 +316,7 @@ function createCharacterSelect({ mode, cpuLevel }) {
               confirmed[p] = false;
             } else if (!confirmed.some(Boolean)) {
               if (mode === 'cpu') app.setScene(createCpuLevelMenu());
+              else if (mode === 'versus') app.goToMultiplayer();
               else app.goToSinglePlayer();
               return;
             }
@@ -486,12 +487,23 @@ function createStoryMenu(app) {
 
 function createSinglePlayerMenu() {
   return createListMenu({
-    title: '싱글 모드',
+    title: '싱글플레이',
     items: (app) => [
       { label: MODES.story ? '스토리' : '스토리 · 준비 중', disabled: !MODES.story, select: () => app.setScene(createStoryMenu(app)) },
       { label: 'CPU 대전', select: () => app.setScene(createCpuLevelMenu()) },
-      { label: '로컬 대전', select: () => app.setScene(createCharacterSelect({ mode: 'versus' })) },
       { label: '연습', select: () => app.setScene(createCharacterSelect({ mode: 'solo' })) },
+    ],
+    onBack: (app) => app.goToMenu(),
+  });
+}
+
+function createMultiplayerMenu() {
+  return createListMenu({
+    title: '멀티플레이',
+    items: (app) => [
+      { label: '로컬 대전', select: () => app.setScene(createCharacterSelect({ mode: 'versus' })) },
+      { label: MODES.online ? '온라인 대전' : '온라인 대전 · 준비 중', disabled: !MODES.online,
+        select: () => window.location.assign('online.html') },
     ],
     onBack: (app) => app.goToMenu(),
   });
@@ -504,8 +516,8 @@ function createMainMenu() {
     notice: (app) => [app.skin.branding?.fanNotice, app.versionLabel].filter(Boolean).join('\n'),
     footer: '↑↓ 선택 · Enter 결정 · Esc 타이틀',
     items: (app) => [
-      { label: '싱글 모드', select: () => app.goToSinglePlayer() },
-      { label: MODES.online ? '온라인 모드' : '온라인 모드 · 준비 중', disabled: !MODES.online, select: () => window.location.assign('online.html') },
+      { label: '싱글플레이', select: () => app.goToSinglePlayer() },
+      { label: '멀티플레이', select: () => app.goToMultiplayer() },
       { label: '설정', select: () => app.setScene(createSettingsMenu()) },
       { label: '기록', select: () => app.setScene(createRecordsMenu()) },
       { label: '게임 방법', select: () => {
@@ -517,4 +529,4 @@ function createMainMenu() {
   });
 }
 
-export { createMainMenu, createSinglePlayerMenu, createTitleScene };
+export { createMainMenu, createSinglePlayerMenu, createMultiplayerMenu, createTitleScene };

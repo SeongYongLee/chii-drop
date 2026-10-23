@@ -1,7 +1,7 @@
 import { MOCK_SKIN, MOCK_SCRIPT } from './fixtures/presentation.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createMainMenu, createSinglePlayerMenu } from '../src/app/menu-scenes.js';
+import { createMainMenu, createSinglePlayerMenu, createMultiplayerMenu } from '../src/app/menu-scenes.js';
 import { DEFAULT_SETTINGS } from '../src/app/storage.js';
 import { createKeyboard } from '../src/input/keyboard.js';
 
@@ -14,9 +14,10 @@ function harness() {
     controlsGuidesSeen: new Set(['solo:keyboard', 'versus:keyboard']),
     keyboard: createKeyboard(), sfx: { enabled: false }, skin: { ...MOCK_SKIN, drawBackground() {}, drawCharacter: (_, id, mood, x, y, size, motion) => figures.push({ id, x, y, size, motion }) },
     settings: { ...DEFAULT_SETTINGS }, applySettings() {}, storyScript: MOCK_SCRIPT,
-    single: createSinglePlayerMenu(), main: createMainMenu(),
+    single: createSinglePlayerMenu(), multi: createMultiplayerMenu(), main: createMainMenu(),
     setScene(scene, ui) { this.scene = scene; this.lastUi = ui; },
     goToSinglePlayer() { this.scene = this.single; },
+    goToMultiplayer() { this.scene = this.multi; },
     goToMenu() { this.scene = this.main; },
   };
   app.scene = app.main;
@@ -42,25 +43,31 @@ test('모바일의 큰 항목 버튼과 화면 터치로 메뉴·캐릭터 선�
   assert.equal(h.app.scene.touchMode(), 'game');
 });
 
-test('스토리·온라인은 준비 중으로 표시하고 커서는 실행 가능한 모드만 고른다', () => {
+test('싱글·멀티를 나누고 로컬·온라인은 멀티에서 선택하며 뒤로 돌아간다', () => {
   const h = harness();
-  assert.ok(h.labels().includes('온라인 모드 · 준비 중'));
+  assert.deepEqual(h.app.main.touchItems(h.app).slice(0, 2).map(item => item.label), ['싱글플레이', '멀티플레이']);
+  assert.ok(!h.app.single.touchItems(h.app).some(item => item.label === '로컬 대전'));
   h.press('ArrowDown'); h.press('Enter');
-  assert.ok(h.labels().includes('설정')); // 비활성 온라인 항목을 건너뛴다.
-  h.press('Escape'); h.press('ArrowUp'); h.press('Enter');
+  assert.equal(h.app.scene, h.app.multi);
+  assert.ok(h.labels().includes('온라인 대전 · 준비 중'));
+  h.press('ArrowDown'); h.press('Enter'); // 준비 중인 온라인을 건너뛰고 로컬 선택
+  assert.ok(h.labels().includes('캐릭터 선택'));
+  h.press('KeyF'); assert.equal(h.app.scene, h.app.multi);
+  h.press('Escape'); assert.equal(h.app.scene, h.app.main);
+  h.press('ArrowUp'); h.press('Enter');
   assert.ok(h.labels().includes('스토리 · 준비 중'));
   const single = h.app.scene;
   h.press('ArrowUp'); h.press('Enter');
-  assert.ok(h.labels().includes('캐릭터 선택')); // 위로 돌면 연습을 선택한다.
+  assert.ok(h.labels().includes('캐릭터 선택'));
   h.press('Escape'); assert.equal(h.app.scene, single);
-  h.press('ArrowDown'); h.press('Enter'); // 스토리를 건너뛰어 CPU로 돌아온다.
+  h.press('ArrowDown'); h.press('Enter');
   assert.ok(h.labels().includes('CPU 대전 · 난이도 선택'));
   h.press('Escape'); h.press('Escape'); assert.equal(h.app.scene, h.app.main);
 });
 
 test('설정에서 목소리 미리듣기는 제거하고 목소리·착지 위치 설정은 유지한다', () => {
   const h = harness();
-  h.press('ArrowDown'); h.press('Enter');
+  h.press('ArrowDown'); h.press('ArrowDown'); h.press('Enter');
   assert.ok(h.labels().includes('설정'));
   assert.ok(!h.labels().some(label => label.includes('미리듣기') || label.includes('스킨')));
   assert.ok(h.labels().some(label => label.includes('목소리')));
@@ -79,14 +86,12 @@ test('CPU 난이도·캐릭터 선택과 로컬·연습 선택의 취소 경로�
   assert.ok(h.labels().includes('CPU 대전 · 난이도 선택'));
   h.press('Escape');
   assert.equal(h.app.scene, h.app.single);
-  h.press('ArrowDown');
-  h.press('Enter');
-  h.press('KeyF');
-  assert.equal(h.app.scene, h.app.single);
-  h.press('ArrowDown');
-  h.press('Enter');
+  h.press('ArrowDown'); h.press('Enter');
+  h.press('Escape'); assert.equal(h.app.scene, h.app.single);
   h.press('Escape');
-  assert.equal(h.app.scene, h.app.single);
+  h.app.main.touchItems(h.app)[1].activate();
+  h.press('Enter'); h.press('KeyF');
+  assert.equal(h.app.scene, h.app.multi);
 });
 
 
@@ -131,7 +136,7 @@ test('CPU 캐릭터 결정 연출을 0.6초 보여준 뒤 경기 준비를 시�
 
 test('로컬 대전의 결정 도장은 플레이어별로 표시되고 취소하면 사라진다', () => {
   const h = harness();
-  h.press('Enter'); h.press('ArrowDown'); h.press('Enter');
+  h.press('ArrowDown'); h.press('Enter'); h.press('Enter');
   const selection = h.app.scene;
   h.press('KeyG');
   assert.equal(h.app.scene, selection);

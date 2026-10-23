@@ -13,7 +13,18 @@ import { drawPauseMenu } from '../view/pause-menu.js';
 import { GO_FRAMES, createSession, sessionPlayers, stepSession } from './session.js';
 import { saveRecords } from './storage.js';
 
-const PAUSE_ITEMS = ['계속하기', '다시 시작', '싱글 모드로'];
+const PAUSE_ITEMS = ['계속하기', '다시 시작', '싱글플레이로'];
+function returnMenuLabel(scene) {
+  return scene.options.mode === 'versus' ? '멀티플레이' : '싱글플레이';
+}
+function pauseItems(scene) {
+  return [PAUSE_ITEMS[0], PAUSE_ITEMS[1], `${returnMenuLabel(scene)}로`];
+}
+function returnToModeMenu(app, scene) {
+  if (scene.options.onQuit) scene.options.onQuit(app);
+  else if (scene.options.mode === 'versus') app.goToMultiplayer();
+  else app.goToSinglePlayer();
+}
 // 경기 중 회전 키와 겹치지 않게 결과 화면은 Enter·Esc만 받는다.
 const RESULT_KEYS = { confirm: ['Enter', 'Space'], back: ['Escape', 'Backspace'] };
 const RESULT_INPUT_DELAY = 40;
@@ -122,8 +133,7 @@ function selectPauseItem(app, scene, index) {
   playSfx(app.sfx, 'confirm');
   if (index === 0) scene.paused = false;
   else if (index === 1) startRound(scene);
-  else if (scene.options.onQuit) scene.options.onQuit(app);
-  else app.goToSinglePlayer();
+  else returnToModeMenu(app, scene);
 }
 
 function updateGame(app, scene) {
@@ -151,7 +161,7 @@ function updateGame(app, scene) {
       startRound(scene);
     } else if (wasPressed(keyboard, RESULT_KEYS.back)) {
       playSfx(app.sfx, 'cancel');
-      app.goToSinglePlayer();
+      returnToModeMenu(app, scene);
     }
     return;
   }
@@ -231,18 +241,18 @@ function resultText(scene) {
     const { won, score } = storyResult(scene);
     return won
       ? ['승리!', `점수 ${score}\nEnter 계속`]
-      : ['패배…', 'Enter 다시 도전 · Esc 싱글 모드로 (진행 저장됨)'];
+      : ['패배…', 'Enter 다시 도전 · Esc 싱글플레이로 (진행 저장됨)'];
   }
   if (session.mode === 'solo') {
     const { score, maxChain } = session.match.players[0];
-    return ['게임 오버', `점수 ${score} · 최대 ${maxChain}연쇄\nEnter 다시 하기 · Esc 싱글 모드`];
+    return ['게임 오버', `점수 ${score} · 최대 ${maxChain}연쇄\nEnter 다시 하기 · Esc ${returnMenuLabel(scene)}`];
   }
   const { winner } = session.match;
   const names = options.characters.map((c) => c.name);
   const setWon = winner >= 0 && tally[winner] >= SET_WINS;
   const title = winner === -1 ? '무승부' : setWon ? `${names[winner]} 세트 승리!` : `${names[winner]} 승리!`;
   const level = session.mode === 'cpu' ? ` (CPU ${LEVEL_LABELS[options.cpuLevel]})` : '';
-  return [title, `${tally[0]} : ${tally[1]}${level}\nEnter 다시 하기 · Esc 싱글 모드`];
+  return [title, `${tally[0]} : ${tally[1]}${level}\nEnter 다시 하기 · Esc ${returnMenuLabel(scene)}`];
 }
 
 function drawGameScene(ctx, app, scene) {
@@ -267,7 +277,7 @@ function drawGameScene(ctx, app, scene) {
   });
 
   if (scene.paused) {
-    if(!app.mobile?.visible)drawPauseMenu(ctx, PAUSE_ITEMS, scene.pauseIndex);
+    if(!app.mobile?.visible)drawPauseMenu(ctx, pauseItems(scene), scene.pauseIndex);
   } else if (session.phase === 'ready') {
     drawBanner(ctx, session.readyTimer > GO_FRAMES ? '준비' : '시작!');
   } else if (scene.reviveTimer > 0) {
@@ -299,13 +309,13 @@ function createGameScene(options) {
     touchGame: () => !scene.reviveDialogue,
     touchPaused: () => scene.paused,
     touchDirect: () => scene.paused,
-    touchItems: (app) => scene.paused ? PAUSE_ITEMS.map((label, index) => ({
+    touchItems: (app) => scene.paused ? pauseItems(scene).map((label, index) => ({
       label, selected:scene.pauseIndex === index, activate:() => selectPauseItem(app,scene,index),
     })) : [],
     touchMode: () => scene.reviveDialogue || scene.paused || scene.session.phase === 'result' ? 'menu' : 'game',
     touchLocal: () => options.mode === 'versus' && !scene.reviveDialogue && !scene.paused && scene.session.phase !== 'result',
-    touchLabel: () => scene.paused ? `일시정지 · ${PAUSE_ITEMS[scene.pauseIndex]}`
-      : scene.session.phase === 'result' ? '결정: 다시 하기 · 뒤로: 싱글 모드'
+    touchLabel: () => scene.paused ? `일시정지 · ${pauseItems(scene)[scene.pauseIndex]}`
+      : scene.session.phase === 'result' ? `결정: 다시 하기 · 뒤로: ${returnMenuLabel(scene)}`
       : '이동 · 빠르게 내리기 · 회전',
     tap(app, { x, y }, viewport) {
       if (!scene.paused) return false;

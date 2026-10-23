@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -11,5 +11,11 @@ export function buildInfo(root = resolve(dirname(fileURLToPath(import.meta.url))
     commit = execFileSync(git, ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8', stdio: ['ignore','pipe','ignore'] }).trim();
     dirty = Boolean(execFileSync(git, ['status', '--porcelain', '--untracked-files=normal'], { cwd: root, encoding: 'utf8', stdio: ['ignore','pipe','ignore'] }).trim());
   } catch { /* Git 없는 소스 패키지에서는 버전만 표시한다. */ }
-  return { version, commit, dirty };
+  function modulesAt(path = 'src') {
+    return readdirSync(resolve(root, path), { withFileTypes: true }).flatMap(entry => {
+      const file = `${path}/${entry.name}`;
+      return entry.isDirectory() ? modulesAt(file) : entry.isFile() && file.endsWith('.js') ? [file] : [];
+    }).sort();
+  }
+  return { version, commit, dirty, modules: modulesAt() };
 }
