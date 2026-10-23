@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-23",
+  "targetLufs": -36,
+  "reference": "Before the shared user volume; SFX and voice gains are unchanged.",
+  "method": "FFmpeg loudnorm input measurements; static linear gain only, no audio re-encoding or dynamic compression.",
+  "tool": "ffmpeg version 7.1 Copyright (c) 2000-2024 the FFmpeg developers",
+  "tracks": [
+    {
+      "file": "sounds/temporary-bgm-v1/main3.mp3",
+      "sha256": "3dbda8f0a9156360b7f06b976b18599f81a01964e94050d3b70ed8b3770d16e1",
+      "inputLufs": -19.35,
+      "truePeakDb": -4.42,
+      "loudnessRangeLu": 4.9,
+      "previousGain": 0.55,
+      "gain": 0.147062,
+      "effectiveLufs": -36,
+      "effectiveTruePeakDb": -21.07
+    },
+    {
+      "file": "sounds/temporary-bgm-v1/main2.mp3",
+      "sha256": "55b21db57d6fb6390b232c2e14497288c71df9d4df46ce86bdf52ed708656cc9",
+      "inputLufs": -19.22,
+      "truePeakDb": -4.45,
+      "loudnessRangeLu": 6.7,
+      "previousGain": 0.55,
+      "gain": 0.144877,
+      "effectiveLufs": -36,
+      "effectiveTruePeakDb": -21.23
+    },
+    {
+      "file": "sounds/temporary-bgm-v1/main.mp3",
+      "sha256": "731f68ea4f0124f8118c09ac33c57183f87f2aba1735b32e3500924fd790b126",
+      "inputLufs": -19.51,
+      "truePeakDb": -2.04,
+      "loudnessRangeLu": 7.6,
+      "previousGain": 0.55,
+      "gain": 0.149796,
+      "effectiveLufs": -36,
+      "effectiveTruePeakDb": -18.53
+    },
+    {
+      "file": "sounds/temporary-bgm-v1/battle1.mp3",
+      "sha256": "696fb351a95dbcb04cbaf447e45df53dd4e2f3da4463177c369d8d43be985e7d",
+      "inputLufs": -19.46,
+      "truePeakDb": -1.55,
+      "loudnessRangeLu": 7,
+      "previousGain": 0.55,
+      "gain": 0.148936,
+      "effectiveLufs": -36,
+      "effectiveTruePeakDb": -18.09
+    },
+    {
+      "file": "sounds/temporary-bgm-v1/bgm-battle-01.mp3",
+      "sha256": "9965c51831a48a57efa5de7fd5804f413b11a9eb70151f9be002138b079f3d7f",
+      "inputLufs": -19.69,
+      "truePeakDb": -3.84,
+      "loudnessRangeLu": 6,
+      "previousGain": 0.55,
+      "gain": 0.152933,
+      "effectiveLufs": -36,
+      "effectiveTruePeakDb": -20.15
+    }
+  ]
+}

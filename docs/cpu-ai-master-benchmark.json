@@ -1,0 +1,379 @@
+{
+  "date": "2026-10-23",
+  "method": {
+    "solo": "12 seeds x 120 pieces, no opponent",
+    "duel": "24 seeds, alternating sides, 30000 frame limit",
+    "timing": "Development machine, concurrent benchmark load; includes scheduling/GC outliers, not a frame-time guarantee"
+  },
+  "expert": {
+    "level": "expert",
+    "seeds": 12,
+    "pieces": 120,
+    "averageMaxChain": 5.916666666666667,
+    "maxChain": 7,
+    "survived": 12,
+    "histogram": {
+      "1": 3,
+      "2": 2,
+      "3": 13,
+      "4": 6,
+      "5": 67,
+      "6": 16,
+      "7": 3
+    },
+    "planMs": {
+      "median": 0.3417079999999828,
+      "p95": 1.3420830000000024,
+      "max": 4.102999999999952
+    },
+    "runs": [
+      {
+        "seed": 1,
+        "locks": 120,
+        "maxChain": 6,
+        "lost": false,
+        "score": 63575
+      },
+      {
+        "seed": 2,
+        "locks": 120,
+        "maxChain": 5,
+        "lost": false,
+        "score": 63279
+      },
+      {
+        "seed": 3,
+        "locks": 120,
+        "maxChain": 6,
+        "lost": false,
+        "score": 59562
+      },
+      {
+        "seed": 4,
+        "locks": 120,
+        "maxChain": 6,
+        "lost": false,
+        "score": 64729
+      },
+      {
+        "seed": 5,
+        "locks": 120,
+        "maxChain": 6,
+        "lost": false,
+        "score": 52804
+      },
+      {
+        "seed": 6,
+        "locks": 120,
+        "maxChain": 7,
+        "lost": false,
+        "score": 77251
+      },
+      {
+        "seed": 7,
+        "locks": 120,
+        "maxChain": 6,
+        "lost": false,
+        "score": 60846
+      },
+      {
+        "seed": 8,
+        "locks": 120,
+        "maxChain": 5,
+        "lost": false,
+        "score": 61729
+      },
+      {
+        "seed": 9,
+        "locks": 120,
+        "maxChain": 7,
+        "lost": false,
+        "score": 63957
+      },
+      {
+        "seed": 10,
+        "locks": 120,
+        "maxChain": 6,
+        "lost": false,
+        "score": 64966
+      },
+      {
+        "seed": 11,
+        "locks": 120,
+        "maxChain": 5,
+        "lost": false,
+        "score": 58311
+      },
+      {
+        "seed": 12,
+        "locks": 120,
+        "maxChain": 6,
+        "lost": false,
+        "score": 59129
+      }
+    ]
+  },
+  "master": {
+    "level": "master",
+    "seeds": 12,
+    "pieces": 120,
+    "averageMaxChain": 6.916666666666667,
+    "maxChain": 8,
+    "survived": 12,
+    "histogram": {
+      "1": 6,
+      "2": 3,
+      "3": 9,
+      "4": 25,
+      "5": 25,
+      "6": 26,
+      "7": 11,
+      "8": 2
+    },
+    "planMs": {
+      "median": 0.3140840000000935,
+      "p95": 2.386000000000422,
+      "max": 110.324792
+    },
+    "runs": [
+      {
+        "seed": 1,
+        "locks": 120,
+        "maxChain": 7,
+        "lost": false,
+        "score": 72380
+      },
+      {
+        "seed": 2,
+        "locks": 120,
+        "maxChain": 8,
+        "lost": false,
+        "score": 74371
+      },
+      {
+        "seed": 3,
+        "locks": 120,
+        "maxChain": 6,
+        "lost": false,
+        "score": 56078
+      },
+      {
+        "seed": 4,
+        "locks": 120,
+        "maxChain": 7,
+        "lost": false,
+        "score": 73855
+      },
+      {
+        "seed": 5,
+        "locks": 120,
+        "maxChain": 8,
+        "lost": false,
+        "score": 78865
+      },
+      {
+        "seed": 6,
+        "locks": 120,
+        "maxChain": 7,
+        "lost": false,
+        "score": 91394
+      },
+      {
+        "seed": 7,
+        "locks": 120,
+        "maxChain": 7,
+        "lost": false,
+        "score": 73919
+      },
+      {
+        "seed": 8,
+        "locks": 120,
+        "maxChain": 6,
+        "lost": false,
+        "score": 58326
+      },
+      {
+        "seed": 9,
+        "locks": 120,
+        "maxChain": 7,
+        "lost": false,
+        "score": 60231
+      },
+      {
+        "seed": 10,
+        "locks": 120,
+        "maxChain": 7,
+        "lost": false,
+        "score": 67285
+      },
+      {
+        "seed": 11,
+        "locks": 120,
+        "maxChain": 6,
+        "lost": false,
+        "score": 52884
+      },
+      {
+        "seed": 12,
+        "locks": 120,
+        "maxChain": 7,
+        "lost": false,
+        "score": 64566
+      }
+    ]
+  },
+  "duel": {
+    "level": "master",
+    "opponent": "expert",
+    "seeds": 24,
+    "wins": 14,
+    "losses": 10,
+    "draws": 0,
+    "runs": [
+      {
+        "seed": 1,
+        "side": 1,
+        "winner": 1,
+        "frame": 2533
+      },
+      {
+        "seed": 2,
+        "side": 0,
+        "winner": 1,
+        "frame": 3383
+      },
+      {
+        "seed": 3,
+        "side": 1,
+        "winner": 0,
+        "frame": 4208
+      },
+      {
+        "seed": 4,
+        "side": 0,
+        "winner": 0,
+        "frame": 2046
+      },
+      {
+        "seed": 5,
+        "side": 1,
+        "winner": 1,
+        "frame": 3342
+      },
+      {
+        "seed": 6,
+        "side": 0,
+        "winner": 0,
+        "frame": 2103
+      },
+      {
+        "seed": 7,
+        "side": 1,
+        "winner": 1,
+        "frame": 3478
+      },
+      {
+        "seed": 8,
+        "side": 0,
+        "winner": 1,
+        "frame": 4224
+      },
+      {
+        "seed": 9,
+        "side": 1,
+        "winner": 0,
+        "frame": 3149
+      },
+      {
+        "seed": 10,
+        "side": 0,
+        "winner": 1,
+        "frame": 1956
+      },
+      {
+        "seed": 11,
+        "side": 1,
+        "winner": 1,
+        "frame": 2119
+      },
+      {
+        "seed": 12,
+        "side": 0,
+        "winner": 0,
+        "frame": 1756
+      },
+      {
+        "seed": 13,
+        "side": 1,
+        "winner": 0,
+        "frame": 3382
+      },
+      {
+        "seed": 14,
+        "side": 0,
+        "winner": 0,
+        "frame": 1927
+      },
+      {
+        "seed": 15,
+        "side": 1,
+        "winner": 1,
+        "frame": 1586
+      },
+      {
+        "seed": 16,
+        "side": 0,
+        "winner": 1,
+        "frame": 2209
+      },
+      {
+        "seed": 17,
+        "side": 1,
+        "winner": 0,
+        "frame": 3968
+      },
+      {
+        "seed": 18,
+        "side": 0,
+        "winner": 0,
+        "frame": 2876
+      },
+      {
+        "seed": 19,
+        "side": 1,
+        "winner": 1,
+        "frame": 2717
+      },
+      {
+        "seed": 20,
+        "side": 0,
+        "winner": 0,
+        "frame": 1765
+      },
+      {
+        "seed": 21,
+        "side": 1,
+        "winner": 1,
+        "frame": 2022
+      },
+      {
+        "seed": 22,
+        "side": 0,
+        "winner": 1,
+        "frame": 5052
+      },
+      {
+        "seed": 23,
+        "side": 1,
+        "winner": 1,
+        "frame": 1496
+      },
+      {
+        "seed": 24,
+        "side": 0,
+        "winner": 1,
+        "frame": 3175
+      }
+    ]
+  }
+}

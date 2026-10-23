@@ -1,0 +1,22 @@
+{
+  "name": "chii-drop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server/index.js",
+    "test": "node --test test/*.test.js",
+    "online": "node server/index.js",
+    "check:git": "node scripts/check-git-ready.mjs",
+    "prepare:source": "node scripts/prepare-source.mjs",
+    "prepare:pages-assets": "node scripts/prepare-pages-assets.mjs",
+    "build:pages": "node scripts/build-pages.mjs",
+    "preview:pages": "node scripts/preview-pages.mjs"
+  },
+  "dependencies": {
+    "ws": "^8.22.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

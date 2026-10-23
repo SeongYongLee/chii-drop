@@ -1,0 +1,384 @@
+{
+  "id": "foley-play-v1",
+  "date": "2026-10-22",
+  "sampleRate": 44100,
+  "method": "CC0 recording crops, filtering, layering and fades; no AI audio generation or pitch shifting",
+  "sources": [
+    {
+      "file": "impactWood_light_001.ogg",
+      "creator": "Kenney",
+      "title": "Impact Sounds 1.0 / impactWood_light_001.ogg",
+      "license": "CC0-1.0",
+      "page": "https://kenney.nl/assets/impact-sounds",
+      "download": "https://kenney.nl/media/pages/assets/impact-sounds/87b4ddecda-1677589768/kenney_impact-sounds.zip",
+      "quality": "OGG from official pack",
+      "sha256": "4b76bf3ccc8e60d19188f3165b778a7817786faa6887c55d9049bcbeef3b425f"
+    },
+    {
+      "file": "jacket-whoosh.mp3",
+      "creator": "Nox_Sound",
+      "title": "Foley_Whoosh_Clothes.wav",
+      "license": "CC0-1.0",
+      "page": "https://freesound.org/people/Nox_Sound/sounds/495390/",
+      "download": "https://cdn.freesound.org/previews/495/495390_9250976-hq.mp3",
+      "quality": "Public HQ MP3 preview; not original lossless WAV",
+      "license_verified": "CC0 link in source HTML on 2026-10-21",
+      "sha256": "2b00c696b8028a79084cf54a120d12840241d05963d89fa21cc8b83b5c6a9230"
+    },
+    {
+      "file": "impactSoft_heavy_001.ogg",
+      "creator": "Kenney",
+      "title": "Impact Sounds 1.0 / impactSoft_heavy_001.ogg",
+      "license": "CC0-1.0",
+      "page": "https://kenney.nl/assets/impact-sounds",
+      "download": "https://kenney.nl/media/pages/assets/impact-sounds/87b4ddecda-1677589768/kenney_impact-sounds.zip",
+      "quality": "OGG from official pack",
+      "sha256": "4d0096364ba9e46119d2ff6df493fdc101bd2e1efae061da5e5f77a53b3fdcb6"
+    },
+    {
+      "file": "impactSoft_medium_000.ogg",
+      "creator": "Kenney",
+      "title": "Impact Sounds 1.0 / impactSoft_medium_000.ogg",
+      "license": "CC0-1.0",
+      "page": "https://kenney.nl/assets/impact-sounds",
+      "download": "https://kenney.nl/media/pages/assets/impact-sounds/87b4ddecda-1677589768/kenney_impact-sounds.zip",
+      "quality": "OGG from official pack",
+      "sha256": "7d3ba0bb5e60a11b5d3e558c141303dcf494256675fbf753c0d252d2cf0481e3"
+    },
+    {
+      "file": "water-bubbles.mp3",
+      "creator": "calebrankin",
+      "title": "Bubbles In Water",
+      "license": "CC0-1.0",
+      "page": "https://freesound.org/people/calebrankin/sounds/529383/",
+      "download": "https://cdn.freesound.org/previews/529/529383_5072671-hq.mp3",
+      "quality": "Public HQ MP3 preview; not original lossless WAV",
+      "license_verified": "CC0 link in source HTML on 2026-10-21",
+      "sha256": "2a5c98ae2cc7f6be07f7a2c1cfd4e4d96000e6436fe351d5450b4be8dbc209f6"
+    }
+  ],
+  "assets": [
+    {
+      "event": "move",
+      "file": "move-01.wav",
+      "seconds": 0.095,
+      "peak": 0.12491,
+      "sha256": "7a5bc8a5bbe1c067058afe45dce4eb0715bb39db239896a0b8fee3615d453622"
+    },
+    {
+      "event": "warning",
+      "file": "warning-01.wav",
+      "seconds": 0.13,
+      "peak": 0.19477,
+      "sha256": "e3fc5cb7c436655452c9602648637edadfcf89a5d45f8132dfe513c4cd5685c6"
+    },
+    {
+      "event": "warningHeavy",
+      "file": "warning-heavy-01.wav",
+      "seconds": 0.19,
+      "peak": 0.32004,
+      "sha256": "c6649489316c0466deaf0b13646ce7547a2b430df46982e86d66b0118f9c2eb7"
+    },
+    {
+      "event": "garbage",
+      "file": "garbage-01.wav",
+      "seconds": 0.21,
+      "peak": 0.38988,
+      "sha256": "f7f4c21e5dd69cab982382116d55d61fe09dc4878b179bdf46722b6181b59e69"
+    },
+    {
+      "event": "garbageLand",
+      "file": "garbage-land-01.wav",
+      "seconds": 0.19,
+      "peak": 0.39196,
+      "sha256": "819f6b148ad7c4fc8300eea38173bc008e6cab6428417102ff423cfa2021b453"
+    },
+    {
+      "event": "attack",
+      "file": "attack-01.wav",
+      "seconds": 0.195,
+      "peak": 0.49199,
+      "sha256": "5a9e80afd23ab03f8deb94f90d96e67fc5d94ade43e626716d226b48aef3aa64"
+    },
+    {
+      "event": "offset",
+      "file": "offset-01.wav",
+      "seconds": 0.12,
+      "peak": 0.21907,
+      "sha256": "ca2be57b6ac8c648b19ea268bbeb79883c1a37574ad1136f90346daea9cc15fa"
+    },
+    {
+      "event": "cursor",
+      "file": "cursor-01.wav",
+      "seconds": 0.095,
+      "peak": 0.13879,
+      "sha256": "28eb630e2670984e5e2a3bb1ddaeb059494eaab6dee92813f5d7d10bd3b54614"
+    },
+    {
+      "event": "rotate",
+      "file": "rotate-01.wav",
+      "seconds": 0.129,
+      "peak": 0.1679,
+      "sha256": "002200b483d27f3866963c326449a08284b87c9ad4100cd7de9e9d4969588110"
+    },
+    {
+      "event": "land",
+      "file": "land-01.wav",
+      "seconds": 0.194,
+      "peak": 0.25213,
+      "sha256": "cc7a49f1f04efbdbec35cca485f14ea213ee21444371a2825cadeeb4380fbef5"
+    },
+    {
+      "event": "clear",
+      "file": "clear-01.wav",
+      "seconds": 0.15,
+      "peak": 0.20332,
+      "sha256": "93075cbf14c7c1e3a7480219bd34ab6d8c7b688c1614a503b3c77ddc4c25f252"
+    },
+    {
+      "event": "confirm",
+      "file": "confirm-01.wav",
+      "seconds": 0.21,
+      "peak": 0.20666,
+      "sha256": "95f2ec44aba3abc705854404ec58eccab9d7da2869747673776e7a48e1487b58"
+    },
+    {
+      "event": "cancel",
+      "file": "cancel-01.wav",
+      "seconds": 0.12,
+      "peak": 0.32465,
+      "sha256": "d5c842d0b0c2b52516eaeaf0f006a6a4613c68cf51c1a70dfb17cea1eec9a40a"
+    },
+    {
+      "event": "move",
+      "file": "move-02.wav",
+      "seconds": 0.095,
+      "peak": 0.22289,
+      "sha256": "b6e7f8b1055b507e5fb89b37a601c13ce8e65cbc442c289bd8e19ba2c9530232"
+    },
+    {
+      "event": "warning",
+      "file": "warning-02.wav",
+      "seconds": 0.13,
+      "peak": 0.34427,
+      "sha256": "96620485990528c7796fe74e40b7ceb742b7222b1a8b6f3574c43f4b0ea26700"
+    },
+    {
+      "event": "warningHeavy",
+      "file": "warning-heavy-02.wav",
+      "seconds": 0.19,
+      "peak": 0.28634,
+      "sha256": "06af3725df0c3df3c9e6eaaf74a80ad227c587c558a47f7085dc80a2a0df7671"
+    },
+    {
+      "event": "garbage",
+      "file": "garbage-02.wav",
+      "seconds": 0.21,
+      "peak": 0.39022,
+      "sha256": "1f91386e103f3bd39f0bf23b669c6cea82802c512345b5bbe3ae9fdea6ca5a08"
+    },
+    {
+      "event": "garbageLand",
+      "file": "garbage-land-02.wav",
+      "seconds": 0.19,
+      "peak": 0.32269,
+      "sha256": "5cab73af5ea355c7ef9e14fe2dd8dc43021cd8455350a0e5ca9df136a616d8bf"
+    },
+    {
+      "event": "attack",
+      "file": "attack-02.wav",
+      "seconds": 0.195,
+      "peak": 0.48739,
+      "sha256": "966370b4d03ba8d46e1f73cb06925309b4723aa3d0da37dea1513101740df081"
+    },
+    {
+      "event": "offset",
+      "file": "offset-02.wav",
+      "seconds": 0.12,
+      "peak": 0.21534,
+      "sha256": "c50606f1c1961e2362af7ec71a6fbb09a0d2df119a0f24d96de20520f527dad4"
+    },
+    {
+      "event": "cursor",
+      "file": "cursor-02.wav",
+      "seconds": 0.095,
+      "peak": 0.24765,
+      "sha256": "6d50d90d58dd8bcd1fd91a8a01615dd45373d4d7a5224a2789cebf88ee0a956b"
+    },
+    {
+      "event": "rotate",
+      "file": "rotate-02.wav",
+      "seconds": 0.129,
+      "peak": 0.21513,
+      "sha256": "282674a2d36cfa6c5aeb8c33f261ce79d50f7c8c99edf0a4a15dfeb6805a6eb3"
+    },
+    {
+      "event": "land",
+      "file": "land-02.wav",
+      "seconds": 0.194,
+      "peak": 0.2771,
+      "sha256": "0f27ad3cdbee8ffe9bbe0b3054ce8f266c246e4891e1e39399a56092982940da"
+    },
+    {
+      "event": "clear",
+      "file": "clear-02.wav",
+      "seconds": 0.192,
+      "peak": 0.22716,
+      "sha256": "6c6af4d0003aef13687801de09dad79d132458b6b44c8d27eee7135b984ac713"
+    },
+    {
+      "event": "confirm",
+      "file": "confirm-02.wav",
+      "seconds": 0.21,
+      "peak": 0.22252,
+      "sha256": "9ae5c913b7451e9a3fd5aca89358e72bd422dd3d8431f52d628d5ace973b55a8"
+    },
+    {
+      "event": "cancel",
+      "file": "cancel-02.wav",
+      "seconds": 0.12,
+      "peak": 0.327,
+      "sha256": "6d11ae76ac9443f7cec10dcadc0b121eb1d1373d9a38e4ca78e2ddda91d1253c"
+    },
+    {
+      "event": "move",
+      "file": "move-03.wav",
+      "seconds": 0.095,
+      "peak": 0.10707,
+      "sha256": "0137c9a3bbe8cbbb835f0113223f4fcb6e15c6484b449687e80a872f4f2b33cc"
+    },
+    {
+      "event": "warning",
+      "file": "warning-03.wav",
+      "seconds": 0.13,
+      "peak": 0.15752,
+      "sha256": "b09a6680a25a2d4efb761625d0048068f3149e7265083441d78f46f87d1d2521"
+    },
+    {
+      "event": "warningHeavy",
+      "file": "warning-heavy-03.wav",
+      "seconds": 0.19,
+      "peak": 0.24699,
+      "sha256": "71fd61d4a0054cad86609f621b720f97cae52b976bb7dde2d472ff1e4b27efe8"
+    },
+    {
+      "event": "garbage",
+      "file": "garbage-03.wav",
+      "seconds": 0.21,
+      "peak": 0.39018,
+      "sha256": "a3d6db39c75a1026394e4dd109a7ccef7359b897d1851f2c8787bc9893d0deea"
+    },
+    {
+      "event": "garbageLand",
+      "file": "garbage-land-03.wav",
+      "seconds": 0.19,
+      "peak": 0.31435,
+      "sha256": "0667de5b21e5b7ee3d2e8db5e5bb82a7690c2db52b8695ef09b033f1b05cb835"
+    },
+    {
+      "event": "attack",
+      "file": "attack-03.wav",
+      "seconds": 0.195,
+      "peak": 0.48802,
+      "sha256": "3c0cfc7816e9507698faff5e6bcbfa49e05b4470fe3f6f883ca8b68402b85868"
+    },
+    {
+      "event": "offset",
+      "file": "offset-03.wav",
+      "seconds": 0.12,
+      "peak": 0.18261,
+      "sha256": "3e49239a99d290721c77a89decb5f308aebcb901707ef9ecb23897a8eb4e99bd"
+    },
+    {
+      "event": "cursor",
+      "file": "cursor-03.wav",
+      "seconds": 0.095,
+      "peak": 0.11897,
+      "sha256": "fd8ee8a07daa866e22b1d0cbaad7b41786ea29d7665d167c27ff1af058840766"
+    },
+    {
+      "event": "rotate",
+      "file": "rotate-03.wav",
+      "seconds": 0.129,
+      "peak": 0.50801,
+      "sha256": "e354f6c45a465c00cf4ceae76ed91950601ce1321d796555c6b7c253a7edde3c"
+    },
+    {
+      "event": "land",
+      "file": "land-03.wav",
+      "seconds": 0.194,
+      "peak": 0.25775,
+      "sha256": "cc87b3b52afa3977e210d76595fcc0ea2c3dc01eaeaeb6ba5d68d9635aaa45bb"
+    },
+    {
+      "event": "clear",
+      "file": "clear-03.wav",
+      "seconds": 0.234,
+      "peak": 0.26602,
+      "sha256": "8e38af303a750ed6d518390e50a665909464ff2de61e0a910f8034e4518fcb03"
+    },
+    {
+      "event": "rotate",
+      "file": "rotate-04.wav",
+      "seconds": 0.129,
+      "peak": 0.50115,
+      "sha256": "675b08c628fdaed0cebbac79bc507e28c983094d7c9b6c7e1923afdbaf01adb2"
+    },
+    {
+      "event": "land",
+      "file": "land-04.wav",
+      "seconds": 0.194,
+      "peak": 0.25927,
+      "sha256": "210898bf17a686a2a180092a99a7de06856e250e71440aab9d5b39f48e00c600"
+    },
+    {
+      "event": "clear",
+      "file": "clear-04.wav",
+      "seconds": 0.276,
+      "peak": 0.31133,
+      "sha256": "eb757be6ff1da73166aae67315f7c66579cef42276b711dd8fc5ff8e595e14ac"
+    },
+    {
+      "event": "count",
+      "file": "count-01.wav",
+      "seconds": 0.115,
+      "peak": 0.23425,
+      "sha256": "2ca454d9834124ab5cdfa4f234a1ca8e5ccfc6acc2a628b868dde62b818b1d01"
+    },
+    {
+      "event": "go",
+      "file": "go-01.wav",
+      "seconds": 0.205,
+      "peak": 0.2496,
+      "sha256": "9cb7716c6a24e559f711c7460fae283b6922fb437a1032d8810adbf7ffe3981e"
+    },
+    {
+      "event": "over",
+      "file": "over-01.wav",
+      "seconds": 0.29,
+      "peak": 0.35826,
+      "sha256": "589753e2484d7746869645ebd77456069747afa8bac4018bade06f34a7fbf460"
+    },
+    {
+      "event": "win",
+      "file": "win-01.wav",
+      "seconds": 0.39,
+      "peak": 0.24633,
+      "sha256": "948a3238909edd014c48e0822cb02b416896b4b061392cf1fd07797fdc98e475"
+    },
+    {
+      "event": "allClear",
+      "file": "all-clear-01.wav",
+      "seconds": 0.315,
+      "peak": 0.39841,
+      "sha256": "f24bd8a0023d13d2d9f82d3843c4cf0c409be7675a63e8516a275b48666ab838"
+    },
+    {
+      "event": "revive",
+      "file": "revive-01.wav",
+      "seconds": 0.28,
+      "peak": 0.51436,
+      "sha256": "4d27cded45ab2c9eac9d4841a16c9f63b19d11352030fe973a4ac19244c7942b"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "characters": {
+    "chiikawa": {
+      "name": "치이카와",
+      "charId": "chiikawa"
+    },
+    "hachiware": {
+      "name": "하치와레",
+      "charId": "hachiware"
+    },
+    "usagi": {
+      "name": "우사기",
+      "charId": "usagi"
+    },
+    "kurimanju": {
+      "name": "쿠리만쥬",
+      "charId": "kurimanju"
+    },
+    "momonga": {
+      "name": "모몽가",
+      "charId": "momonga"
+    },
+    "rakko": {
+      "name": "랏코",
+      "charId": "rakko"
+    },
+    "shisa": {
+      "name": "시사",
+      "charId": "shisa"
+    },
+    "furuhonya": {
+      "name": "헌책방",
+      "charId": "furuhonya"
+    }
+  }
+}

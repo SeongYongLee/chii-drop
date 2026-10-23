@@ -1,0 +1,173 @@
+:root {
+  --bg: #fdf6ec;
+  --fg: #4a3f35;
+  --muted: #9a8b7c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, sans-serif;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.stage {
+  width: min(100vw, calc(100vh * 16 / 9));
+  aspect-ratio: 16 / 9;
+}
+
+#screen {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+[hidden] { display: none !important; }
+.mobile-controls { display: none; }
+
+@media (pointer: coarse), (max-width: 760px), (max-height: 500px) and (max-width: 960px) {
+  body {
+    height: 100vh; height: 100dvh;
+    padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    gap: 12px;
+    overflow: hidden;
+  }
+  .stage { flex: none; width: min(100%, calc((100vh - 210px) * 16 / 9)); width: min(100%, calc((100dvh - 210px) * 16 / 9)); }
+  .mobile-controls { display: block; flex: none; width: min(100%, 580px); color: var(--fg); }
+  .mobile-controls p { margin: 0 0 10px; text-align: center; font-size: 15px; line-height: 1.4; min-height: 21px; }
+  .mobile-pad { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .mobile-controls button {
+    min-width: 48px; min-height: 48px; padding: 6px 10px;
+    border: 1px solid #d4c4af; border-bottom-width: 4px; border-radius: 14px;
+    background: #fffdf5; color: var(--fg); font: 700 24px system-ui, sans-serif;
+    touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  }
+  .mobile-controls button[aria-pressed=true] { background: #dbe8b9; transform: translateY(2px); border-bottom-width: 2px; }
+  .mobile-controls button:focus-visible { outline: 3px solid #9270a8; outline-offset: 2px; }
+  .mobile-controls button:disabled { opacity: .45; }
+  .mobile-direction { display: grid; grid-template: repeat(2, 52px) / repeat(3, 52px); gap: 5px; }
+  .mobile-up { grid-area: 1 / 2; } .mobile-left { grid-area: 2 / 1; }
+  .mobile-down { grid-area: 2 / 2; } .mobile-right { grid-area: 2 / 3; }
+  .mobile-actions { display: grid; gap: 8px; }
+  .mobile-actions button { width: 88px; font-size: 18px; }
+  .mobile-confirm { background: #f4c9d2 !important; }
+  .mobile-move, .mobile-turn { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+  .mobile-move { flex: 1; }
+  .mobile-turn { grid-template-columns: repeat(2, minmax(0, 1fr)); flex: 1; }
+  .mobile-turn button { background: #f4dce4; }
+  .mobile-turn .mobile-pause { grid-column: 1 / -1; min-height: 40px; font-size: 14px; background: #f8e8ae; }
+  .mobile-player { display: block; margin: 0 auto 8px; min-height: 36px !important; font-size: 13px !important; }
+  .mobile-custom-layout { position: relative; display: block; height: 180px; }
+  .mobile-custom-layout .mobile-move, .mobile-custom-layout .mobile-turn { display: contents; }
+  .mobile-custom-layout button { position: absolute; min-height: 48px !important; min-width: 48px; padding: 2px; font-size: 22px; margin: 0; }
+  .mobile-custom-layout .mobile-pause { font-size: 20px; }
+  .mobile-items { display: grid; gap: 6px; margin: 0 0 10px; max-height: min(320px, max(64px, calc(100dvh - 300px))); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+  .mobile-items[data-columns="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mobile-item { display: flex; gap: 5px; min-width: 0; }
+  .mobile-item button { min-width: 44px; min-height: 48px; font-size: 16px; line-height: 1.3; touch-action: pan-y; }
+  .mobile-item button:first-child { flex: 1; }
+  .mobile-item button[aria-current=true] { background: #f4c9d2; border-color: #bd7c88; }
+  .mobile-pad[data-has-items=true] .mobile-direction, .mobile-pad[data-title=true] .mobile-direction { display: none; }
+  .mobile-pad[data-has-items=true] .mobile-actions, .mobile-pad[data-title=true] .mobile-actions { width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mobile-pad[data-has-items=true] .mobile-actions button, .mobile-pad[data-title=true] .mobile-actions button { width: 100%; }
+  .mobile-controls[data-mode="game"] { position: fixed; inset: 0; width: auto; pointer-events: none; z-index: 5; }
+  .mobile-controls[data-mode="game"] > p { display: none; }
+  .mobile-controls[data-mode="game"] .mobile-player { position: absolute; top: max(8px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); pointer-events: auto; background: #fffdf580; }
+  .mobile-controls[data-mode="game"] [data-mobile-game] { position: absolute; bottom: max(8px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: min(580px, calc(100% - 20px)); height: 180px; }
+  .mobile-controls[data-mode="game"] [data-mobile-game] button { pointer-events: auto; background: #fffdf566; border: 2px solid #fffdf5b3; border-radius: 30%; color: #4a3f35; text-shadow: 0 1px 2px #fff; box-shadow: 0 2px 8px #4a3f351a; font-size: 28px; }
+  .mobile-controls[data-mode="game"] [data-mobile-game] .mobile-pause { font-size: 20px; }
+  .mobile-controls[data-mode="game"] [data-mobile-game] button[aria-pressed="true"] { background: #e5f4bfbf; border-color: #fffdf5; }
+  .mobile-controls[data-mode="game"] [data-mobile-game] button[data-input="1"],
+  .mobile-controls[data-mode="game"] [data-mobile-game] button[data-input="2"],
+  .mobile-controls[data-mode="game"] [data-mobile-game] button[data-input="4"] { background: #e5edd766; }
+  .mobile-controls[data-mode="game"] [data-mobile-game] button[aria-pressed="true"] { transform: none; background: #e5f4bfbf; }
+}
+
+.touch-layout-editor {
+  width: min(460px, calc(100vw - 16px)); max-height: calc(100dvh - 16px);
+  overflow: hidden; padding: 10px; border: 2px solid #d4c4af; border-radius: 20px;
+  color: var(--fg); background: var(--bg); font: 15px system-ui, sans-serif;
+}
+.touch-layout-editor::backdrop { background: #493c3466; }
+.touch-layout-editor[open] { display: grid; gap: 6px; }
+.touch-layout-editor h2 { margin: 0; font-size: 18px; line-height: 24px; }
+.touch-layout-editor p { line-height: 1.3; margin: 0; font-size: 12px; }
+.touch-layout-editor button, .touch-layout-editor select {
+  min-height: 48px; padding: 7px 10px; border: 1px solid #c9b9a5;
+  border-radius: 12px; color: var(--fg); background: #fffdf5; font: 700 15px system-ui, sans-serif;
+}
+.touch-layout-editor button[aria-pressed=true], .touch-layout-editor [data-save] { background: #f4c9d2; border-color: #bd7c88; }
+.touch-editor-orientation, .touch-editor-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.touch-editor-actions button { flex: 1; }
+.touch-editor-arena { position: relative; width: 100%; height: clamp(96px, calc(100dvh - 420px), 220px); margin: 0; border-radius: 12px; background: linear-gradient(#d6eaf1, #e4ebd1); outline: 1px dashed #9ba581; }
+.touch-editor-arena button { position: absolute; min-height: 0; min-width: 0; touch-action: none; user-select: none; padding: 0; border-radius: 30%; background: #fffdf5a6; }
+.touch-editor-fields { display: grid; gap: 4px; }
+.touch-layout-editor label { display: flex; align-items: center; gap: 8px; margin: 0; min-height: 48px; }
+.touch-layout-editor select, .touch-layout-editor input { flex: 1; min-width: 0; }
+.touch-layout-editor input { min-height: 48px; accent-color: #bd7c88; }
+.touch-layout-editor output { min-width: 44px; text-align: right; }
+.touch-editor-status:empty { display: none; }
+.touch-layout-editor :focus-visible { outline: 3px solid #9270a8; outline-offset: 2px; }
+
+.key-settings {
+  width: min(640px, calc(100vw - 20px)); max-height: calc(100dvh - 20px); overflow: auto;
+  padding: 18px; border: 2px solid #d4c4af; border-radius: 20px; background: var(--bg); color: var(--fg); font: 15px system-ui, sans-serif;
+}
+.key-settings::backdrop { background: #493c3466; }
+.key-settings h2 { margin: 0 0 8px; font-size: 22px; }
+.key-settings p { margin: 8px 0; line-height: 1.5; }
+.key-settings button { min-height: 48px; border: 1px solid #c9b9a5; border-radius: 12px; padding: 8px; color: var(--fg); background: #fffdf5; font: 700 15px system-ui, sans-serif; }
+.key-settings button[aria-pressed=true], .key-settings [data-save] { background: #f4c9d2; border-color: #bd7c88; }
+.key-settings-tabs, .key-settings-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.key-settings-rows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 12px 0; }
+.key-settings-status { min-height: 45px; font-size: 13px; }
+.key-settings :focus-visible { outline: 3px solid #9270a8; outline-offset: 2px; }
+@media (max-width: 480px) { .key-settings { padding: 10px; } .key-settings-rows button { font-size: 13px; } }
+
+@media (max-height: 620px) { .touch-layout-editor .touch-editor-hint { display: none; } }
+@media (max-height: 500px) and (min-width: 480px) {
+  .touch-layout-editor[open] { width: min(780px, calc(100vw - 16px)); grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); grid-template-areas: 'title orientation' 'arena fields' 'status actions'; gap: 6px 12px; padding: 10px; }
+  .touch-layout-editor h2 { grid-area: title; align-self: center; margin: 0; }
+  .touch-layout-editor > p:not(.touch-editor-status) { display: none; }
+  .touch-editor-orientation { grid-area: orientation; }
+  .touch-editor-arena { grid-area: arena; height: clamp(80px, calc(100dvh - 154px), 220px); align-self: center; }
+  .touch-editor-fields { grid-area: fields; align-content: center; }
+  .touch-editor-fields label { margin: 0; }
+  .touch-editor-status { grid-area: status; align-self: center; margin: 0 !important; }
+  .touch-editor-actions { grid-area: actions; }
+}
+
+@media (pointer: coarse) and (orientation: landscape), (max-height: 500px) and (min-width: 480px) and (max-width: 960px) {
+  body { flex-direction: row; gap: 10px; }
+  .stage { width: min(calc(100vw - 220px), calc((100dvh - 24px) * 16 / 9)); }
+  .mobile-controls { width: 190px; }
+  .mobile-pad { flex-direction: column; gap: 8px; }
+  .mobile-actions { grid-template-columns: repeat(2, 1fr); }
+  .mobile-actions button { width: 82px; }
+  .mobile-move, .mobile-turn { width: 100%; }
+  .mobile-items { max-height: calc(100dvh - 150px); }
+  body[data-touch-mode="game"] .stage { width: min(calc(100vw - 20px), calc((100dvh - 16px) * 16 / 9)); }
+  .mobile-controls[data-mode="game"] [data-mobile-game] { inset: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); height: auto; width: auto; transform: none; }
+}

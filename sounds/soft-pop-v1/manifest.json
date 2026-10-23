@@ -1,0 +1,197 @@
+{
+  "id": "soft-pop-v1",
+  "sampleRate": 44100,
+  "format": "PCM signed 16-bit WAV",
+  "assets": [
+    {
+      "id": "move",
+      "name": "이동 · 작은 나무 톡",
+      "file": "move.wav",
+      "seconds": 0.1,
+      "peak": 0.0777
+    },
+    {
+      "id": "rotate",
+      "name": "회전 · 물방울 휙",
+      "file": "rotate.wav",
+      "seconds": 0.16,
+      "peak": 0.169
+    },
+    {
+      "id": "lock",
+      "name": "착지 · 말랑한 통",
+      "file": "lock.wav",
+      "seconds": 0.22,
+      "peak": 0.3152
+    },
+    {
+      "id": "clear-01",
+      "name": "1연쇄 · 반짝이는 팝",
+      "file": "clear-01.wav",
+      "seconds": 0.44,
+      "peak": 0.2475,
+      "event": "clear",
+      "chain": 1
+    },
+    {
+      "id": "clear-02",
+      "name": "2연쇄 · 반짝이는 팝",
+      "file": "clear-02.wav",
+      "seconds": 0.44,
+      "peak": 0.2486,
+      "event": "clear",
+      "chain": 2
+    },
+    {
+      "id": "clear-03",
+      "name": "3연쇄 · 반짝이는 팝",
+      "file": "clear-03.wav",
+      "seconds": 0.44,
+      "peak": 0.2475,
+      "event": "clear",
+      "chain": 3
+    },
+    {
+      "id": "clear-04",
+      "name": "4연쇄 · 반짝이는 팝",
+      "file": "clear-04.wav",
+      "seconds": 0.44,
+      "peak": 0.2508,
+      "event": "clear",
+      "chain": 4
+    },
+    {
+      "id": "clear-05",
+      "name": "5연쇄 · 반짝이는 팝",
+      "file": "clear-05.wav",
+      "seconds": 0.44,
+      "peak": 0.2436,
+      "event": "clear",
+      "chain": 5
+    },
+    {
+      "id": "clear-06",
+      "name": "6연쇄 · 반짝이는 팝",
+      "file": "clear-06.wav",
+      "seconds": 0.44,
+      "peak": 0.249,
+      "event": "clear",
+      "chain": 6
+    },
+    {
+      "id": "clear-07",
+      "name": "7연쇄 · 반짝이는 팝",
+      "file": "clear-07.wav",
+      "seconds": 0.44,
+      "peak": 0.2532,
+      "event": "clear",
+      "chain": 7
+    },
+    {
+      "id": "clear-08",
+      "name": "8연쇄 · 반짝이는 팝",
+      "file": "clear-08.wav",
+      "seconds": 0.44,
+      "peak": 0.2549,
+      "event": "clear",
+      "chain": 8
+    },
+    {
+      "id": "clear-09",
+      "name": "9연쇄 · 반짝이는 팝",
+      "file": "clear-09.wav",
+      "seconds": 0.44,
+      "peak": 0.2492,
+      "event": "clear",
+      "chain": 9
+    },
+    {
+      "id": "clear-10",
+      "name": "10연쇄 · 반짝이는 팝",
+      "file": "clear-10.wav",
+      "seconds": 0.44,
+      "peak": 0.2532,
+      "event": "clear",
+      "chain": 10
+    },
+    {
+      "id": "attack",
+      "name": "공격 · 올라가는 반짝임",
+      "file": "attack.wav",
+      "seconds": 0.36,
+      "peak": 0.2286
+    },
+    {
+      "id": "offset",
+      "name": "상쇄 · 부드러운 맞부딪힘",
+      "file": "offset.wav",
+      "seconds": 0.32,
+      "peak": 0.1642
+    },
+    {
+      "id": "garbage",
+      "name": "방해 블록 · 자갈 토독",
+      "file": "garbage.wav",
+      "seconds": 0.4,
+      "peak": 0.2792
+    },
+    {
+      "id": "over",
+      "name": "패배 · 조용한 내려감",
+      "file": "over.wav",
+      "seconds": 0.95,
+      "peak": 0.2601
+    },
+    {
+      "id": "win",
+      "name": "승리 · 작은 축하 종",
+      "file": "win.wav",
+      "seconds": 1.15,
+      "peak": 0.4428
+    },
+    {
+      "id": "cursor",
+      "name": "메뉴 이동 · 틱",
+      "file": "cursor.wav",
+      "seconds": 0.09,
+      "peak": 0.0675
+    },
+    {
+      "id": "confirm",
+      "name": "결정 · 딩동",
+      "file": "confirm.wav",
+      "seconds": 0.3,
+      "peak": 0.2097
+    },
+    {
+      "id": "cancel",
+      "name": "취소 · 또록",
+      "file": "cancel.wav",
+      "seconds": 0.2,
+      "peak": 0.1555
+    },
+    {
+      "id": "count",
+      "name": "카운트다운 · 동",
+      "file": "count.wav",
+      "seconds": 0.22,
+      "peak": 0.2057
+    },
+    {
+      "id": "go",
+      "name": "시작 · 맑은 신호",
+      "file": "go.wav",
+      "seconds": 0.5,
+      "peak": 0.3266
+    },
+    {
+      "id": "meadow-loop",
+      "name": "작은 산책 · 오리지널 배경음악",
+      "loop": true,
+      "bpm": 120,
+      "file": "meadow-loop.wav",
+      "seconds": 32.0,
+      "peak": 0.2341
+    }
+  ]
+}

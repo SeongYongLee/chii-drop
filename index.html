@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>퍼즐 대전</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="stage">
+      <canvas id="screen" aria-label="게임 화면"></canvas>
+    </main>
+    <section id="mobile-controls" class="mobile-controls" aria-label="터치 조작" hidden>
+      <p data-mobile-label role="status" aria-live="polite">불러오는 중…</p>
+      <button data-mobile-player type="button" class="mobile-player" hidden>1P 조작 · 전환</button>
+      <div data-mobile-items class="mobile-items" aria-label="화면 항목" hidden></div>
+      <div data-mobile-menu class="mobile-pad">
+        <div class="mobile-direction">
+          <button type="button" data-input="32" class="mobile-up" aria-label="위로 선택">↑</button>
+          <button type="button" data-input="1" class="mobile-left" aria-label="왼쪽 선택">←</button>
+          <button type="button" data-input="4" class="mobile-down" aria-label="아래로 선택">↓</button>
+          <button type="button" data-input="2" class="mobile-right" aria-label="오른쪽 선택">→</button>
+        </div>
+        <div class="mobile-actions">
+          <button type="button" data-input="64" data-mobile-confirm class="mobile-confirm">결정</button>
+          <button type="button" data-input="128">뒤로</button>
+        </div>
+      </div>
+      <div data-mobile-game class="mobile-pad" hidden>
+        <div class="mobile-move">
+          <button type="button" data-input="1" aria-label="왼쪽 이동">←</button>
+          <button type="button" data-input="4" aria-label="빠르게 내리기">↓</button>
+          <button type="button" data-input="2" aria-label="오른쪽 이동">→</button>
+        </div>
+        <div class="mobile-turn">
+          <button type="button" data-input="16" aria-label="왼쪽 회전">↺</button>
+          <button type="button" data-input="8" aria-label="오른쪽 회전">↻</button>
+          <button type="button" data-input="256" class="mobile-pause" aria-label="일시정지">Ⅱ</button>
+        </div>
+      </div>
+    </section>
+    <script type="module" src="src/app/main.js"></script>
+  </body>
+</html>
