@@ -1,0 +1,52 @@
+node_modules/
+.DS_Store
+
+# Markdown은 루트 README만 공개한다. 나머지는 원래 위치에 로컬 보존한다.
+*.[mM][dD]
+!/README.md
+
+# 원작 분석·공식 자료 참고 기록·캐릭터 시나리오·스킨 시안이 담긴 로컬 전용 파일
+AGENTS.md
+README.local.md
+docs/classic-rules.md
+skins/chiikawa/*
+!skins/chiikawa/pages-runtime/
+
+# 전체 스토리 대본은 로컬에서만 보존한다.
+**/[sS][tT][oO][rR][yY].[jJ][sS][oO][nN]
+
+# 생성 스크립트로 다시 만들 수 있는 사운드 파일
+sounds/**/*.wav
+sounds/**/preview.html
+
+# 로컬 패키지 다운로드 캐시
+.pnpm-store/
+
+# 서버의 플레이어 키 해시·레이트·경기 결과
+/data/
+
+# 개발 환경·인증 정보
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.codex/
+.agents/
+
+# 실행·검증 결과와 로컬 보관 파일
+*.log
+coverage/
+.playwright/
+artifacts/
+*.zip
+*.tar.gz
+
+# 로컬 오디오 자료 (배정된 Pages 오디오는 skins/chiikawa/pages-runtime/assets/에 별도 포함)
+sounds/**/*.mp3
+sounds/**/*.ogg
+sounds/**/*.flac
+sounds/**/*.m4a
+
+# GitHub Pages 빌드 출력
+/dist/
