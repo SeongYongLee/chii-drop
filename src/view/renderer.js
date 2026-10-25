@@ -7,7 +7,7 @@ import { characterPresentation } from './character-situation.js';
 import { SCREEN_HEIGHT, SCREEN_WIDTH, screenHeight, isPortraitScreen } from '../app/screen.js';
 import { drawPortraitSurface } from './portrait-ui.js';
 import { CHILD_OFFSETS, fits, rowOf } from '../engine/control.js';
-import { GARBAGE } from '../engine/field.js';
+import { GARBAGE, isFree } from '../engine/field.js';
 import { COLS, FLASH_FRAMES, HIDDEN_ROWS, NEXT_WAIT, POP_FRAMES, ROWS } from '../engine/rules.js';
 
 import { orbArrival, orbPosition } from './effects.js';
@@ -202,9 +202,17 @@ function drawPiece(ctx, skin, x, player, showGhost) {
       row -= 1;
     }
     const [dx, dy] = CHILD_OFFSETS[piece.orient];
+    const rows = [row, row + dy];
+    if (dx !== 0) {
+      // 가로 쌍은 한쪽이 닿은 뒤 빈 쪽만 더 떨어지므로 최종 착지 위치를 따로 표시한다.
+      for (let i = 0; i < rows.length; i++) {
+        const column = piece.x + (i === 0 ? 0 : dx);
+        while (rows[i] > 0 && isFree(player.board.cells, column, ROWS - rows[i])) rows[i] -= 1;
+      }
+    }
     ctx.globalAlpha = 0.25;
-    skin.drawBlob(ctx, piece.pivot, x + piece.x * CELL, FIELD_BOTTOM - CELL - row * CELL, CELL);
-    skin.drawBlob(ctx, piece.child, x + (piece.x + dx) * CELL, FIELD_BOTTOM - CELL - (row + dy) * CELL, CELL);
+    skin.drawBlob(ctx, piece.pivot, x + piece.x * CELL, FIELD_BOTTOM - CELL - rows[0] * CELL, CELL);
+    skin.drawBlob(ctx, piece.child, x + (piece.x + dx) * CELL, FIELD_BOTTOM - CELL - rows[1] * CELL, CELL);
     ctx.globalAlpha = 1;
   }
 

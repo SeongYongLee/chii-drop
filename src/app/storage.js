@@ -3,7 +3,8 @@ const RECORDS_KEY = 'chii-drop:records';
 const STORY_KEY = 'chii-drop:story';
 
 // 첫 실행에는 착지 위치를 표시한다. 사용자가 저장한 켜짐·꺼짐 선택은 유지한다.
-const DEFAULT_SETTINGS = { sfx: true, voice: true, music: true, volume: 6, ghost: true };
+const DEFAULT_SETTINGS = { sfx: true, voice: true, music: true, volume: 6,
+  effectsVolume: 10, musicVolume: 10, voiceVolume: 10, ghost: true };
 
 function defaultRecords() {
   return {

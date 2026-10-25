@@ -2,6 +2,7 @@ import { setupAssetCache, retainMedia } from './asset-cache.js';
 import { createSfx, prepareSfx, setSfxOptions, unlockSfx } from '../audio/sfx.js';
 import { configureCharacterVoices } from '../audio/character-voice.js';
 import { configureMusic, syncMusicVisibility } from '../audio/music.js';
+import { mixLevels } from '../audio/mix-levels.js';
 import { FOLEY_FILES } from '../audio/foley-bank.js';
 import { attachKeyboard, clearPressed, createKeyboard } from '../input/keyboard.js';
 import { attachMobileControls } from '../input/mobile-controls.js';
@@ -65,8 +66,9 @@ const app = {
     return typeof app.scene?.musicScene === 'function' ? app.scene.musicScene() : app.scene?.musicScene ?? 'menu';
   },
   updateMusic() {
+    const mix = mixLevels(app.settings);
     configureMusic(app.sfx, app.skin, { enabled: app.settings.music !== false,
-      volume: app.settings.volume / 10, scene: app.musicScene(), selectionKey: app.scene?.musicSession });
+      volume: mix.master * mix.music, scene: app.musicScene(), selectionKey: app.scene?.musicSession });
   },
   // 메인 메뉴는 하나만 만들어 돌아왔을 때 커서 위치를 유지한다.
   goToMenu() {
@@ -85,7 +87,9 @@ const app = {
     app.setScene(app.multiplayerMenu);
   },
   applySettings() {
-    setSfxOptions(app.sfx, { enabled: app.settings.sfx, volume: app.settings.volume / 10 });
+    const mix = mixLevels(app.settings);
+    setSfxOptions(app.sfx, { enabled: app.settings.sfx, volume: mix.master,
+      effectsVolume: mix.effects, voiceVolume: mix.voice });
     void configureCharacterVoices(app.sfx, app.skin, app.settings.voice !== false);
     app.updateMusic();
   },

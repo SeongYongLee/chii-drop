@@ -9,7 +9,14 @@ const PENTATONIC = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21];
 
 function createSfx({ recorded = false } = {}) {
   // 일반 게임은 개발·배포 모두 같은 합성음을 쓴다. 녹음 비교는 명시적인 개발 용도다.
-  return { context: null, master: null, enabled: true, volume: 0.6, recorded, buffers: new Map() };
+  return { context: null, master: null, voiceMaster: null, enabled: true, volume: 0.6,
+    effectsVolume: 1, voiceVolume: 1, recorded, buffers: new Map() };
+}
+
+function updateMixGains(sfx) {
+  // 효과음과 목소리는 독립된 출력으로 보내고 전체 음량은 둘 모두에 적용한다.
+  if (sfx.master) sfx.master.gain.value = sfx.volume * (sfx.effectsVolume ?? 1) * 1.15;
+  if (sfx.voiceMaster) sfx.voiceMaster.gain.value = sfx.volume * (sfx.voiceVolume ?? 1);
 }
 
 // 정지된 컨텍스트에서도 파일 준비는 가능하다. 첫 입력 전 로딩 화면에서 끝낸다.
@@ -21,7 +28,8 @@ function prepareSfx(sfx) {
   }
   sfx.context = new AudioContextClass();
   sfx.master = sfx.context.createGain();
-  sfx.master.gain.value = sfx.volume;
+  sfx.voiceMaster = sfx.context.createGain();
+  updateMixGains(sfx);
   if (sfx.context.createDynamicsCompressor) {
     const limiter = sfx.context.createDynamicsCompressor();
     limiter.threshold.value = -12;
@@ -30,7 +38,11 @@ function prepareSfx(sfx) {
     limiter.attack.value = .003;
     limiter.release.value = .12;
     sfx.master.connect(limiter).connect(sfx.context.destination);
-  } else sfx.master.connect(sfx.context.destination);
+    sfx.voiceMaster.connect(limiter);
+  } else {
+    sfx.master.connect(sfx.context.destination);
+    sfx.voiceMaster.connect(sfx.context.destination);
+  }
   return Promise.all([preloadRecordedSfx(sfx), preloadCharacterVoices(sfx)]);
 }
 
@@ -50,12 +62,12 @@ function unlockSfx(sfx) {
   return resumed;
 }
 
-function setSfxOptions(sfx, { enabled, volume }) {
+function setSfxOptions(sfx, { enabled, volume, effectsVolume = 1, voiceVolume = 1 }) {
   sfx.enabled = enabled;
   sfx.volume = volume;
-  if (sfx.master) {
-    sfx.master.gain.value = volume;
-  }
+  sfx.effectsVolume = effectsVolume;
+  sfx.voiceVolume = voiceVolume;
+  updateMixGains(sfx);
 }
 
 function tone(sfx, { freq, type = 'sine', start = 0, duration = 0.1, gain = 0.3, slideTo }) {

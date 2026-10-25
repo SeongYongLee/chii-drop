@@ -7,7 +7,8 @@ import { loadSettings } from '../app/storage.js';
 import { createEffects, tickCharacters, tickMatchEffects } from '../view/effects.js';
 import { drawBanner, drawGame } from '../view/renderer.js';
 import { drawFieldResults } from '../view/field-results.js';
-import { playSfx, prepareSfx, unlockSfx } from '../audio/sfx.js';
+import { playSfx, prepareSfx, unlockSfx, setSfxOptions } from '../audio/sfx.js';
+import { mixLevels } from '../audio/mix-levels.js';
 import { playBoardSounds } from '../audio/board-sounds.js';
 import { configureCharacterVoices, playCharacterEvents, playCharacterVoice } from '../audio/character-voice.js';
 import { configureMusic, syncMusicVisibility } from '../audio/music.js';
@@ -51,7 +52,10 @@ attachKeyboard(keyboard, window);
 await configureCharacterVoices(sfx, skin, loadSettings().voice !== false);
 function setOnlineMusic(scene) {
   const settings = loadSettings();
-  configureMusic(sfx, skin, { enabled: settings.music !== false, volume: settings.volume / 10, scene, chooseNew: scene === 'intense' });
+  const mix = mixLevels(settings);
+  setSfxOptions(sfx, { enabled: settings.sfx, volume: mix.master,
+    effectsVolume: mix.effects, voiceVolume: mix.voice });
+  configureMusic(sfx, skin, { enabled: settings.music !== false, volume: mix.master * mix.music, scene, chooseNew: scene === 'intense' });
 }
 setOnlineMusic('menu');
 await prepareSfx(sfx);

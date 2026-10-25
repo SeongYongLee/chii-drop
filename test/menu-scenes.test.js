@@ -72,6 +72,26 @@ test('설정에서 목소리 미리듣기는 제거하고 목소리·착지 위�
   assert.ok(h.labels().some(label => label.includes('착지 위치 표시') && label.includes('켬')));
 });
 
+test('음량 조절에서 전체·효과음·음악·목소리를 독립적으로 바꾸고 설정으로 돌아간다', () => {
+  const h = harness();
+  h.press('ArrowDown'); h.press('Enter');
+  const settings = h.app.scene;
+  settings.touchItems(h.app).find(item => item.label === '음량 조절').activate();
+  const menu = h.app.scene, items = menu.touchItems(h.app);
+  assert.deepEqual(items.map(item => [item.label, item.value]), [['전체', 6], ['효과음', 10], ['배경음악', 10], ['목소리', 10]]);
+  items[1].activate(-1);
+  assert.equal(h.app.settings.effectsVolume, 9);
+  assert.equal(h.app.settings.musicVolume, 10);
+  assert.equal(h.app.settings.voiceVolume, 10);
+  assert.equal(h.app.settings.volume, 6);
+  for (let i = 0; i < 15; i++) items[2].activate(-1);
+  assert.equal(h.app.settings.musicVolume, 0);
+  for (let i = 0; i < 15; i++) items[2].activate(1);
+  assert.equal(h.app.settings.musicVolume, 10);
+  h.press('Escape');
+  assert.equal(h.app.scene, settings);
+});
+
 test('결과에서 난이도만 변경할 때 현재 난이도를 표시하고 같은 캐릭터로 바로 시작한다',()=>{
   const h=harness(),characters=MOCK_SKIN.characters.slice(1,3);let cancelled=0;
   const menu=createCpuLevelMenu({characters,cpuLevel:'hard',onBack:()=>cancelled++});

@@ -80,7 +80,7 @@ function playCharacterVoice(sfx, charId, event, { channel = 0, chain = 1 } = {})
   source.buffer = sfx.characterVoiceBuffers.get(file);
   const amp = sfx.context.createGain();
   amp.gain.value = sfx.characterVoiceGains?.get(file) ?? 1.4;
-  source.connect(amp).connect(sfx.master);
+  source.connect(amp).connect(sfx.voiceMaster ?? sfx.master);
   if (previous) stopVoice(previous, t);
   const voice = { source, amp, started: t, priority };
   source.onended = () => {

@@ -447,7 +447,7 @@ function createSettingsMenu() {
     saveSettings(app.settings);
     app.applySettings();
   };
-  return createListMenu({
+  const settingsMenu = createListMenu({
     title: '설정',
     footer: '↑↓ 선택 · ←→ 변경 · Esc 뒤로',
     items: (app) => {
@@ -468,9 +468,19 @@ function createSettingsMenu() {
           change: (a) => update(a, { voice: a.settings.voice === false }),
         },
         {
-          label: '음량',
-          value: app.settings.volume,
-          change: (a, delta) => update(a, { volume: Math.min(10, Math.max(0, a.settings.volume + delta)) }),
+          label: '음량 조절',
+          select: (a) => a.setScene(createListMenu({
+            title: '음량 조절',
+            notice: () => '전체 음량은 모든 소리에 적용됩니다. · 0은 무음',
+            items: (a) => [
+              ['전체', 'volume', 6], ['효과음', 'effectsVolume', 10],
+              ['배경음악', 'musicVolume', 10], ['목소리', 'voiceVolume', 10],
+            ].map(([label, key, fallback]) => ({
+              label, value: a.settings[key] ?? fallback,
+              change: (app, delta) => update(app, { [key]: Math.min(10, Math.max(0, (app.settings[key] ?? fallback) + delta)) }),
+            })),
+            onBack: (app) => app.setScene(settingsMenu),
+          })),
         },
         {
           label: '착지 위치 표시',
@@ -483,6 +493,7 @@ function createSettingsMenu() {
     },
     onBack: (app) => app.goToMenu(),
   });
+  return settingsMenu;
 }
 
 function storyRecordItems() {
