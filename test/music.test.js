@@ -94,6 +94,26 @@ test('빈 상황 목록은 기본 음악 목록으로 대체하고 단일 곡은
  skin.music={tracks:[{file:'one.mp3'},{file:'two.mp3'}],scenes:{battle:{tracks:[]}}};configureMusic(sfx,skin,{scene:'battle',random:()=>.8});assert.equal(sfx.musicFile,'two.mp3');
 });
 
+test('모든 CPU 난이도는 일반 대전 재생 목록을 사용하고 보스만 전용 음악을 사용한다', t => {
+  const { sfx, skin } = harness(t);
+  skin.music.scenes = {
+    battle: { tracks: [{ file: 'battle-a.mp3' }, { file: 'battle-b.mp3' }] },
+    intense: { file: 'boss.mp3' },
+  };
+  for (const cpuLevel of ['beginner', 'easy', 'normal', 'hard', 'expert', 'master', 'grandmaster']) {
+    const scene = createGameScene({ mode: 'cpu', cpuLevel });
+    assert.equal(scene.musicScene(), 'battle', cpuLevel);
+    configureMusic(sfx, skin, { scene: scene.musicScene(), selectionKey: {}, random: () => 0 });
+    assert.equal(sfx.musicFile, 'battle-a.mp3', cpuLevel);
+    configureMusic(sfx, skin, { scene: scene.musicScene(), selectionKey: {}, random: () => .99 });
+    assert.equal(sfx.musicFile, 'battle-b.mp3', cpuLevel);
+  }
+  const boss = createGameScene({ mode: 'cpu', cpuLevel: 'grandmaster', boss: true });
+  assert.equal(boss.musicScene(), 'intense');
+  configureMusic(sfx, skin, { scene: boss.musicScene() });
+  assert.equal(sfx.musicFile, 'boss.mp3');
+});
+
 test('CPU 경기의 프레임 진행과 일시정지는 BGM을 유지하고 다시 하기에만 새로 선택한다', t => {
   const { sfx, skin, created } = harness(t);
   skin.music.scenes = { battle: { tracks: [{ file: 'a.mp3' }, { file: 'b.mp3' }] } };

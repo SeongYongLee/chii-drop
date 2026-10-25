@@ -2,13 +2,13 @@ import { playSfx } from '../audio/sfx.js';
 import { playBoardSounds } from '../audio/board-sounds.js';
 import { playCharacterEvents, playCharacterVoice } from '../audio/character-voice.js';
 import { SET_WINS } from '../engine/rules.js';
-import { CPU_LEVELS } from '../cpu/cpu.js';
 import { KEYMAPS, MENU_KEYS, readInput, wasPressed } from '../input/keyboard.js';
 import { createEffects, setMood, tickCharacters, tickEffect } from '../view/effects.js';
 import { drawBanner, drawGame } from '../view/renderer.js';
 import { drawStoryForm } from '../view/story-art.js';
-import { drawResultPanel } from '../view/scene-motion.js';
+import { drawFieldResults, drawResultActions, resultMenuLayout } from '../view/field-results.js';
 import { drawPauseMenu } from '../view/pause-menu.js';
+import { drawFeverEntry, FEVER_ENTRY_FRAMES, FEVER_GO_FRAMES } from '../view/fever-entry.js';
 
 import { GO_FRAMES, createSession, sessionPlayers, stepSession } from './session.js';
 import { saveRecords } from './storage.js';
@@ -28,8 +28,6 @@ function returnToModeMenu(app, scene) {
 // 경기 중 회전 키와 겹치지 않게 결과 화면은 Enter·Esc만 받는다.
 const RESULT_KEYS = { confirm: ['Enter', 'Space'], back: ['Escape', 'Backspace'] };
 const RESULT_INPUT_DELAY = 40;
-const REVIVE_BANNER_FRAMES = 80;
-const LEVEL_LABELS = Object.fromEntries(CPU_LEVELS.map(({ id, label }) => [id, label]));
 
 // 경기 시드는 표현 계층에서 정해 엔진에 넘긴다.
 function makeSeed() {
@@ -107,10 +105,17 @@ function startRound(scene) {
   // 프레임마다 교체되는 경기 상태와 별도로 이번 판의 음악 선택을 유지한다.
   scene.musicSession = {};
   scene.effects = createEffects(mode === 'solo' ? 1 : 2);
+  // 첫 화면부터 첫 쌍이 NEXT에 보이도록 준비하되 출현 연출은 진행하지 않는다.
+  sessionPlayers(scene.session).forEach((player, i, players) => tickEffect(scene.effects[i], player, {
+    table: scene.session.match.table, opponentSide: players.length > 1 ? 1 - i : null,
+    opponent: players[1 - i] ?? null,
+  }));
   scene.paused = false;
+  scene.resultIndex = 0;
   scene.pauseIndex = 0;
   scene.reviveDialogue = null;
-  scene.reviveTimer = 0;
+  scene.feverEntryTimer = 0;
+  scene.feverEntrySide = null;
   scene.revealedForm = false;
   scene.resultFrame = 0;
 }
@@ -157,17 +162,29 @@ function updateGame(app, scene) {
     if (scene.resultDelay > 0) {
       scene.resultDelay -= 1;
     } else if (wasPressed(keyboard, RESULT_KEYS.confirm)) {
-      playSfx(app.sfx, 'confirm');
-      startRound(scene);
+      chooseResult(app, scene, scene.resultIndex);
     } else if (wasPressed(keyboard, RESULT_KEYS.back)) {
-      playSfx(app.sfx, 'cancel');
-      returnToModeMenu(app, scene);
+      chooseResult(app, scene, 1);
+    } else if ([MENU_KEYS.up, MENU_KEYS.down, MENU_KEYS.left, MENU_KEYS.right].some(keys => wasPressed(keyboard, keys))) {
+      const count = resultActions(scene).length;
+      const columns = app.mobile?.visible && count === 4 ? 2 : 1;
+      const horizontal = wasPressed(keyboard, MENU_KEYS.left) || wasPressed(keyboard, MENU_KEYS.right);
+      const delta = horizontal ? (wasPressed(keyboard, MENU_KEYS.left) ? -1 : 1)
+        : (wasPressed(keyboard, MENU_KEYS.up) ? -columns : columns);
+      if (horizontal && columns === 2) {
+        scene.resultIndex = Math.floor(scene.resultIndex / 2) * 2 + (scene.resultIndex % 2 + delta + 2) % 2;
+      } else scene.resultIndex = (scene.resultIndex + delta + count) % count;
+      playSfx(app.sfx, 'cursor');
     }
     return;
   }
   if (wasPressed(keyboard, MENU_KEYS.pause)) {
     scene.paused = true;
     scene.pauseIndex = 0;
+    return;
+  }
+  if (scene.feverEntryTimer > 0) {
+    updateFeverReady(app, scene);
     return;
   }
 
@@ -180,6 +197,12 @@ function updateGame(app, scene) {
   scene.session = next;
 
   const players = sessionPlayers(next);
+  const feverSide = players.findIndex(player => player.events.some(event => event.type === 'feverStart'));
+  if (feverSide >= 0) {
+    scene.feverEntryTimer = FEVER_ENTRY_FRAMES;
+    scene.feverEntrySide = feverSide;
+    playSfx(app.sfx, 'count');
+  }
   players.forEach((player, i) => {
     tickEffect(scene.effects[i], player, {
       table: next.match.table,
@@ -187,7 +210,7 @@ function updateGame(app, scene) {
       opponent: players.length > 1 ? players[1 - i] : null,
     });
     const isHuman = !session.cpu || i === 0;
-    playBoardSounds(app.sfx, sessionPlayers(session)[i], player, i);
+    playBoardSounds(app.sfx, sessionPlayers(session)[i], player, i, scene.effects[i].warningChange, scene.effects[i].arrivalSounds);
     playEventSounds(app, player.events, isHuman, i);
     playCharacterEvents(app.sfx, scene.options.characters[i]?.id, player.events, i);
   });
@@ -196,11 +219,8 @@ function updateGame(app, scene) {
     scene.revealedForm = true;
     if (scene.options.onRevive) {
       scene.reviveDialogue = scene.options.onRevive(() => { scene.reviveDialogue = null; });
-    } else {
-      scene.reviveTimer = REVIVE_BANNER_FRAMES;
     }
   }
-  scene.reviveTimer = Math.max(0, (scene.reviveTimer ?? 0) - 1);
 
   if (session.match.phase !== 'over' && next.match.phase === 'over') {
     onMatchOver(app, scene);
@@ -235,24 +255,26 @@ function updateStoryResult(app, scene) {
   }
 }
 
-function resultText(scene) {
-  const { session, options, tally } = scene;
-  if (session.mode === 'story') {
-    const { won, score } = storyResult(scene);
-    return won
-      ? ['승리!', `점수 ${score}\nEnter 계속`]
-      : ['패배…', 'Enter 다시 도전 · Esc 싱글플레이로 (진행 저장됨)'];
-  }
-  if (session.mode === 'solo') {
-    const { score, maxChain } = session.match.players[0];
-    return ['게임 오버', `점수 ${score} · 최대 ${maxChain}연쇄\nEnter 다시 하기 · Esc ${returnMenuLabel(scene)}`];
-  }
-  const { winner } = session.match;
-  const names = options.characters.map((c) => c.name);
-  const setWon = winner >= 0 && tally[winner] >= SET_WINS;
-  const title = winner === -1 ? '무승부' : setWon ? `${names[winner]} 세트 승리!` : `${names[winner]} 승리!`;
-  const level = session.mode === 'cpu' ? ` (CPU ${LEVEL_LABELS[options.cpuLevel]})` : '';
-  return [title, `${tally[0]} : ${tally[1]}${level}\nEnter 다시 하기 · Esc ${returnMenuLabel(scene)}`];
+function resultActions(scene) {
+  if (scene.session.mode === 'story') return storyResult(scene).won ? ['계속하기'] : ['다시 도전', `${returnMenuLabel(scene)}로`];
+  return ['다시하기', '메인메뉴', ...(scene.session.mode === 'cpu' ? ['캐릭터 선택', '난이도 선택'] : [])];
+}
+
+function chooseResult(app, scene, index) {
+  if (scene.resultDelay > 0) return;
+  playSfx(app.sfx, index ? 'cancel' : 'confirm');
+  if (scene.session.mode === 'story') {
+    const result = storyResult(scene);
+    if (!index) scene.options.onFinish(app, result);
+    else if (!result.won) scene.options.onQuit(app, result);
+  } else if (!index) startRound(scene);
+  else if (index === 1) app.goToMenu();
+  else if (index === 2 && scene.session.mode === 'cpu') app.goToCharacterSelect({
+    mode: 'cpu', cpuLevel: scene.options.cpuLevel, onBack: () => app.setScene(scene.screen),
+  });
+  else if (index === 3 && scene.session.mode === 'cpu') app.goToCpuLevelMenu({
+    characters: scene.options.characters, cpuLevel: scene.options.cpuLevel, onBack: () => app.setScene(scene.screen),
+  });
 }
 
 function drawGameScene(ctx, app, scene) {
@@ -274,22 +296,30 @@ function drawGameScene(ctx, app, scene) {
     effects: scene.effects,
     characters: scene.options.characters,
     showGhost: app.settings.ghost,
+    result: session.phase === 'result',
   });
 
   if (scene.paused) {
-    if(!app.mobile?.visible)drawPauseMenu(ctx, pauseItems(scene), scene.pauseIndex);
+    if(!app.mobile?.visible && !app.mobile?.pauseDialogOpen)drawPauseMenu(ctx, pauseItems(scene), scene.pauseIndex);
   } else if (session.phase === 'ready') {
     drawBanner(ctx, session.readyTimer > GO_FRAMES ? '준비' : '시작!');
-  } else if (scene.reviveTimer > 0) {
-    drawBanner(ctx, scene.options.reviveLine ?? '부활!', '피버 모드');
   } else if (session.phase === 'result') {
-    const [title, sub] = resultText(scene);
-    const winner = session.match.winner;
-    const won = session.mode !== 'solo' && (session.mode === 'versus' ? winner >= 0 : winner === 0);
-    drawResultPanel(ctx, title, sub, { age: scene.resultFrame, won,
+    drawFieldResults(ctx, { skin: app.skin, match: session.match, characters: scene.options.characters,
+      tally: session.mode === 'solo' || session.mode === 'story' ? null : scene.tally,
+      mode: session.mode, age: scene.resultFrame,
       quiet: scene.options.scenery === 'inside' || Boolean(scene.options.boss),
     });
+    if (!app.mobile?.visible) drawResultActions(ctx, resultActions(scene), scene.resultIndex, scene.resultDelay === 0);
   }
+  if (!scene.paused && session.match.phase !== 'over') drawFeverEntry(ctx, scene.feverEntryTimer,
+    { side: scene.feverEntrySide ?? 1, playerCount: session.match.players.length });
+}
+
+// 준비 예고 중에는 stepSession을 호출하지 않아 양쪽 필드·CPU·피버 시간을 보존한다.
+function updateFeverReady(app, scene) {
+  scene.feverEntryTimer = Math.max(0, scene.feverEntryTimer - 1);
+  if (scene.feverEntryTimer === FEVER_GO_FRAMES) playSfx(app.sfx, 'go');
+  else if (scene.feverEntryTimer > FEVER_GO_FRAMES && (scene.feverEntryTimer - FEVER_GO_FRAMES) % 40 === 0) playSfx(app.sfx, 'count');
 }
 
 // options: { mode, cpuLevel, characters: [{ id, name }], boss, story: { startLevel, colors }, reviveLine, onFinish, onQuit }
@@ -305,19 +335,32 @@ function createGameScene(options) {
     tally: [0, 0],
   };
   startRound(scene);
-  return {
+  const screen = {
+    get touchColumns() { return scene.session.phase === 'result' && options.mode === 'cpu' ? 2 : 1; },
     touchGame: () => !scene.reviveDialogue,
+    backgroundScene: () => options.scenery ? `game:${options.scenery}` : 'game',
+    openPause() { scene.paused = true; scene.pauseIndex = 0; },
     touchPaused: () => scene.paused,
-    touchDirect: () => scene.paused,
+    touchHideBack: () => scene.session.phase === 'result' && !scene.paused,
+    touchDirect: () => scene.paused || scene.session.phase === 'result',
     touchItems: (app) => scene.paused ? pauseItems(scene).map((label, index) => ({
       label, selected:scene.pauseIndex === index, activate:() => selectPauseItem(app,scene,index),
+    })) : scene.session.phase === 'result' ? resultActions(scene).map((label, index) => ({
+      label, selected: index === scene.resultIndex, disabled: scene.resultDelay > 0, activate: () => chooseResult(app, scene, index),
     })) : [],
     touchMode: () => scene.reviveDialogue || scene.paused || scene.session.phase === 'result' ? 'menu' : 'game',
     touchLocal: () => options.mode === 'versus' && !scene.reviveDialogue && !scene.paused && scene.session.phase !== 'result',
     touchLabel: () => scene.paused ? `일시정지 · ${pauseItems(scene)[scene.pauseIndex]}`
-      : scene.session.phase === 'result' ? `결정: 다시 하기 · 뒤로: ${returnMenuLabel(scene)}`
+      : scene.session.phase === 'result' ? '경기 종료 · 다음 행동을 선택하세요'
       : '이동 · 빠르게 내리기 · 회전',
     tap(app, { x, y }, viewport) {
+      if (scene.session.phase === 'result' && !scene.paused) {
+        if (viewport?.portrait) return true;
+        const boxes = resultMenuLayout(viewport?.height ?? 540, resultActions(scene).length);
+        const index = boxes.findIndex(box => x >= box.x && x <= box.x + box.width && y >= box.y && y <= box.y + box.height);
+        if (index >= 0 && index < resultActions(scene).length) chooseResult(app, scene, index);
+        return true;
+      }
       if (!scene.paused) return false;
       if(viewport){const scale=viewport.portrait?1.85:1;x=480+(x-480)/scale;y=270+(y-viewport.height/2)/scale;}
       const index = Math.floor((y - 199) / 56);
@@ -328,10 +371,12 @@ function createGameScene(options) {
     },
     get musicSession() { return scene.musicSession; },
     musicScene: () => scene.session.phase === 'result' ? 'result'
-      : options.boss || (options.mode === 'cpu' && ['expert', 'master'].includes(options.cpuLevel)) ? 'intense' : 'battle',
+      : options.boss ? 'intense' : 'battle',
     update: (app) => updateGame(app, scene),
     draw: (ctx, app) => drawGameScene(ctx, app, scene),
   };
+  scene.screen = screen;
+  return screen;
 }
 
-export { createGameScene };
+export { createGameScene, updateFeverReady };

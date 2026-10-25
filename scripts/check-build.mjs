@@ -2,6 +2,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { runtimePaths, RUNTIME, STORY } from './pages/assets.mjs';
 import { buildInfo } from './build-info.mjs';
+import { parseOnlineConfig } from '../src/net/config.js';
 
 export async function checkBuild() {
   async function walk(root) {
@@ -14,7 +15,8 @@ export async function checkBuild() {
     return paths;
   }
   const manifest = JSON.parse(await readFile(`${RUNTIME}/manifest.json`, 'utf8'));
-  const expected = ['index.html','style.css','online.html','online.css','README.md','asset-worker.js', STORY,
+  parseOnlineConfig(JSON.parse(await readFile('online-config.json', 'utf8')), 'https://pages.example/game/');
+  const expected = ['index.html','style.css','online.html','online.css','README.md','asset-worker.js','online-config.json', STORY,
     `${RUNTIME}/manifest.json`,`${RUNTIME}/characters.json`,
     ...[...runtimePaths(manifest)].map(path => `${RUNTIME}/${path}`),
     ...(await walk('src')).filter(path => !/\.md$/i.test(path))];

@@ -43,3 +43,14 @@ test('새로 배정한 키의 브라우저 기본 동작을 막고 키 해제·�
   const up = new Event('keyup'); Object.assign(up, { code: 'KeyJ' }); target.dispatchEvent(up); assert.equal(readInput(keyboard, KEYMAPS.solo), 0);
   target.dispatchEvent(event); target.dispatchEvent(new Event('blur')); assert.equal(readInput(keyboard, KEYMAPS.solo), 0);
 });
+
+test('온라인 화면에서는 메인 키보드를 멈추고 돌아온 뒤 다시 입력받는다', () => {
+  const keyboard = createKeyboard(), target = new EventTarget(); attachKeyboard(keyboard, target);
+  const key = () => Object.assign(new Event('keydown', { cancelable: true }), { code: 'ArrowLeft', repeat: false });
+  keyboard.enabled = false;
+  const paused = key(); target.dispatchEvent(paused);
+  assert.equal(paused.defaultPrevented, false);
+  assert.equal(keyboard.held.size, 0); assert.equal(keyboard.pressed.size, 0);
+  keyboard.enabled = true; const resumed = key(); target.dispatchEvent(resumed);
+  assert.equal(resumed.defaultPrevented, true); assert.equal(readInput(keyboard, KEYMAPS.solo), INPUT.LEFT);
+});

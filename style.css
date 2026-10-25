@@ -1,3 +1,4 @@
+@import url('./src/view/controls-guide.css');
 :root {
   --bg: #fdf6ec;
   --fg: #4a3f35;
@@ -85,8 +86,9 @@ body {
   .mobile-custom-layout .mobile-pause { font-size: 20px; }
   .mobile-items { display: grid; gap: 6px; margin: 0 0 10px; max-height: min(320px, max(64px, calc(100dvh - 300px))); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
   .mobile-items[data-columns="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mobile-items[data-columns="2"] > .mobile-item:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .mobile-item { display: flex; gap: 5px; min-width: 0; }
-  .mobile-item button { min-width: 44px; min-height: 48px; font-size: 16px; line-height: 1.3; touch-action: pan-y; }
+  .mobile-item button { min-width: 44px; min-height: 48px; font-size: 16px; line-height: 1.3; word-break: keep-all; touch-action: pan-y; }
   .mobile-item button:first-child { flex: 1; }
   .mobile-item button[aria-current=true] { background: #f4c9d2; border-color: #bd7c88; }
   .mobile-pad[data-has-items=true] .mobile-direction, .mobile-pad[data-title=true] .mobile-direction { display: none; }
@@ -172,63 +174,6 @@ body {
   .mobile-controls[data-mode="game"] [data-mobile-game] { inset: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); height: auto; width: auto; transform: none; }
 }
 
-.controls-guide {
-  box-sizing: border-box; width: min(700px, calc(100vw - 24px));
-  max-height: calc(100dvh - 24px); padding: 20px; border: 2px solid #d4c4af;
-  border-radius: 22px; color: var(--fg); background: var(--bg); font: 15px system-ui, sans-serif;
-}
-.controls-guide::backdrop { background: #302b29b8; }
-.controls-guide [hidden] { display: none !important; }
-.controls-guide header { margin-bottom: 14px; }
-.controls-guide h2 { margin: 0 0 12px; font-size: 22px; text-align: center; }
-.controls-guide h3 { margin: 0 0 8px; font-size: 16px; }
-.controls-guide button { min-height: 48px; border: 1px solid #c9b9a5; border-radius: 10px; padding: 7px 12px; color: var(--fg); background: #fffdf5; font: 700 14px system-ui, sans-serif; touch-action: manipulation; }
-.game-guide-tabs, .game-guide-actions { display: flex; gap: 8px; }
-.game-guide-tabs button, .game-guide-actions button { flex: 1; min-width: 0; }
-.game-guide-tabs [aria-pressed=true], .game-guide-actions button:last-child { background: #f4c9d2; border-color: #bd7c88; }
-.game-guide-actions button:last-child { flex: 2; font-size: 16px; }
-.game-guide-rules { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.game-guide-rules section { padding: 12px; border-radius: 12px; background: #eee9db; }
-.controls-guide .game-guide-rules h3 { font-size: 15px; }
-.controls-guide p { font-size: 13px; line-height: 1.45; margin: 12px 0; }
-.controls-guide .game-guide-rules p { margin: 0; }
-.game-guide-picture { padding: 10px 0; margin-bottom: 8px; text-align: center; font-weight: 800; color: #9c475f; background: #fffdf5; border-radius: 8px; }
-.controls-guide .game-guide-warning { padding: 8px 10px; border-left: 3px solid #bd7c88; background: #f6ece4; }
-.controls-guide-cards { display: flex; gap: 18px; }
-.controls-guide-cards section { flex: 1; min-width: 0; }
-.controls-guide dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; margin: 0; align-items: center; }
-.controls-guide dt { font-weight: 750; text-align: center; padding: 4px 8px; border-radius: 8px; background: #e8ddd1; }
-.controls-guide dd { margin: 0; }
-.controls-guide :focus-visible { outline: 3px solid #9270a8; outline-offset: 2px; }
-.controls-guide-pad { display: flex; justify-content: space-around; align-items: center; padding: 10px; margin-bottom: 10px; border-radius: 14px; background: #dfebe5; color: #60554f; font-size: 24px; font-weight: bold; text-align: center; }
-@media (max-width: 480px) {
-  .controls-guide { padding: 12px; font-size: 14px; }
-  .controls-guide header { margin-bottom: 8px; }
-  .controls-guide h2 { font-size: 20px; margin-bottom: 8px; }
-  .controls-guide p { margin: 10px 0; }
-  .controls-guide .game-guide-warning { padding: 6px 8px; }
-  .controls-guide-cards { gap: 10px; }
-  .controls-guide dl { gap: 8px; }
-  .game-guide-rules { grid-template-columns: 1fr; gap: 8px; }
-  .game-guide-rules section { display: grid; grid-template-columns: 54px 1fr; gap: 4px 10px; padding: 8px; }
-  .game-guide-picture { grid-row: span 2; display: grid; align-items: center; margin: 0; padding: 4px; font-size: 12px; }
-  .controls-guide .game-guide-rules h3 { margin: 0; }
-}
-@media (max-height: 500px) and (min-width: 480px) {
-  .controls-guide { width: min(740px, calc(100vw - 24px)); padding: 10px 16px; font-size: 14px; }
-  .controls-guide header { display: grid; grid-template-columns: 105px 1fr; gap: 12px; align-items: center; margin-bottom: 8px; }
-  .controls-guide h2 { margin: 0; font-size: 20px; }
-  .controls-guide h3 { margin-bottom: 4px; }
-  .controls-guide button { min-height: 44px; }
-  .controls-guide dt { padding: 2px 8px; }
-  .controls-guide dl { gap: 5px 10px; }
-  .controls-guide-pad { float: left; width: 32%; height: 100px; margin: 0 16px 0 0; padding: 8px; box-sizing: border-box; }
-  .controls-guide p { margin: 8px 0; font-size: 12px; }
-  .game-guide-rules section { padding: 8px; }
-  .game-guide-picture { padding: 5px 0; margin-bottom: 6px; font-size: 13px; }
-  .controls-guide .game-guide-rules h3 { font-size: 14px; }
-  .controls-guide .game-guide-warning { padding: 4px 8px; }
-}
 
 .loading-screen { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); background: var(--bg); }
 .loading-screen[hidden] { display: none; }
@@ -310,3 +255,182 @@ body {
 .mobile-pause-actions button:first-child { background: #f4dce4; border-color: #bd7c88; }
 .mobile-pause-actions button:focus-visible { outline: 3px solid #9270a8; outline-offset: 3px; }
 .mobile-pause-actions button:active { transform: translateY(2px); }
+
+/* 종이 메뉴와 두 손으로 잡는 파스텔 조작판. 저장한 버튼 좌표는 그대로 사용한다. */
+.touch-editor-arena { background: #faf1de; outline-color: #c4af96; }
+.touch-editor-arena button[data-action="move"] { background: #e6efdc; border-color: #acb99b; color: #46503c; }
+.touch-editor-arena button[data-action="rotate"] { background: #f5dde4; border-color: #c798a6; color: #784b5a; }
+.touch-editor-arena button[data-action="pause"] { background: #f9edc6; border-color: #c9b582; color: #786442; }
+.touch-editor-arena button[aria-pressed="true"] { outline: 2px solid #9270a8; outline-offset: 2px; }
+@media (max-width: 760px) and (orientation: portrait) {
+  .mobile-item button, .mobile-actions button {
+    border-color: #c4af96; background: #fffdf5;
+    box-shadow: 0 2px 0 #e9ddcb;
+    transition: background-color .12s, box-shadow .12s;
+  }
+  .mobile-item button[aria-current=true] {
+    background: #f5dce2; border-color: #bd8292; box-shadow: 0 2px 0 #e8c7d1;
+  }
+  .mobile-item button:active, .mobile-actions button:active {
+    background: #f8e7bd; box-shadow: none;
+  }
+  .mobile-controls[data-mode="game"] {
+    border: 1px solid #d8c8b2; border-bottom: 0; padding: 0;
+    background: linear-gradient(#fffaf0, #f7ecdb);
+    box-shadow: 0 -3px 0 #fffdf5, inset 0 3px 0 #fffdf5;
+    border-radius: 26px 26px 0 0;
+  }
+  .mobile-controls[data-mode="game"] > [data-mobile-label] { display: none; }
+  .mobile-controls[data-mode="game"] [data-mobile-game] { width: 100%; }
+  .mobile-controls[data-mode="game"] [data-mobile-game] button {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0; padding: 0; border-radius: 22px;
+    border: 2px solid #acb99b; border-bottom-width: 4px;
+    background: #e6efdc; color: #46503c;
+    box-shadow: 0 3px 0 #d7ddc9, inset 0 2px 0 #ffffffb3;
+    text-shadow: none;
+  }
+  .mobile-controls[data-mode="game"] [data-mobile-game] button span { font: 700 30px/1 system-ui, sans-serif; }
+  .mobile-controls[data-mode="game"] [data-mobile-game] button small { font: 700 10px/1.4 system-ui, sans-serif; }
+  .mobile-controls[data-mode="game"] [data-mobile-game] button[data-input="16"],
+  .mobile-controls[data-mode="game"] [data-mobile-game] button[data-input="8"] {
+    background: #f5dde4; color: #784b5a; border-color: #c798a6;
+    box-shadow: 0 3px 0 #e6c5ce, inset 0 2px 0 #ffffffb3;
+  }
+  .mobile-controls[data-mode="game"] [data-mobile-game] .mobile-pause {
+    border-radius: 17px; background: #f9edc6; color: #786442; border-color: #c9b582;
+    box-shadow: 0 3px 0 #e8d9ae, inset 0 2px 0 #ffffffb3;
+  }
+  .mobile-controls[data-mode="game"] [data-mobile-game] .mobile-pause span { font-size: 20px; }
+  .mobile-controls[data-mode="game"] [data-mobile-game] button[aria-pressed="true"] {
+    transform: translateY(2px); background: #d0dfbc; box-shadow: inset 0 2px 0 #b5c69b;
+  }
+  .mobile-controls[data-mode="game"] [data-mobile-game] button[data-input="16"][aria-pressed="true"],
+  .mobile-controls[data-mode="game"] [data-mobile-game] button[data-input="8"][aria-pressed="true"] {
+    background: #e9becb; box-shadow: inset 0 2px 0 #d3a4b2;
+  }
+  .mobile-controls[data-mode="game"] .mobile-player {
+    position: absolute; right: 8px; top: -44px; z-index: 1; margin: 0;
+    background: #fffdf5; border-color: #c4af96;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-item button, .mobile-actions button { transition: none; }
+}
+
+/* 말랑한 소품과 게임 속 종이 팻말에 맞춘 터치 조작판. */
+@media (max-width: 760px) and (orientation: portrait) {
+  .mobile-controls[data-mode="game"] {
+    background: #fbf3e5;
+    border-color: #cbb99f;
+    box-shadow: 0 -3px 0 #fffdf8, inset 0 2px 0 #fffdf8;
+    border-radius: 30px 30px 14px 14px;
+  }
+  .mobile-controls[data-mode="game"]::before {
+    content: ''; position: absolute; inset: 9px;
+    border: 1px dashed #dac8ac; border-radius: 23px 23px 10px 10px;
+    pointer-events: none;
+  }
+}
+@media (pointer: coarse), (max-width: 960px) {
+  .mobile-controls[data-mode="game"] [data-mobile-game] button {
+    --touch-fill: #e5edd0; --touch-shade: #c9d5b4; --touch-ink: #65714e;
+    color: #655345; border: 2px solid #917c64; border-bottom-width: 3px;
+    border-radius: 45% 48% 43% 46% / 46% 44% 49% 43%;
+    background: radial-gradient(ellipse 9% 5% at 18% 64%, #f0b9b080 95%, transparent),
+      radial-gradient(ellipse 9% 5% at 82% 64%, #f0b9b080 95%, transparent),
+      radial-gradient(ellipse at 38% 12%, #fffdf5 0%, var(--touch-fill) 64%);
+    box-shadow: 0 3px 0 var(--touch-shade), inset 0 2px 0 #fffdf5;
+  }
+  .mobile-controls[data-mode="game"] [data-mobile-game] button span {
+    width: 31px; height: 31px; display: block; color: var(--touch-ink);
+  }
+  .mobile-controls[data-mode="game"] [data-mobile-game] button svg {
+    display: block; width: 100%; height: 100%; fill: none; stroke: currentColor;
+    stroke-width: 3; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .mobile-controls[data-mode="game"] [data-mobile-game] button small {
+    font-size: 10px; color: #655345; letter-spacing: -.03em;
+  }
+  .mobile-controls[data-mode="game"] [data-mobile-game] button[data-input="16"],
+  .mobile-controls[data-mode="game"] [data-mobile-game] button[data-input="8"] {
+    --touch-fill: #f4d8df; --touch-shade: #e0bdc5; --touch-ink: #9a6372;
+    border-color: #9d7d79;
+    background: radial-gradient(ellipse 9% 5% at 18% 64%, #e4a2a580 95%, transparent),
+      radial-gradient(ellipse 9% 5% at 82% 64%, #e4a2a580 95%, transparent),
+      radial-gradient(ellipse at 38% 12%, #fff8f3 0%, var(--touch-fill) 64%);
+    box-shadow: 0 3px 0 var(--touch-shade), inset 0 2px 0 #fffdf5;
+  }
+  .mobile-controls[data-mode="game"] [data-mobile-game] .mobile-pause {
+    --touch-fill: #f4e3aa; --touch-shade: #dfcf9e; --touch-ink: #8d7545;
+    border-radius: 46% 48% 45% 43%; border-color: #a48e65;
+    background: radial-gradient(ellipse at 38% 12%, #fffdf3, var(--touch-fill));
+    box-shadow: 0 3px 0 var(--touch-shade), inset 0 2px 0 #fffdf5;
+  }
+  .mobile-controls[data-mode="game"] [data-mobile-game] .mobile-pause span { width: 24px; height: 24px; }
+  .mobile-controls[data-mode="game"] [data-mobile-game] button[aria-pressed="true"] {
+    box-shadow: 0 1px 0 var(--touch-shade), inset 0 3px 5px #80684e26;
+    filter: saturate(1.1) brightness(.96);
+  }
+  .mobile-item button, .mobile-actions button {
+    position: relative; border-radius: 18px 21px 17px 20px;
+    border: 1.5px solid #c5ae94; border-bottom-width: 3px;
+    background: #fffdf6; box-shadow: inset 0 2px 0 #fff, 0 2px 0 #eadcc5;
+  }
+  .mobile-item button[aria-current=true] { background: #f7e2e7; border-color: #bd929a; }
+  .mobile-item button[aria-current=true]::before {
+    content: ''; position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    width: 15px; height: 15px; pointer-events: none;
+    background: radial-gradient(circle at 30% 30%, #bf8695 0 26%, transparent 28%),
+      radial-gradient(circle at 70% 30%, #bf8695 0 26%, transparent 28%),
+      radial-gradient(circle at 30% 70%, #bf8695 0 26%, transparent 28%),
+      radial-gradient(circle at 70% 70%, #bf8695 0 26%, transparent 28%);
+  }
+  .mobile-item button[aria-current=true] { padding-inline: 30px; }
+}
+
+/* 세로 화면은 하나의 스킨 배경을 게임판부터 손잡이까지 함께 쓴다. */
+@media (pointer: coarse), (max-width: 960px) {
+  .mobile-controls[data-mode="game"] [data-mobile-game] button {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0; padding: 0;
+  }
+}
+@media (max-width: 760px) and (orientation: portrait) {
+  body[data-page-backdrop="true"] {
+    background-image: linear-gradient(#fff8ed24, #fff8ed24), var(--page-backdrop);
+    background-size: cover; background-position: center; background-repeat: no-repeat;
+  }
+  body[data-page-backdrop="true"] .mobile-controls[data-mode="game"] {
+    border: 0; background: transparent; box-shadow: none; border-radius: 0;
+  }
+  body[data-page-backdrop="true"] .mobile-controls[data-mode="game"]::before { display: none; }
+  body[data-page-backdrop="true"] .mobile-controls > [data-mobile-label] {
+    align-self: center; padding: 4px 14px; border-radius: 14px; background: #fffaf0eb;
+  }
+  body[data-page-backdrop="true"] .mobile-notice { background: #fffaf0ed; border-radius: 12px; padding: 8px; }
+}
+
+/* 온라인 화면의 입력은 온라인 패드만 사용한다. */
+body[data-online-active=true] > #mobile-controls { display:none!important; }
+
+/* PC와 휴대폰 모두 같은 메뉴로 일시정지한다. */
+.stage { position:relative; }
+.game-menu-toggle {
+  position:absolute; top:max(8px,env(safe-area-inset-top)); left:50%; transform:translateX(-50%);
+  z-index:6; width:48px; height:48px; padding:0; border:1px solid #b9aa9080;
+  border-radius:12px; background:#fffdf5cc; color:#55483e; font:700 22px system-ui;
+  cursor:pointer; touch-action:manipulation;
+}
+.game-menu-toggle[hidden] { display:none; }
+.game-menu-toggle:focus-visible { outline:3px solid #9270a8; outline-offset:3px; }
+@media (orientation:landscape) and (max-height:500px) {
+  .mobile-pause-dialog {
+    width:min(480px,calc(100vw - max(24px,env(safe-area-inset-left)) - max(24px,env(safe-area-inset-right))));
+    max-height:calc(100dvh - max(12px,env(safe-area-inset-top)) - max(12px,env(safe-area-inset-bottom)));
+    padding:12px 20px; border-radius:20px;
+  }
+  .mobile-pause-dialog h2 { margin:0 0 10px; font-size:20px; }
+  .mobile-pause-actions { gap:8px; }
+  .mobile-pause-actions button { min-height:48px; font-size:17px; }
+}

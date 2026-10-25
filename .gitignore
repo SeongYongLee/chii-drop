@@ -34,6 +34,9 @@ sounds/**/preview.html
 *.key
 .codex/
 .agents/
+.wrangler/
+.dev.vars
+.dev.vars.*
 
 # 실행·검증 결과와 로컬 보관 파일
 *.log

@@ -8,6 +8,7 @@ import { createPropBlobs } from './prop-blobs.js';
 import { blinkSeed, blinkTime, compileBlink } from '../character-blink.js';
 import { compileIdleMotion, idleMotionAt } from '../character-idle.js';
 import { situationMotionAt } from '../character-situation.js';
+import { compileTravel, travelAt } from '../character-travel.js';
 
 const MOODS = ['idle', 'happy', 'sad', 'win', 'lose', 'fever', 'chain1', 'chain3', 'chain5', 'chain7', 'idleMove1', 'idleMove2', 'leading', 'trailing'];
 const SHAPE_SCALE = {
@@ -48,7 +49,7 @@ function spriteRegion(image, entry, frame) {
   const offsetY = entry.offsetY ?? 0;
   const scale = entry.scale ?? 1;
   if (![offsetX, offsetY, scale].every(Number.isFinite) || scale <= 0) return null;
-  return { ...sprite, offsetX, offsetY, scale };
+  return { ...sprite, offsetX, offsetY, scale, flipX: entry.flipX === true };
 }
 
 function spriteClip(image, entry, images = []) {
@@ -68,7 +69,14 @@ function spriteClip(image, entry, images = []) {
   if (!Number.isInteger(loopFrom) || loopFrom < 0 || loopFrom >= frames.length) return null;
   const blink = entry.blink === undefined ? null : compileBlink(entry.blink, frames, poster);
   if (entry.blink !== undefined && !blink) return null;
-  return { frames, total: frames.reduce((sum, frame) => sum + frame.duration, 0),
+  const total = frames.reduce((sum, frame) => sum + frame.duration, 0);
+  const travel = entry.travel === undefined ? null : compileTravel(entry.travel, total);
+  if (entry.travel !== undefined && !travel) return null;
+  const fieldTravel = entry.fieldTravel === undefined ? null : compileTravel(entry.fieldTravel, total);
+  if (entry.fieldTravel !== undefined && !fieldTravel) return null;
+  const fieldScale = entry.fieldScale ?? 1;
+  if (!Number.isFinite(fieldScale) || fieldScale < .25 || fieldScale > 1) return null;
+  return { frames, total, travel, fieldTravel, fieldScale,
     loopStart: frames.slice(0, loopFrom).reduce((sum, frame) => sum + frame.duration, 0),
     loop: entry.loop !== false, poster, blink };
 }
@@ -157,6 +165,7 @@ async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
   const blobs = await loadImageMap(baseUrl, Object.entries(manifest.blobs ?? {}), pending, onImage);
   const [background] = Object.values(await loadImageMap(baseUrl, [['background', manifest.background]], pending, onImage));
   const backgrounds = await loadImageMap(baseUrl, Object.entries(manifest.backgrounds ?? {}), pending, onImage);
+  const mascot = await loadImageMap(baseUrl, Object.entries(manifest.mascot?.moods ?? {}), pending, onImage);
   const characters = [];
   for (const character of manifest.characters ?? []) {
     const moods = await loadImageMap(
@@ -201,8 +210,27 @@ async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
       : undefined,
     drawWarningIcon: drawGrassWarning,
     characters: selectableCharacters,
+    drawMascot: mascot.idle ? (ctx, mood, x, y, size, motion = {}) => {
+      const clip = mascot[mood] ?? mascot.idle;
+      const sprite = spriteAt(clip, motion.frame, motion.reducedMotion, clip === mascot.idle ? {
+        frame: motion.blinkFrame ?? motion.frame ?? 0, seed: blinkSeed('ambient-mascot', visualSeed),
+      } : null);
+      const scale = size / Math.max(sprite.width, sprite.height) * sprite.scale;
+      const w = sprite.width * scale, h = sprite.height * scale;
+      drawSprite(ctx, sprite, x + (size-w)/2, y + size-h, w, h);
+    } : undefined,
+    fieldChainCharacters: (manifest.characters ?? []).filter(c => c.fieldChainReaction === true).map(c => c.id),
+    fieldChainFrames(id, chain) {
+      const character = characters.find(c => c.id === id);
+      const tier = chain >= 7 ? 7 : chain >= 5 ? 5 : 3;
+      return character?.moods[`chain${tier}`]?.total ?? 80;
+    },
     characterRoster: characters.map(({ id, name, selectable, selectionVisible, voiceAvailable }) => ({ id, name, selectable, selectionVisible, voiceAvailable })),
     hasBackground(scene) { return Boolean(backgrounds[scene]); },
+    backgroundUrl(scene) {
+      const clip = backgrounds[scene] ?? background;
+      return clip ? spriteAt(clip).image.src : null;
+    },
     drawBackground(ctx, width, height, scene) {
       const sceneBackground = backgrounds[scene] ?? background;
       if (sceneBackground) {
@@ -273,21 +301,29 @@ async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
         frame: visualFrame,
         seed,
       } : null);
-      const portrait = character.portraitSizing ?? (['selection', 'battle'].includes(motion.presentation) ? character.selectionPortrait : null);
+      const portrait = character.portraitSizing ?? (['selection', 'battle', 'field'].includes(motion.presentation) ? character.selectionPortrait : null);
       const portraitScale = Number.isFinite(portrait?.scale) && portrait.scale > 0 ? portrait.scale : 1;
       const baseline = Number.isFinite(portrait?.baseline) && portrait.baseline >= 0 && portrait.baseline <= 1 ? portrait.baseline : 1;
-      const boxSize = size * portraitScale;
+      const boxSize = size * portraitScale * (motion.presentation === 'field' ? clip.fieldScale ?? 1 : 1);
       const boxX = x + (size - boxSize) / 2;
       const boxY = y + (size - boxSize) * baseline;
       const scale = Math.min(boxSize / image.width, boxSize / image.height) * image.scale;
       const movement = situationMotionAt(mood, motion.frame, still);
+      const travel = idleAction ? travelAt(idleAction.clip, idleAction.frame, still)
+        : travelAt(clip, motion.frame, still || situation, motion.presentation === 'field');
       const w = image.width * scale * movement.sx;
       const h = image.height * scale * movement.sy;
-      if (motion.silhouette) { ctx.save(); ctx.filter = 'brightness(0)'; ctx.globalAlpha *= 0.55; }
+      if (motion.silhouette) {
+        ctx.save(); ctx.filter = 'brightness(0)';
+        ctx.globalAlpha *= Number.isFinite(motion.silhouetteOpacity) ? Math.max(0, Math.min(1, motion.silhouetteOpacity)) : 0.55;
+      }
       const offsetX = image.offsetX * (image.width * scale - w) / image.width;
       const offsetY = image.offsetY * (image.height * scale - h) / image.height;
-      drawSprite(ctx, image, boxX + (boxSize - w) / 2 + boxSize * movement.x + offsetX,
-        boxY + boxSize - h + offsetY, w, h);
+      const center = boxX + boxSize / 2 + boxSize * (movement.x + travel.x);
+      if (image.flipX) { ctx.save(); ctx.translate(center * 2, 0); ctx.scale(-1, 1); }
+      drawSprite(ctx, image, center - w / 2 + offsetX,
+        boxY + boxSize - h + offsetY + boxSize * travel.y, w, h);
+      if (image.flipX) ctx.restore();
       if (motion.silhouette) ctx.restore();
     },
   };

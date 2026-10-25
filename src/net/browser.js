@@ -1,45 +1,54 @@
+import { loadOnlineConfig, onlineTokenKey } from './config.js';
+import { showOnlineControls } from '../app/controls-guide.js';
 import { attachKeyboard, createKeyboard, readInput, KEYMAPS, clearPressed } from '../input/keyboard.js';
 import { loadKeyBindings } from '../input/key-settings.js';
 import { setupScreen } from '../app/screen.js';
-import { loadSkin } from '../view/skins/index.js';
 import { loadSettings } from '../app/storage.js';
 import { createEffects, tickCharacters, tickMatchEffects } from '../view/effects.js';
 import { drawBanner, drawGame } from '../view/renderer.js';
-import { drawResultPanel } from '../view/scene-motion.js';
-import { createSfx, playSfx, prepareSfx, unlockSfx } from '../audio/sfx.js';
+import { drawFieldResults } from '../view/field-results.js';
+import { playSfx, prepareSfx, unlockSfx } from '../audio/sfx.js';
 import { playBoardSounds } from '../audio/board-sounds.js';
 import { configureCharacterVoices, playCharacterEvents, playCharacterVoice } from '../audio/character-voice.js';
 import { configureMusic, syncMusicVisibility } from '../audio/music.js';
 import { RULES_VERSION } from '../engine/rules.js';
 import { RollbackMatch, PROTOCOL, stateHash } from './rollback.js';
+import { createInputBatcher, validInputBatch } from './input-batch.js';
+import { roomSocketURL } from './socket-route.js';
+import { createLobbyPresentation } from './lobby-presentation.js';
 import { attachTouchControls } from './touch.js';
 import { attachMobileViewport } from './mobile-viewport.js';
 import { attachTouchLayout } from './touch-layout.js';
 import { attachStageLayout } from './stage-layout.js';
 
-// 게임의 이미지 자료를 준비한 뒤 연결과 경기를 시작한다.
-const skin = await loadSkin();
-if (skin?.branding?.title) document.title = `${skin.branding.title} — 온라인 모드`;
-if (!skin) {
-  document.getElementById('connection').textContent = '게임 이미지를 불러오지 못했습니다. 새로고침해 주세요.';
-  throw new Error('Game artwork unavailable');
-}
-const $ = (id) => document.getElementById(id);
+export async function createOnlineSession({ root, shell, skin, sfx, onExit }) {
+const $ = id => root.getElementById(id);
+const onlineConfig = await loadOnlineConfig();
+let opened = false;
+let ws, profile, room, side, queued = false, connected = false, game, matchId, participants = [];
+let effects = createEffects(2), active = false, rtt = 0, verifiedWinner = null, error = null;
+const inputBatcher = createInputBatcher();
+let routedRoom = null, automaticHeartbeat = false, heartbeatSent = 0;
 const ctx = setupScreen($('screen'));
 const keyboard = createKeyboard();
 try { keyboard.bindings = loadKeyBindings(window.localStorage); } catch { /* 저장 차단 시 기본 키를 사용한다. */ }
 const touch = attachTouchControls($('touch-controls'));
-const mobileViewport = attachMobileViewport(window);
+const mobileViewport = attachMobileViewport(window, { shell, root });
 const stageLayout = attachStageLayout($('board-area'), $('game-stage'));
-const touchLayout = attachTouchLayout({ view: window, dialog: $('touch-options-dialog'), container: $('touch-controls'), preview: $('touch-preview'), onEdit: () => { touch.clear(); keyboard.held.clear(); } });
-$('touch-options').onclick = () => touchLayout.open();
+const touchLayout = attachTouchLayout({ view: window, surface: shell, dialog: $('touch-options-dialog'), container: $('touch-controls'), preview: $('touch-preview'), onEdit: () => { touch.clear(); keyboard.held.clear(); } });
+$('touch-options').onclick = $('battle-options').onclick = () => { $('battle-menu').open = false; touchLayout.open(); syncBattleControls(); };
+$('battle-menu').addEventListener('toggle', syncBattleControls);
+$('touch-options-dialog').addEventListener('close', syncBattleControls);
+window.addEventListener('resize', clearControls);
 // 폼을 편집하는 동안 게임용 키보드 처리기를 통과하지 않는다.
 window.addEventListener('keydown', (event) => {
-  if (['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(event.target.tagName) && !event.target.closest('#touch-controls')) event.stopImmediatePropagation();
+  const target = event.composedPath()[0];
+  if (opened && ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'A', 'SUMMARY'].includes(target.tagName) && !target.closest('#touch-controls') && !target.closest('.controls-guide')) event.stopImmediatePropagation();
 }, true);
+keyboard.enabled = false;
 attachKeyboard(keyboard, window);
-const sfx = createSfx();
-void configureCharacterVoices(sfx, skin, loadSettings().voice !== false);
+
+await configureCharacterVoices(sfx, skin, loadSettings().voice !== false);
 function setOnlineMusic(scene) {
   const settings = loadSettings();
   configureMusic(sfx, skin, { enabled: settings.music !== false, volume: settings.volume / 10, scene, chooseNew: scene === 'intense' });
@@ -49,15 +58,46 @@ await prepareSfx(sfx);
 window.addEventListener('pointerdown', () => unlockSfx(sfx));
 window.addEventListener('keydown', () => unlockSfx(sfx));
 document.addEventListener('visibilitychange', () => syncMusicVisibility(sfx));
-let ws, profile, room, side, queued = false, connected = false, game, matchId, participants = [];
-let effects = createEffects(2), active = false, rtt = 0, verifiedWinner = null, error = null;
+
 let resultFrame = 0;
+let abandonConnection;
+let epoch = 0, reconnectTimer, reconnectAttempt = 0, departing = false, pauseUntil = 0, paused = false;
+const TOKEN_KEY = onlineTokenKey(onlineConfig);
+let playerToken;
+try { playerToken = localStorage.getItem(TOKEN_KEY); } catch {}
+function clearControls() { keyboard.held.clear(); keyboard.rotationInputs?.clear(); clearPressed(keyboard); touch.clear(); }
+function scheduleReconnect() {
+  if (!opened || departing || reconnectTimer || error) return;
+  reconnectTimer = setTimeout(() => { reconnectTimer = null; connect(); }, Math.min(500 * 2 ** reconnectAttempt++, 5000));
+}
+function requestResync() {
+  if (!active) return;
+  active = false; paused = true; pauseUntil = performance.now() + 30000; clearControls(); buttons();
+  status('서버 상태로 경기를 다시 맞추고 있습니다.'); send({ type: 'resync', matchId });
+}
 let soundPlayers = null;
 let voiceResultPlayed = false;
 let lastPacket = performance.now(), last = performance.now(), accumulator = 0, lastVerified = 0;
 const hashes = new Map(), checks = new Map();
-const TOKEN_KEY = 'online-player-key-v1';
-let roomList = [], rankings = [], roomFilter = 'all', submitting = false, passwordCode = null;
+let roomList = [], rankings = [], roomFilter = 'all', submitting = false, passwordCode = null, guiding = false;
+const playableCharacters = (skin.characterRoster ?? skin.characters).filter(character => character.selectable !== false && character.selectionVisible !== false);
+const lobbyPresentation = createLobbyPresentation(skin, playableCharacters, root, shell);
+for (const character of playableCharacters) {
+  const button = document.createElement('button'); button.type = 'button'; button.dataset.charId = character.id;
+  button.setAttribute('aria-pressed', 'false');
+  const portrait = document.createElement('canvas'); portrait.width = 192; portrait.height = 192; portrait.setAttribute('aria-hidden', 'true');
+  button.append(portrait, text('span', character.name));
+  button.onclick = () => { if (!button.disabled) { send({ type: 'character', charId: character.id }); playCharacterVoice(sfx, character.id, 'select'); } };
+  $('character-options').append(button);
+}
+function updateCharacterButtons() {
+  const me = room?.players.find(player => player.id === profile?.id);
+  for (const button of $('character-options').children) {
+    button.disabled = !connected || !room || room.phase !== 'waiting' || !!me?.ready || guiding;
+    button.setAttribute('aria-pressed', String(button.dataset.charId === me?.charId));
+  }
+  $('online-guide').disabled = guiding || active;
+}
 const panelRoutes = { play: 'play', 'new-room': 'create', leaderboard: 'rankings' };
 function selectPanel({ scroll = false } = {}) {
   const panel = panelRoutes[location.hash.slice(1)] ?? 'play';
@@ -67,7 +107,7 @@ function selectPanel({ scroll = false } = {}) {
     else $(`tab-${name}`).removeAttribute('aria-current');
   }
   if (scroll) {
-    document.querySelector('.profile-edit').open = false;
+    root.querySelector('.profile-edit').open = false;
     $(`panel-${panel}`).scrollTop = 0;
   }
 }
@@ -91,13 +131,23 @@ function status(text) { $('status').textContent = text; }
 function send(message) { if (ws?.readyState === 1) ws.send(JSON.stringify(message)); }
 function fail(reason) { error = reason; active = false; touch.setEnabled(false); status(reason); ws?.close(); }
 function text(tag, value, className) { const el = document.createElement(tag); el.textContent = value; if (className) el.className = className; return el; }
+function syncBattleControls() {
+  const blocked = $('touch-options-dialog').open || (!!game && $('battle-menu').open);
+  keyboard.enabled = opened && !blocked;
+  touch.setEnabled(active && !blocked);
+  if (blocked) clearControls();
+}
 function buttons() {
   const free = connected && !room && !queued && !submitting;
-  document.body.dataset.connected = String(connected);
-  document.body.dataset.playing = String(!!game);
-  document.body.dataset.inRoom = String(!!room);
-  document.body.dataset.matchActive = String(active);
-  touch.setEnabled(active);
+  shell.dataset.connected = String(connected);
+  shell.dataset.playing = String(!!game);
+  root.host.dataset.playing = String(!!game);
+  shell.dataset.inRoom = String(!!room);
+  shell.dataset.matchActive = String(active);
+  const searching = connected && queued && !room;
+  shell.dataset.queued = String(searching);
+  $('queue-banner').hidden = !searching;
+  syncBattleControls();
   for (const id of ['create', 'join', 'matchmake', 'rename']) $(id).disabled = !free;
   $('refresh').disabled = !connected;
   $('password-join').disabled = !free;
@@ -107,14 +157,15 @@ function buttons() {
   $('queue-status').hidden = !queued;
   $('lobby-view').hidden = !!room;
   $('room-view').hidden = !room;
-  $('ready').disabled = !connected || !room || room.players.length !== 2 || room.phase !== 'waiting';
+  $('ready').disabled = !connected || !room || room.players.length !== 2 || room.phase !== 'waiting' || guiding;
+  updateCharacterButtons();
 }
 function renderProfile(value) {
   profile = value; $('my-name').textContent = value.name;
   $('my-rating').textContent = value.rating.toLocaleString('ko-KR');
   $('my-record').textContent = `레이트 · ${value.games}전 ${value.wins}승`;
   renderStanding();
-  if (document.activeElement !== $('nickname')) $('nickname').value = value.name;
+  if (root.activeElement !== $('nickname')) $('nickname').value = value.name;
 }
 function renderRankings(entries) {
   rankings = entries; renderStanding();
@@ -170,8 +221,13 @@ function renderRoom(value) {
   for (let i = 0; i < value.capacity; i++) {
     const p = value.players.find((entry) => entry.side === i), mine = p?.id === profile?.id;
     const seat = text('div', '', `seat${mine ? ' mine' : ''}`);
+    seat.classList.toggle('is-ready', !!p?.ready);
+    const portrait = document.createElement('canvas'); portrait.width = 192; portrait.height = 192;
+    portrait.setAttribute('aria-hidden', 'true'); portrait.dataset.charId = p?.charId ?? ''; portrait.dataset.side = String(i);
+    seat.append(portrait);
     seat.append(text('span', `${i + 1}P${mine ? ' · 나' : ''}`, 'eyebrow'), text('h3', p?.name ?? '참가자 대기 중'));
     seat.append(text('p', p ? `레이트 ${p.rating} · ${p.ready ? '준비 완료' : '준비 대기'}` : '로비에서 참가할 수 있습니다.'));
+    if (p?.charId) seat.append(text('p', playableCharacters.find(character => character.id === p.charId)?.name ?? '', 'seat-character'));
     seats.append(seat);
   }
   const me = value.players.find((p) => p.id === profile?.id);
@@ -182,7 +238,7 @@ function renderRoom(value) {
 function verify() {
   for (const [frame, check] of checks) {
     if (!hashes.has(frame)) continue;
-    if (hashes.get(frame) !== check.hash) { fail('경기 상태가 일치하지 않습니다. 경기를 종료합니다.'); return; }
+    if (hashes.get(frame) !== check.hash) { requestResync(); return; }
     if (check.type === 'result') {
       if (verifiedWinner === null) { resultFrame = 0; setOnlineMusic('result'); }
       verifiedWinner = check.winner;
@@ -196,15 +252,15 @@ function verify() {
 function confirmed(states) {
   for (const state of states) {
     state.players.forEach((player, i) => playCharacterEvents(sfx,
-      skin.characters[i % skin.characters.length].id, player.events, i));
+      (participants[i]?.charId ?? skin.characters[i % skin.characters.length].id), player.events, i));
     if (state.phase === 'over' && !voiceResultPlayed && state.winner >= 0) {
       voiceResultPlayed = true;
-      state.players.forEach((p, i) => playCharacterVoice(sfx, skin.characters[i % skin.characters.length].id,
+      state.players.forEach((p, i) => playCharacterVoice(sfx, (participants[i]?.charId ?? skin.characters[i % skin.characters.length].id),
         i === state.winner ? 'win' : 'lose', { channel: i }));
     }
-    state.players.forEach((player, i) => playBoardSounds(sfx, soundPlayers?.[i], player, i));
-    soundPlayers = state.players;
     tickMatchEffects(effects, state);
+    state.players.forEach((player, i) => playBoardSounds(sfx, soundPlayers?.[i], player, i, effects[i].warningChange, effects[i].arrivalSounds));
+    soundPlayers = state.players;
     for (const [i, p] of state.players.entries()) for (const event of p.events) {
       if (event.type === 'lock') continue;
       if (['move', 'rotate'].includes(event.type) && i !== side) continue;
@@ -219,30 +275,49 @@ function resetGame() {
   soundPlayers = null;
   voiceResultPlayed = false;
   resultFrame = 0;
-  active = false; game = null; matchId = null; verifiedWinner = null; error = null;
+  active = false; paused = false; pauseUntil = 0; game = null; matchId = null; verifiedWinner = null; error = null;
   $('game-view').hidden = true; $('return-room').hidden = true; $('settlement').textContent = ''; keyboard.held.clear(); touch.clear(); touch.setEnabled(false);
-  document.body.dataset.playing = 'false'; $('game-stage').classList.remove('focus-field');
+  shell.dataset.playing = 'false'; $('game-stage').classList.remove('focus-field');
   $('field-zoom').setAttribute('aria-pressed', 'false'); $('field-zoom').textContent = '내 필드 크게'; stageLayout.update();
 }
 function connect() {
-  const endpoint = new URL('/socket', location.href); endpoint.protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  ws = new WebSocket(endpoint);
+  if (!opened) return;
+  const endpoint = roomSocketURL(onlineConfig.socketURL ?? new URL('/socket', location.href).href.replace(/^http/, 'ws'), routedRoom);
+  automaticHeartbeat = false;
+  const socket = new WebSocket(endpoint); ws = socket; lastPacket = performance.now();
   ws.onopen = () => {
-    let token;
-    try { token = localStorage.getItem(TOKEN_KEY); } catch { status('브라우저 저장소를 사용할 수 없어 플레이어 키가 이번 접속에만 유지됩니다.'); }
-    send({ type: 'hello', token: token ?? undefined, protocol: PROTOCOL, rulesVersion: RULES_VERSION });
+    if (!opened || socket !== ws) return;
+    send({ type: 'hello', token: playerToken ?? undefined, protocol: PROTOCOL, rulesVersion: RULES_VERSION });
   };
-  ws.onclose = () => {
-    active = false; connected = false; queued = false; submitting = false; buttons(); renderRooms(); $('connection').textContent = '연결 종료'; $('reconnect-help').hidden = false;
-    if (!error) status('서버 연결이 종료되었습니다. 새로고침하여 다시 접속하세요.');
+  const lostConnection = () => {
+    if (!opened || socket !== ws) return;
+    ws = null; socket.close();
+    if (game && !pauseUntil) pauseUntil = performance.now() + 30000;
+    paused = !!game; clearControls();
+    active = false; connected = false; queued = false; submitting = false; buttons(); renderRooms(); $('connection').textContent = '재접속 중'; $('reconnect-help').hidden = false;
+    if (!error) status('연결이 끊겼습니다. 자동으로 재접속하고 있습니다.');
+    scheduleReconnect();
   };
-  ws.onerror = () => status('서버에 연결하지 못했습니다. 온라인 서버 실행 여부를 확인하세요.');
+  abandonConnection = lostConnection;
+  socket.onclose = lostConnection;
+  socket.onerror = () => { if (socket === ws) status('서버에 연결하지 못했습니다. 자동으로 다시 시도합니다.'); };
   ws.onmessage = ({ data }) => {
+    if (!opened || socket !== ws) return;
     try {
       lastPacket = performance.now(); const msg = JSON.parse(data);
+      if (msg.type === 'route') {
+        roomSocketURL(endpoint, msg.code); // 새 연결을 만들기 전에 코드 형식을 검사한다.
+        routedRoom = msg.code;
+        connect(); socket.close(); return;
+      }
+      if (msg.type === 'heartbeatAck') { rtt = Math.round(performance.now() - heartbeatSent); return; }
+      if (msg.type === 'incompatible') { fail(msg.reason); return; }
       if (msg.type === 'pong') { rtt = Math.round(performance.now() - msg.time); return; }
       if (msg.type === 'welcome') {
-        if (msg.token) { try { localStorage.setItem(TOKEN_KEY, msg.token); } catch {} }
+        automaticHeartbeat = msg.heartbeat === 'auto';
+        if (msg.token) { playerToken = msg.token; try { localStorage.setItem(TOKEN_KEY, msg.token); } catch {} }
+        reconnectAttempt = 0; $('reconnect-help').hidden = true;
+        if (room || game) { room = null; resetGame(); }
         connected = true; renderProfile(msg.profile); status('방에 참가하거나 자동 매칭으로 상대를 찾아보세요.'); buttons();
       }
       if (msg.type === 'profile') renderProfile(msg.profile);
@@ -250,28 +325,51 @@ function connect() {
       if (msg.type === 'lobby') { $('connection').textContent = `접속 ${msg.online}명`; renderRooms(msg.rooms); }
       if (msg.type === 'joined') {
         mobileViewport.dismissKeyboard();
-        submitting = false; queued = false; side = msg.side; $('password-dialog').close(); $('code-dialog').close(); document.querySelector('.profile-edit').open = false; resetGame(); showPlay(); status('방에 참가했습니다. 상대와 함께 준비해 주세요.');
+        submitting = false; queued = false; side = msg.side; $('password-dialog').close(); $('code-dialog').close(); root.querySelector('.profile-edit').open = false; resetGame(); showPlay(); status('방에 참가했습니다. 상대와 함께 준비해 주세요.');
       }
       if (msg.type === 'room') renderRoom(msg.room);
       if (msg.type === 'queued') { queued = msg.active; buttons(); renderRooms(); status(queued ? '상대를 찾고 있습니다. 매칭은 언제든 취소할 수 있습니다.' : '매칭 대기를 취소했습니다.'); send({ type: 'list' }); }
       if (msg.type === 'matched') status('상대를 찾았습니다! 양쪽 모두 준비하면 시작합니다.');
-      if (msg.type === 'start') {
+      if (msg.type === 'start' || msg.type === 'snapshot') {
+        inputBatcher.reset();
         setOnlineMusic('intense');
         mobileViewport.dismissKeyboard();
-        matchId = msg.matchId; participants = msg.players; game = new RollbackMatch(msg.seed, side); effects = createEffects(2);
+        matchId = msg.matchId; participants = msg.players; game = new RollbackMatch(msg.seed ?? 1, side);
+        epoch = msg.epoch ?? 0;
+        if (msg.type === 'snapshot') game.restore(msg.state, msg.hash);
+        paused = msg.type === 'snapshot';
+        pauseUntil = paused ? performance.now() + msg.remaining : 0;
+        effects = createEffects(2);
         soundPlayers = game.confirmedState.players;
         voiceResultPlayed = false;
-        hashes.clear(); checks.clear(); lastVerified = 0; verifiedWinner = null; error = null; active = true; accumulator = 0; keyboard.held.clear();
+        hashes.clear(); checks.clear(); lastVerified = 0; verifiedWinner = null; error = null; active = !paused; accumulator = 0; clearControls();
         room.phase = 'playing'; buttons(); $('game-stage').dataset.side = String(side);
         $('game-identity').textContent = `나는 ${side + 1}P · ${side === 0 ? '왼쪽' : '오른쪽'} 필드`;
-        $('game-stage').classList.toggle('focus-field', window.matchMedia('(max-width: 680px)').matches);
+        $('game-stage').classList.remove('focus-field');
+        $('battle-menu').open = false;
         $('field-zoom').setAttribute('aria-pressed', String($('game-stage').classList.contains('focus-field')));
         $('field-zoom').textContent = $('game-stage').classList.contains('focus-field') ? '전체 필드 보기' : '내 필드 크게'; $('game-view').hidden = false; $('settlement').textContent = ''; stageLayout.update(); $('screen').focus({ preventScroll: true });
         $('room-help').textContent = `대전 중 · 나는 ${side + 1}P (${side === 0 ? '왼쪽' : '오른쪽'})`;
-        status(`대전 중 · 나는 ${side + 1}P`);
+        status(paused ? '양쪽 상태 확인 중…' : `대전 중 · 나는 ${side + 1}P`);
+        if (paused) {
+          lastVerified = game.state.frame; hashes.set(game.state.frame, stateHash(game.state));
+          send({ type: 'synced', matchId, epoch, hash: stateHash(game.state) });
+        }
       }
-      if (msg.type === 'input' && active && msg.matchId === matchId) confirmed(game.receive(msg.side, msg.frame, msg.input));
-      if ((msg.type === 'checksum' || msg.type === 'result') && msg.matchId === matchId) { checks.set(msg.frame, msg); verify(); }
+      if (msg.type === 'paused' && msg.matchId === matchId) {
+        active = false; paused = true; pauseUntil = performance.now() + msg.remaining;
+        clearControls(); buttons(); status('연결 회복을 기다리고 있습니다. 최대 30초 동안 경기를 보관합니다.');
+      }
+      if (msg.type === 'resumed' && msg.matchId === matchId && msg.epoch === epoch) {
+        active = true; paused = false; pauseUntil = 0; accumulator = 0; clearControls(); buttons();
+        status('재접속 완료 · 서버 상태를 맞추고 경기를 이어갑니다.');
+      }
+      if (msg.type === 'input' && (msg.epoch ?? 0) === epoch && active && msg.matchId === matchId) confirmed(game.receive(msg.side, msg.frame, msg.input));
+      if (msg.type === 'inputBatch' && msg.epoch === epoch && active && msg.matchId === matchId) {
+        if (!validInputBatch(msg)) throw new Error('invalid input batch');
+        for (let i = 0; i < msg.inputs.length; i++) confirmed(game.receive(msg.side, msg.frame + i, msg.inputs[i]));
+      }
+      if ((msg.type === 'checksum' || msg.type === 'result') && (msg.epoch ?? 0) === epoch && msg.matchId === matchId) { checks.set(msg.frame, msg); verify(); }
       if (msg.type === 'settlement') {
         const entry = msg.result.standings.find((p) => p.id === profile.id);
         const sign = entry.delta > 0 ? '+' : '';
@@ -289,6 +387,7 @@ function connect() {
       }
       if (msg.type === 'error') {
         submitting = false; buttons(); renderRooms(); status(msg.reason);
+        if (msg.retryable && !connected) abandonConnection();
         if (!connected) { $('connection').textContent = '접속 확인 필요'; $('reconnect-help').hidden = false; }
         $('create-error').textContent = location.hash === '#new-room' ? msg.reason : '';
         if ($('code-dialog').open) $('code-error').textContent = msg.reason;
@@ -304,9 +403,9 @@ $('create-form').onsubmit = (event) => {
 };
 $('join-form').onsubmit = (event) => { event.preventDefault(); pendingRequest(); send({ type: 'join', code: $('code').value.trim(), password: $('join-password').value }); $('join-password').value = ''; };
 $('room-search').addEventListener('input', () => renderRooms());
-for (const button of document.querySelectorAll('[data-room-filter]')) button.onclick = () => {
+for (const button of root.querySelectorAll('[data-room-filter]')) button.onclick = () => {
   roomFilter = button.dataset.roomFilter;
-  for (const item of document.querySelectorAll('[data-room-filter]')) item.setAttribute('aria-pressed', String(item === button));
+  for (const item of root.querySelectorAll('[data-room-filter]')) item.setAttribute('aria-pressed', String(item === button));
   renderRooms();
 };
 $('room-rated').onchange = () => { $('rated-help').textContent = $('room-rated').value === 'rated' ? '승패와 상대 레이트에 따라 변해요. 경기 중 나가면 패배로 처리돼요.' : '승패와 관계없이 레이트가 그대로 유지돼요.'; };
@@ -323,42 +422,90 @@ $('field-zoom').onclick = () => {
   const focused = $('game-stage').classList.toggle('focus-field');
   $('field-zoom').setAttribute('aria-pressed', String(focused)); $('field-zoom').textContent = focused ? '전체 필드 보기' : '내 필드 크게'; stageLayout.update();
 };
-$('reconnect').onclick = () => location.reload();
+$('reconnect').onclick = () => { if (connected) return; clearTimeout(reconnectTimer); reconnectTimer = null; ws?.close(); connect(); };
 $('refresh').onclick = () => send({ type: 'list' });
 $('matchmake').onclick = () => send({ type: 'queue', rated: $('queue-mode').value === 'rated' });
-$('cancel-match').onclick = () => send({ type: 'cancelQueue' });
-$('ready').onclick = () => send({ type: 'ready', ready: !room.players.find((p) => p.id === profile.id)?.ready });
+$('cancel-match').onclick = $('queue-banner-cancel').onclick = () => send({ type: 'cancelQueue' });
+async function explainControls(force = false) {
+  if (guiding) return;
+  guiding = true; buttons(); keyboard.held.clear(); touch.clear();
+  try { await showOnlineControls({ keyboard, touch: window.matchMedia('(pointer: coarse)').matches, force }); }
+  finally { guiding = false; buttons(); }
+}
+$('online-guide').onclick = () => { void explainControls(true); };
+$('ready').onclick = async () => {
+  if (!room || guiding) return;
+  if (room.players.find(player => player.id === profile.id)?.ready) { send({ type: 'ready', ready: false }); return; }
+  const code = room.code;
+  await explainControls();
+  if (connected && room?.code === code && room.phase === 'waiting') send({ type: 'ready', ready: true });
+};
 $('leave').onclick = () => {
-  if (active && room.rated && !window.confirm('지금 나가면 이탈 패배로 레이트가 반영됩니다. 방을 나갈까요?')) return;
+  if (game && room.rated && !window.confirm('지금 나가면 이탈 패배로 레이트가 반영됩니다. 방을 나갈까요?')) return;
   send({ type: 'leave' });
 };
 $('return-room').onclick = () => send({ type: 'returnRoom' });
-window.addEventListener('pagehide', () => ws?.close());
+window.addEventListener('pagehide', () => { departing = true; clearTimeout(reconnectTimer); reconnectTimer = null; ws?.close(); });
+window.addEventListener('pageshow', event => { if (event.persisted) { departing = false; connect(); } });
 document.addEventListener('visibilitychange', () => { if (document.hidden) { keyboard.held.clear(); touch.clear(); } });
 setInterval(() => {
-  if (ws.readyState === 1) send({ type: 'ping', time: performance.now() });
-  if (ws.readyState === 1 && performance.now() - lastPacket > 15000) fail('서버 응답이 없습니다. 연결을 종료합니다.');
+  if (opened && ws?.readyState === 1) {
+    heartbeatSent = performance.now();
+    send(automaticHeartbeat ? { type: 'heartbeat' } : { type: 'ping', time: heartbeatSent });
+  }
+  if (ws && [0, 1].includes(ws.readyState) && performance.now() - lastPacket > 10000) abandonConnection();
 }, 1000);
 function tick(now) {
+  if (!opened) { last = now; requestAnimationFrame(tick); return; }
+  lobbyPresentation.tick(now, { playing: !!game, inRoom: !!room, charId: room?.players.find(p => p.id === profile?.id)?.charId });
+  if (room && !$('room-view').hidden && !active) for (const button of $('character-options').children) {
+    const portrait = button.querySelector('canvas'), preview = portrait.getContext('2d');
+    preview.clearRect(0, 0, 192, 192);
+    skin.drawCharacter(preview, button.dataset.charId, 'idle', 8, 8, 176, { frame: Math.floor(now * .06), instance: `online-choice-${button.dataset.charId}`, presentation: 'selection' });
+  }
   accumulator = Math.min(accumulator + now - last, 1000 / 60 * 5); last = now;
   while (accumulator >= 1000 / 60) {
     if (verifiedWinner !== null) resultFrame += 1;
     if (game) tickCharacters(effects);
     if (active && game.canAdvance) {
       const packet = game.advance(document.hidden ? 0 : (readInput(keyboard, KEYMAPS.solo) | touch.read()));
-      if (packet) { send({ type: 'input', matchId, frame: packet.frame, input: packet.input }); confirmed(packet.confirmed); }
+      if (packet) {
+        const batch = inputBatcher.push(packet.frame, packet.input);
+        if (batch) send({ ...batch, matchId, epoch });
+        confirmed(packet.confirmed);
+      }
     }
     clearPressed(keyboard); accumulator -= 1000 / 60;
   }
   if (game) {
-    drawGame(ctx, { skin, match: game.state, effects, characters: participants.map((p, i) => ({ id: skin.characters[i % skin.characters.length].id, name: p.name })), showGhost: true });
+    drawGame(ctx, { skin, match: game.state, effects, characters: participants.map((p, i) => ({ id: (participants[i]?.charId ?? skin.characters[i % skin.characters.length].id), name: p.name })), showGhost: true, result: verifiedWinner !== null });
     if (error) drawBanner(ctx, '연결 종료', error);
-    else if (verifiedWinner !== null) drawResultPanel(ctx,
-      verifiedWinner === -1 ? '무승부' : `${participants[verifiedWinner].name} 승리!`,
-      '경기 종료 후 대기실로 돌아갈 수 있습니다.', { age: resultFrame, won: verifiedWinner === side });
+    else if (paused) drawBanner(ctx, '재접속 대기', `경기 일시 정지 · 남은 유예 ${Math.max(0, Math.ceil((pauseUntil - now) / 1000))}초`);
+    else if (verifiedWinner !== null) drawFieldResults(ctx, {
+      skin, match: { ...game.state, winner: verifiedWinner }, age: resultFrame,
+      characters: participants.map((participant, index) => ({
+        id: participant.charId ?? skin.characters[index % skin.characters.length].id, name: participant.name,
+      })),
+    });
     else if (active && !game.canAdvance) drawBanner(ctx, '상대 입력 대기', '연결이 회복되면 이어집니다');
-    $('metrics').textContent = `서버 왕복 ${rtt}ms · 예측 ${game.state.frame - game.confirmedState.frame}프레임 · 보정 ${game.rollbacks}회`;
+    $('metrics').textContent = `확정 ${game.confirmedState.frame} · 검증 ${lastVerified} · 서버 왕복 ${rtt}ms · 예측 ${game.state.frame - game.confirmedState.frame}프레임 · 보정 ${game.rollbacks}회`;
   }
   requestAnimationFrame(tick);
 }
-connect(); requestAnimationFrame(tick);
+requestAnimationFrame(tick);
+for (const back of root.querySelectorAll('[data-online-exit]')) back.onclick = event => {
+  event.preventDefault();
+  if (game && room?.rated && !window.confirm('메인 메뉴로 나가면 이탈 패배가 반영됩니다. 나갈까요?')) return;
+  send({ type: 'leave' });
+  opened = false; departing = true; keyboard.enabled = false;
+  clearTimeout(reconnectTimer); reconnectTimer = null; ws?.close(); ws = null;
+  for (const dialog of root.querySelectorAll('dialog[open]')) dialog.close();
+  room = null; queued = false; connected = false; routedRoom = null; resetGame(); clearControls(); buttons();
+  onExit();
+};
+return { open() {
+  opened = true; departing = false; keyboard.enabled = true;
+  reconnectAttempt = 0; error = null; last = performance.now();
+  selectPanel(); stageLayout.update(); setOnlineMusic('menu'); connect();
+} };
+}

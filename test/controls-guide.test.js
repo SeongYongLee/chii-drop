@@ -91,3 +91,12 @@ test('안내는 자동으로 닫히지 않고 선택 키 해제 후 새 확인 �
     assert.equal(started, 3); assert.equal(reopened.open, false);
   } finally { globalThis.window = previous; }
 });
+
+test('온라인 안내는 싱글·로컬 확인 기록과 별개이며 입력 기기별로 기억한다',()=>{
+  const values=new Map(), storage={getItem:key=>values.get(key),setItem:(key,value)=>values.set(key,value)};
+  rememberGuide(storage,guideContext('cpu',false));
+  assert.equal(hasSeenGuide(storage,guideContext('online',false)),false);
+  rememberGuide(storage,guideContext('online',false));
+  assert.equal(hasSeenGuide(storage,guideContext('online',false)),true);
+  assert.equal(hasSeenGuide(storage,guideContext('online',true)),false);
+});

@@ -3,6 +3,7 @@ export function attachTouchControls(container) {
   const buttons = [...container.querySelectorAll('button[data-input]')];
   const held = new Map(), pending = new Map(), gestures = new Map();
   let enabled = false;
+  let previousRotations = 0;
   const directional = (button) => [1, 2, 4, 32].includes(Number(button.dataset.input));
   function refresh() {
     for (const button of buttons) {
@@ -11,7 +12,7 @@ export function attachTouchControls(container) {
       button.disabled = !enabled;
     }
   }
-  function clear() { held.clear(); pending.clear(); gestures.clear(); refresh(); }
+  function clear() { held.clear(); pending.clear(); gestures.clear(); previousRotations = 0; refresh(); }
   function release(event) {
     if (!held.has(event.pointerId) && !gestures.has(event.pointerId)) return;
     held.delete(event.pointerId);
@@ -86,8 +87,13 @@ export function attachTouchControls(container) {
     clear,
     setEnabled(value) { enabled = value; if (!enabled) clear(); else refresh(); },
     read() {
-      const input = [...held.values(), ...pending.values()].reduce((mask, bit) => mask | bit, 0);
-      pending.clear(); return enabled ? input : 0;
+      let input = [...held.values(), ...pending.values()].reduce((mask, bit) => mask | bit, 0);
+      const pressed = [...pending.values()].reduce((mask, bit) => mask | bit, 0);
+      const deferred = previousRotations & pressed & (8 | 16);
+      input &= ~deferred;
+      for (const [key, bit] of pending) if (!(bit & deferred)) pending.delete(key);
+      previousRotations = input & (8 | 16);
+      return enabled ? input : 0;
     },
   };
 }

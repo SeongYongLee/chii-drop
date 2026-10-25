@@ -39,7 +39,9 @@ function createPiece(pair) {
     moveFrames: 0,
     rotateFrames: 0,
     rotateFrom: ORIENT_UP,
+    rotateDirection: 1,
     groundCount: 0,
+    contactWait: null,
     restartsLeft: LOCK_RESTARTS,
     rotateGroundLeft: ROTATE_GROUND_ALLOWANCE,
     groundedAfterMove: false,
@@ -124,17 +126,9 @@ function quickTurn(cells, piece) {
   const orient = (piece.orient + 2) % 4;
   const row = rowOf(piece.h);
   if (fits(cells, piece.x, row, orient)) {
-    // 세로 쌍을 뒤집으면 쌍의 아래 끝을 바로 위 칸 경계로 올린다.
-    const vertical = orient === ORIENT_UP || orient === ORIENT_DOWN;
-    let h = piece.h;
-    if (vertical) {
-      const bottom = orient === ORIENT_UP ? piece.h - UNIT : piece.h;
-      const raised = (Math.floor(bottom / UNIT) + 1) * UNIT;
-      h = orient === ORIENT_UP ? raised : raised + UNIT;
-    }
-    if (fits(cells, piece.x, rowOf(h), orient)) {
-      return { ...startRotation(piece, orient), h, acc: 0 };
-    }
+    // 5.1절. 좁은 틈에서 뒤집으며 올라가 다음 회전·이동으로 벽 위를 넘는다.
+    const childRowOffset = CHILD_OFFSETS[orient][1];
+    return { ...startRotation(piece, orient), h: (row + 1 - childRowOffset) * UNIT, acc: 0 };
   }
   return kick(cells, piece, orient);
 }
@@ -162,7 +156,7 @@ function lock(piece) {
 
 // 6.2절. 접지한 프레임마다 실행한다.
 function ground(piece, softDrop, result) {
-  let next = piece;
+  let next = { ...piece, contactWait: null };
   if (!next.groundedAfterMove && next.rotateGroundLeft > 0 && next.moveFrames === 0) {
     next = { ...next, groundedAfterMove: true, rotateGroundLeft: next.rotateGroundLeft - 1 };
   }
@@ -223,6 +217,8 @@ function stepPiece(piece, ctx) {
     const before = current;
     current = rotate(cells, { ...current, rotateFrames: 0 }, turns);
     if (current.orient !== before.orient) {
+      // 180도는 방향 차이만으로 좌우를 구분할 수 없다. 성공시킨 입력을 보존한다.
+      current.rotateDirection = turns === 3 ? -1 : 1;
       result.events.push({ type: 'rotate' });
     }
     if (current.locked) {
@@ -242,14 +238,42 @@ function stepPiece(piece, ctx) {
     }
   }
 
+  // 6.1절. 실제 위치는 경계에 두고 가상 낙하 높이로 접지 시점을 판단한다.
+  if (current.contactWait) {
+    const pending = current.contactWait;
+    const supported = !fits(cells, current.x, rowOf(current.h) - 1, current.orient);
+    const remainder = pending.h % UNIT;
+    if (softDrop || (supported && (remainder === 0 || remainder >= UNIT / 2))) {
+      result.piece = ground(current, softDrop, result);
+      return result;
+    }
+    if (supported) {
+      const virtualAcc = pending.acc + speed;
+      result.piece = { ...current, contactWait: {
+        h: Math.max(0, pending.h - Math.floor(virtualAcc / 65536)), acc: virtualAcc % 65536,
+      } };
+      return result;
+    }
+    current.contactWait = null;
+  }
+
   const acc = current.acc + speed;
   const units = Math.floor(acc / 65536);
   current.acc = acc % 65536;
   const row = rowOf(current.h);
   const nextH = current.h - units;
   if (rowOf(nextH) < row && !fits(cells, current.x, row - 1, current.orient)) {
-    current = ground({ ...current, h: row * UNIT, acc: 0 }, softDrop, result);
+    const remainder = current.h % UNIT;
+    const stopped = { ...current, h: row * UNIT, acc: 0 };
+    if (!softDrop && remainder > 0 && remainder < UNIT / 2) {
+      current = { ...stopped, contactWait: { h: Math.max(0, nextH), acc: 0 } };
+    } else {
+      current = ground(stopped, softDrop, result);
+    }
   } else {
+    // 6.2절. 공중에서는 이전 접지 카운트를 버린다. 바닥차기 뒤 재접지도 32부터 시작한다.
+    // 저속 낙하의 누적 중(이동량 0) 이미 바닥에 닿아 있는 경우는 접지 상태를 유지한다.
+    if (current.h > row * UNIT || fits(cells, current.x, row - 1, current.orient)) current.groundCount = 0;
     current.h = nextH;
   }
 

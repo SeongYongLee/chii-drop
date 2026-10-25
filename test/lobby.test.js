@@ -103,3 +103,23 @@ test('a completed room can rematch with fresh match ID and ignores frames from t
   lobby.handle(b, { type: 'input', matchId: oldId, frame: 0, input: 0 }); assert.equal(room.next[1], 0);
   assert.equal(lobby.profiles.get(a.profileId).games, 1);
 });
+
+test('캐릭터 선택은 양쪽 좌석과 시작 패킷에 유지되며 준비 중·경기 중 변경을 거부한다', () => {
+  const lobby=createRooms({characters:['actor-a','actor-b','actor-c']});
+  const a=peer(lobby),b=peer(lobby);const room=make(lobby,a);joinRoom(lobby,b,room);
+  lobby.handle(a,{type:'character',charId:'actor-c'});
+  assert.equal(latest(b,'room').room.players[0].charId,'actor-c');
+  lobby.handle(a,{type:'character',charId:'hidden'});
+  assert.equal(latest(a,'error').reason,'선택할 수 없는 캐릭터입니다.');
+  assert.equal(a.charId,'actor-c');
+  lobby.handle(a,{type:'ready'});
+  lobby.handle(a,{type:'character',charId:'actor-b'});assert.equal(a.charId,'actor-c');
+  lobby.handle(a,{type:'ready',ready:false});
+  lobby.handle(a,{type:'character',charId:'actor-b'});
+  lobby.handle(b,{type:'character',charId:'actor-a'});start(lobby,a,b);
+  assert.deepEqual(latest(a,'start').players.map(player=>player.charId),['actor-b','actor-a']);
+  lobby.handle(b,{type:'character',charId:'actor-c'});assert.equal(b.charId,'actor-a');
+  room.finished=true;lobby.handle(a,{type:'returnRoom'});
+  assert.deepEqual(latest(b,'room').room.players.map(player=>player.charId),['actor-b','actor-a']);
+  start(lobby,a,b);assert.deepEqual(latest(b,'start').players.map(player=>player.charId),['actor-b','actor-a']);
+});

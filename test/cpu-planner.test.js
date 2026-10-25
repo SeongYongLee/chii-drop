@@ -92,7 +92,7 @@ test('탐색 후보가 하나여도 실수는 다양한 안전 배치로 반영�
 test('화면에 보이지 않는 세 번째 이후 NEXT를 바꿔도 결정은 같다', () => {
   const a = fixture(), b = structuredClone(a);
   for (let i = 3; i < b.table.length; i++) b.table[i] = [4, 4];
-  for (const level of ['expert', 'master']) assert.deepEqual(planned(a, undefined, level).cpu, planned(b, undefined, level).cpu);
+  for (const level of ['expert', 'master', 'grandmaster']) assert.deepEqual(planned(a, undefined, level).cpu, planned(b, undefined, level).cpu);
 });
 
 test('어려움은 실제 프레임 조작으로 5연쇄 이상을 반복해서 만들고 120쌍 동안 살아남는다', () => {
@@ -121,8 +121,8 @@ test('아주 어려움도 계산을 나눠서 엔진을 보존하고 NEXT가 없
   assert.ok(chosen(danger,planned(danger,undefined,'master').cpu).chains >= 1);
 });
 
-test('아주 어려움은 실제 조작으로 6연쇄 이상을 반복해 쌓는다', () => {
- let match = createMatch({seed:1,playerCount:1}),cpu=createCpu({level:'master',seed:31});
+test('달인은 실제 조작으로 6연쇄 이상을 반복해 쌓는다', () => {
+ let match = createMatch({seed:1,playerCount:1}),cpu=createCpu({level:'grandmaster',seed:31});
  let locks=0,largeChains=0;
  while(match.phase !== 'over' && match.frame < 30000 && locks < 120){
    const result=stepCpu(cpu,match.players[0],match.table);cpu=result.cpu;

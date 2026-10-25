@@ -58,8 +58,8 @@ test('터치 결정 상태는 화면 전환 때 비우고 경기에서 이동·�
   assert.equal(readInput(h.keyboard, KEYMAPS.solo), 9);
   h.keyboard.held.add('ArrowLeft');
   h.fire(h.button(M.left), 'pointerup', { pointerId: 10 }); h.controller.read();
-  assert.equal(readInput(h.keyboard, KEYMAPS.solo), 9, '터치를 놓아도 실제 키보드 왼쪽은 유지한다');
-  h.keyboard.held.clear(); h.controller.read(); assert.equal(readInput(h.keyboard, KEYMAPS.solo), 8);
+  assert.equal(readInput(h.keyboard, KEYMAPS.solo) & M.left, M.left, '터치를 놓아도 실제 키보드 왼쪽은 유지한다');
+  h.keyboard.held.clear(); h.controller.read(); assert.equal(readInput(h.keyboard, KEYMAPS.solo) & M.left, 0);
   h.view.dispatchEvent(new Event('resize')); h.controller.read();
   assert.equal(readInput(h.keyboard, KEYMAPS.solo), 0, '화면을 돌릴 때 누르던 터치 입력이 남지 않는다');
   h.context({ enabled: true, mode: 'menu' }); h.controller.read();

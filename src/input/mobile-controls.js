@@ -21,7 +21,7 @@ export function mobileKeyCodes(input, { mode = 'menu', player = null, backPlayer
   return Object.entries(keys).filter(([name]) => input & MOBILE_INPUT[name]).map(([, code]) => code);
 }
 
-export function attachMobileControls({ view, canvas, container, keyboard, getContext, onTap, onUnlock }) {
+export function attachMobileControls({ view, canvas, container, keyboard, getContext, onTap, onUnlock, menuButton, onPause }) {
   // 초기화 테스트·자료 없는 화면에서는 터치 DOM을 요구하지 않는다.
   if (!container?.querySelectorAll || !canvas.addEventListener) return { read() {}, sync() {}, clear() {}, visible: false };
   const touch = attachTouchControls(container);
@@ -39,7 +39,7 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
     opened:()=>clearEditorInput(),
     choose:index=>{onUnlock();context.items?.[index]?.activate();sync()},
   });
-  function clearEditorInput() { clear(); keyboard.held.clear(); keyboard.pressed.clear(); }
+  function clearEditorInput() { clear(); keyboard.held.clear(); keyboard.pressed.clear(); keyboard.rotationInputs?.clear(); }
   const editor = game.querySelectorAll ? createTouchLayoutEditor({ view, game,
     onOpen: clearEditorInput, onClose: () => { clearEditorInput(); sync(); } }) : null;
   function renderItems() {
@@ -48,12 +48,16 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
       [label, value, disabled, selected, adjustable])]);
     if (signature === itemsKey) return;
     itemsKey = signature;
+    const focused = nativeItems.contains?.(view.document.activeElement) ? view.document.activeElement : null;
+    const focusIndex = focused ? [...nativeItems.querySelectorAll('button')].indexOf(focused) : -1;
+    const focusLabel = focused?.dataset?.itemLabel;
     nativeItems.replaceChildren(); nativeItems.hidden = !items.length;
     nativeItems.dataset.columns = String(context.columns ?? 1);
     items.forEach((item, index) => {
       const row = view.document.createElement('div'); row.className = 'mobile-item';
       const makeButton = (text, delta, ariaLabel) => {
         const button = view.document.createElement('button'); button.type = 'button';
+        button.dataset.itemLabel = item.label;
         button.textContent = text; button.disabled = Boolean(item.disabled);
         if (ariaLabel) button.setAttribute('aria-label', ariaLabel);
         button.addEventListener('click', () => { onUnlock(); context.items?.[index]?.activate(delta); sync(); });
@@ -66,6 +70,9 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
       }
       nativeItems.append(row);
     });
+    const focusTarget = focusIndex >= 0 ? nativeItems.querySelectorAll('button')[focusIndex] : null;
+    if (focusTarget?.dataset.itemLabel === focusLabel && focusLabel !== undefined) focusTarget.focus({ preventScroll: true });
+    if (enabled) nativeItems.querySelector?.('[aria-current="true"]')?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
   }
   function clear() { touch.clear(); queued = 0; keyboard.touchHeld?.clear(); keyboard.touchPressed?.clear(); }
   function sync() {
@@ -75,17 +82,18 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
     if (nextKey !== key) { clear(); key = nextKey; }
     const active = Boolean(context.enabled && media.matches && !editor?.editing);
     if (enabled !== active) { enabled = active; touch.setEnabled(enabled); }
-    const modalPause=active&&Boolean(context.paused)&&Boolean(pauseDialog);
+    const modalPause=Boolean(context.enabled && context.paused && pauseDialog);
+    if (menuButton) menuButton.hidden = !context.enabled || media.matches || context.mode !== 'game' || Boolean(context.paused);
     container.hidden = !media.matches||modalPause;
     menu.hidden = context.mode === 'game'; game.hidden = context.mode !== 'game';
     if (container.dataset.mode !== context.mode) container.dataset.mode = context.mode;
-    if (view.document.body) view.document.body.dataset.touchMode = active ? context.mode : 'none';
+    if (view.document.body) view.document.body.dataset.touchMode = active ? (modalPause && context.gameScreen ? 'game' : context.mode) : 'none';
     if (view.document.body) view.document.body.dataset.gameScreen = String(Boolean(context.gameScreen));
     menu.dataset.hasItems = String(Boolean(context.items?.length));
     menu.dataset.title = String(Boolean(context.title));
     confirmButton.hidden = Boolean(context.direct);
     confirmButton.textContent = context.title ? '시작' : '결정';
-    if(backButton)backButton.hidden=Boolean(context.title);
+    if(backButton)backButton.hidden=Boolean(context.title||context.hideBack);
     if(notice){notice.hidden=!context.notice;if(notice.textContent!==context.notice)notice.textContent=context.notice??'';}
     renderItems();
     pauseDialog?.sync(context.items??[],modalPause);
@@ -95,6 +103,8 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
     const playerText = `${localPlayer + 1}P 조작 · 전환`;
     if (playerButton.textContent !== playerText) playerButton.textContent = playerText;
   }
+  menuButton?.addEventListener?.('click', () => { onUnlock(); clearEditorInput(); onPause?.(); sync(); });
+  for (const type of ['keydown', 'keyup']) menuButton?.addEventListener?.(type, event => event.stopPropagation());
   playerButton.addEventListener('click', () => { localPlayer = 1 - localPlayer; clear(); sync(); });
   // 포커스된 터치 버튼의 Enter가 전역 키보드 입력으로 한 번 더 들어가지 않게 한다.
   for (const event of ['keydown', 'keyup']) container.addEventListener(event, (e) => e.stopPropagation());

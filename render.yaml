@@ -1,0 +1,28 @@
+# 예시: 이 파일만으로 서비스 생성·결제·배포가 실행되지는 않는다.
+services:
+  - type: web
+    name: chii-drop-online
+    runtime: node
+    plan: 0.5c-512mb
+    region: singapore
+    branch: main
+    autoDeployTrigger: "off"
+    buildCommand: corepack enable && corepack prepare pnpm@11.18.0 --activate && pnpm install --frozen-lockfile
+    startCommand: node server/index.js
+    healthCheckPath: /health
+    numInstances: 1
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: ALLOWED_ORIGINS
+        value: https://seongyonglee.github.io
+      - key: ONLINE_DATA_FILE
+        value: /var/data/online.json
+    disk:
+      name: online-profiles
+      mountPath: /var/data
+      sizeGB: 1

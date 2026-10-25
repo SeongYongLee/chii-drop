@@ -101,6 +101,63 @@ test('양옆이 막히면 첫 회전은 무시되고 두 번째 회전에 뒤집
   assert.equal(twice.orient, 2);
 });
 
+test('바닥의 한 칸 틈에서 뒤집고 이웃 블록을 발판으로 올라가 빠져나온다', () => {
+  for (const [turn, direction, x] of [[INPUT.ROTATE_CW, INPUT.LEFT, 1], [INPUT.ROTATE_CCW, INPUT.RIGHT, 3]]) {
+    const cells = fieldFromRows(['.1.1..']);
+    const start = { ...createPiece([1, 2]), h: 0 };
+    const { piece, trace } = controlFrames(start, cells, [turn, 0, turn, 0, turn, 0, direction]);
+    assert.equal(trace[0].orient, 0);
+    assert.equal(trace[2].orient, 2);
+    assert.ok(trace[2].h >= 32, '뒤집기로 축이 한 칸 올라가야 한다');
+    assert.equal(piece.x, x);
+    assert.ok(piece.h >= 32, '쌓인 블록 위로 이동해야 한다');
+    assert.equal(piece.locked, false);
+  }
+});
+
+test('2·4열이 12단까지 차 있어도 3열의 첫 쌍은 퀵 턴 후 좌우로 탈출한다', () => {
+  for (const first of [INPUT.ROTATE_CW, INPUT.ROTATE_CCW]) {
+    for (const second of [INPUT.ROTATE_CW, INPUT.ROTATE_CCW]) {
+      for (const [exitTurn, move, targetX, orient] of [
+        [INPUT.ROTATE_CW, INPUT.LEFT, 1, 3],
+        [INPUT.ROTATE_CCW, INPUT.RIGHT, 3, 1],
+      ]) {
+        const wall = fieldFromRows(new Array(12).fill('.1.1..'));
+        let match = createMatch({ seed: 7, fields: [wall] });
+        for (let frame = 0; frame < 80 && match.players[0].phase !== 'control'; frame++) {
+          match = stepMatch(match, [0, 0]);
+        }
+        const spawn = match.players[0].piece;
+        assert.equal(match.players[0].phase, 'control');
+        assert.equal(spawn.h, SPAWN_HEIGHT);
+        const trace = [];
+        for (const input of [first, 0, second, 0, exitTurn, 0, move, 0]) {
+          match = stepMatch(match, [input, 0]);
+          trace.push(match.players[0].piece);
+        }
+        assert.equal(trace[0].orient, 0, '첫 번째 막힌 회전은 퀵 턴을 준비한다');
+        assert.equal(trace[2].orient, 2);
+        assert.ok(trace[2].h > 12 * 32, '두 번째 회전에서 벽 위로 나갈 높이를 얻는다');
+        const escaped = trace.at(-1);
+        assert.equal(escaped.x, targetX);
+        assert.equal(escaped.orient, orient);
+        assert.ok(escaped.h >= 12 * 32);
+        assert.equal(escaped.locked, false);
+        assert.equal(escaped.pivot, spawn.pivot);
+        assert.equal(escaped.child, spawn.child);
+        assert.deepEqual(match.players[0].board.cells, wall);
+      }
+    }
+  }
+});
+
+test('좁은 틈의 좌우 회전은 같은 퀵 턴 토글을 공유한다', () => {
+  const cells = fieldFromRows(new Array(6).fill('.1.1..'));
+  const { piece } = controlFrames({ ...createPiece([1, 2]), h: 64 }, cells,
+    [INPUT.ROTATE_CW, 0, INPUT.ROTATE_CCW]);
+  assert.equal(piece.orient, 2);
+});
+
 test('접지 중 좌우 이동은 고정 지연을 다시 시작한다 (6.2절)', () => {
   const piece = { ...createPiece([1, 2]), h: 0 };
   const grounded = controlFrames(piece, EMPTY_CELLS, new Array(20).fill(0)).piece;
@@ -108,6 +165,31 @@ test('접지 중 좌우 이동은 고정 지연을 다시 시작한다 (6.2절)'
   const moved = controlFrames(grounded, EMPTY_CELLS, [INPUT.LEFT, 0, 0]).piece;
   assert.equal(moved.restartsLeft, 14);
   assert.ok(moved.groundCount >= 30);
+});
+
+test('고정 직전 바닥차기로 뜨면 이전 접지 카운트를 버리고 재접지에 32프레임을 받는다', () => {
+  for (const fallSpeed of [16, 64]) {
+  const start = { ...createPiece([1, 2]), h: 0, orient: 1,
+    groundCount: 1, groundedAfterMove: true, restartsLeft: 12, rotateGroundLeft: 7 };
+  const { trace } = controlFrames(start, EMPTY_CELLS, [INPUT.ROTATE_CW, ...new Array(40).fill(0)], { fallSpeed });
+  assert.equal(trace[0].orient, 2);
+  assert.ok(trace[0].h >= 32);
+  assert.equal(trace[0].groundCount, 0);
+  assert.equal(trace[0].restartsLeft, 12);
+  const contact = trace.findIndex(piece => piece.groundCount > 0);
+  assert.ok(contact > 0);
+  assert.equal(trace[contact].groundCount, 32);
+  assert.equal(trace[contact].restartsLeft, 11);
+  assert.equal(trace[contact + 31].locked, false);
+  assert.equal(trace[contact + 32].locked, true);
+  }
+});
+
+test('바닥차기 재접지 여유를 복구해도 회전 허용 횟수 소진 시 즉시 고정한다', () => {
+  const start = { ...createPiece([1, 2]), h: 0, orient: 1, rotateGroundLeft: 1 };
+  const { piece } = controlFrames(start, EMPTY_CELLS, [INPUT.ROTATE_CW]);
+  assert.equal(piece.locked, true);
+  assert.equal(piece.rotateGroundLeft, 0);
 });
 
 test('점수 공식과 표 (8절)', () => {

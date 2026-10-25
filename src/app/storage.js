@@ -16,6 +16,7 @@ function defaultRecords() {
       hard: { win: 0, lose: 0 },
       expert: { win: 0, lose: 0 },
       master: { win: 0, lose: 0 },
+      grandmaster: { win: 0, lose: 0 },
     },
   };
 }

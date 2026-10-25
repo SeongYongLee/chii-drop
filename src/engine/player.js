@@ -200,7 +200,8 @@ function scoreFlash(player, world) {
       next.fever = { ...next.fever, held: held.stocks };
     }
     if (offset > 0) {
-      events.push({ type: 'offset', amount: offset });
+      events.push({ type: 'offset', amount: offset,
+        visibleAmount: warningCount(player) - (stocks.a + stocks.b) });
     }
     if (rest > 0) {
       events.push({ type: 'attack', amount: rest, afterOffset: offset > 0 });

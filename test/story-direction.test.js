@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { compileDirections, poseAt, progress, storyBackground } from '../src/view/story-direction.js';
 import { createDialogueScene } from '../src/app/dialogue-scene.js';
-import { drawStoryArt } from '../src/view/story-art.js';
+import { drawStoryArt, drawStoryForm } from '../src/view/story-art.js';
+import { drawFeverEntry, FEVER_ENTRY_FRAMES } from '../src/view/fever-entry.js';
 import { createKeyboard } from '../src/input/keyboard.js';
 const script = { characters: { player: {name:'주역',charId:'round'}, companion:{name:'동행',charId:'pointy'},secretFinal:{name:'손님',charId:'host'} } };
 test('엔딩 문턱은 전용 배경을 쓰고 식탁은 간식 수에 따라 같은 구도의 전후 배경을 고른다',()=>{
@@ -32,6 +33,35 @@ test('표시 시간을 다시 그려도 진행하지 않고 느린 변신 중에
  scene.draw(h.ctx,h.app); const first=JSON.stringify(h.calls); h.calls.length=0;scene.draw(h.ctx,h.app);assert.equal(JSON.stringify(h.calls),first);
  h.app.keyboard.pressed.add('Enter');scene.update(h.app); h.text.length=0;scene.draw(h.ctx,h.app);assert.ok(h.text.includes('천천히 드러난다'));
  scene.update(h.app);h.app.keyboard.pressed=new Set(['Escape']);scene.update(h.app);assert.equal(done,1);
+});
+
+test('필수 변신 장면은 Esc 전체 스킵만 막고 Enter 즉시 표시와 다음 대사는 허용한다',()=>{
+ const h=harness();let done=0;
+ const scene=createDialogueScene({script,skippable:false,lines:[{text:'그림자가 커진다',visual:'reveal',stage:{duration:120,pauseFrames:40}},{text:'다시 앉는다'}],onDone:()=>done++});
+ h.app.keyboard.pressed=new Set(['Escape']);scene.update(h.app);
+ assert.equal(done,0);
+ h.app.keyboard.pressed=new Set(['Enter']);scene.update(h.app);
+ h.text.length=0;scene.draw(h.ctx,h.app);assert.ok(h.text.includes('그림자가 커진다'));
+ scene.update(h.app);assert.equal(done,0); // 다음 줄로 진행, 전체 스킵 아님
+ scene.update(h.app);
+ h.text.length=0;scene.draw(h.ctx,h.app);assert.ok(h.text.includes('다시 앉는다'));
+ h.app.keyboard.pressed=new Set(['Escape']);scene.update(h.app);assert.equal(done,0);
+ h.app.keyboard.pressed=new Set(['Enter']);scene.update(h.app);assert.equal(done,1);
+});
+
+test('검은 변신은 기존 캐릭터 이미지에 불투명 실루엣을 적용하고 이미지가 없을 때만 대체 윤곽을 쓴다',()=>{
+ const h=harness();h.app.skin.characterRoster=[{id:'large'}];
+ const drawn=[];h.app.skin.drawCharacter=(...args)=>drawn.push(args);
+ drawStoryForm(h.ctx,{charId:'large',silhouette:true},0,0,200,false,h.app.skin);
+ assert.equal(drawn.length,1);assert.equal(drawn[0][1],'large');
+ assert.equal(drawn[0][6].silhouette,true);assert.equal(drawn[0][6].silhouetteOpacity,1);
+ assert.equal(h.calls.some(c=>c[0]==='ellipse'),false);
+ h.app.skin.characterRoster=[];
+ drawStoryForm(h.ctx,{charId:'large',silhouette:true},0,0,200,false,h.app.skin);
+ assert.ok(h.calls.some(c=>c[0]==='ellipse'));
+ assert.equal(h.ctx.fillStyle,'#09090d');
+ drawFeverEntry(h.ctx,FEVER_ENTRY_FRAMES);assert.ok(h.text.includes('피버 모드!'));
+ h.calls.length=0;drawFeverEntry(h.ctx,0);assert.equal(h.calls.length,0);
 });
 test('말하지 않는 주역도 지문 표정을 받고 중간 줄 미리보기에서 앞선 연출을 계승한다',()=>{
  const h=harness();const scene=createDialogueScene({script,startLine:1,lines:[{text:'움찔',cast:{player:{mood:'sad',motion:'recoil'}}},{who:'companion',text:'곁에 있어',mood:'idle'}],onDone(){}});

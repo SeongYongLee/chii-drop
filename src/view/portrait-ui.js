@@ -3,6 +3,7 @@ import { PALETTE, UI_FONT, flower, paper } from './festival.js';
 
 export function drawPortraitSurface(ctx) {
   const height=screenHeight(ctx);
+  if (ctx.pageBackdrop === true) { ctx.clearRect(0,0,960,height); return; }
   ctx.fillStyle='#fdf6ec';ctx.fillRect(0,0,960,height);
   ctx.fillStyle='#f5e8df';ctx.fillRect(0,0,960,12);
   flower(ctx,48,48,10,PALETTE.pink);flower(ctx,912,48,10,PALETTE.blue);

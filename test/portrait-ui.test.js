@@ -5,6 +5,25 @@ import { createGameScene } from '../src/app/game-scene.js';
 import { createKeyboard } from '../src/input/keyboard.js';
 import { MOCK_SKIN } from './fixtures/presentation.js';
 import { CPU_LEVELS } from '../src/cpu/cpu.js';
+import { drawPortraitSurface } from '../src/view/portrait-ui.js';
+
+test('공용 스킨 배경이 있으면 세로 캔버스를 투명하게 두고 기본 스킨은 종이 바탕을 유지한다',()=>{
+  const calls=[];
+  const ctx=new Proxy({screenHeight:1400,pageBackdrop:true,clearRect:(...args)=>calls.push(['clear',...args]),
+    fillRect:(...args)=>calls.push(['fill',...args])},{get:(o,k)=>o[k]??(()=>{})});
+  drawPortraitSurface(ctx);assert.deepEqual(calls,[['clear',0,0,960,1400]]);
+  calls.length=0;ctx.pageBackdrop=false;drawPortraitSurface(ctx);
+  assert.deepEqual(calls[0],['fill',0,0,960,1400]);
+});
+
+test('세로 공용 배경 설정이 남아 있어도 가로 경기는 기존 캔버스 배경을 그린다',()=>{
+  const h=harness(),scenes=[];
+  h.ctx.portraitScreen=false;h.ctx.pageBackdrop=true;h.ctx.screenHeight=540;
+  h.app.skin.drawBackground=(_ctx,_width,_height,scene)=>scenes.push(scene);
+  const scene=createGameScene({mode:'solo',characters:MOCK_SKIN.characters.slice(0,1)});
+  scene.draw(h.ctx,h.app);h.check();
+  assert.deepEqual(scenes,['game']);
+});
 
 function harness(height=1300){
   let depth=0;const text=[],characters=[];

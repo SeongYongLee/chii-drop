@@ -13,10 +13,11 @@ function cleanName(name) {
 }
 
 // 소규모 단일 서버용 원자적 파일 교체. 경기 ID와 레이트를 한 번에 저장한다.
-export function createProfileStore({ file } = {}) {
-  let data = file && existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : { version: 1, players: {}, matches: {} };
+export function createProfileStore({ file, load, save } = {}) {
+  let data = load?.() ?? (file && existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : { version: 1, players: {}, matches: {} });
   if (data.version !== 1 || !data.players || !data.matches) throw new Error('invalid profile database');
   function commit(next) {
+    save?.(next);
     if (file) {
       mkdirSync(dirname(file), { recursive: true });
       writeFileSync(file + '.tmp', JSON.stringify(next), { mode: 0o600 });

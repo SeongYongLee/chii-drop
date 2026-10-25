@@ -53,8 +53,8 @@ function moveCursor(items, index, delta) {
 }
 
 // items(app)는 매 프레임 다시 만들어 현재 설정 값을 표시한다.
-function createListMenu({ title, items, onBack, notice, compact = false, footer = '↑↓ 선택 · Enter 결정 · Esc 뒤로' }) {
-  let index = 0;
+function createListMenu({ title, items, onBack, notice, columns = 1, compact = false, initialIndex = 0, footer = '↑↓ 선택 · Enter 결정 · Esc 뒤로' }) {
+  let index = initialIndex;
   let selectionAge = 12;
   const lifts = [];
   function activate(app, picked, delta = 1) {
@@ -66,6 +66,7 @@ function createListMenu({ title, items, onBack, notice, compact = false, footer 
   }
   return {
     touchDirect: true,
+    touchColumns: columns,
     touchNotice: (app) => notice?.(app),
     touchItems: (app) => items(app).map((item, i) => ({ label: item.label,
       value: item.value, disabled: Boolean(item.disabled), selected: index === i,
@@ -301,11 +302,25 @@ function createCharacterSelect({ mode, cpuLevel, cpuPlayer, cpuCharacters, onBac
         for (let p = 0; p < humans; p++) {
           const keys = characterKeys(mode, p);
           if (!confirmed[p] && [keys.left, keys.right, keys.up, keys.down].some((codes) => codes && wasPressed(keyboard, codes))) {
-            const columns = Math.min(4, characters.length);
+            const columns = Math.min(app.portraitScreen ? this.touchColumns : 4, characters.length);
             const horizontal = wasPressed(keyboard, keys.left) || wasPressed(keyboard, keys.right);
-            const delta = horizontal ? (wasPressed(keyboard, keys.left) ? -1 : 1)
-              : (wasPressed(keyboard, keys.up) ? -columns : columns);
-            cursors[p] = (cursors[p] + delta + characters.length) % characters.length;
+            if (app.portraitScreen) {
+              const row = Math.floor(cursors[p] / columns), column = cursors[p] % columns;
+              if (horizontal) {
+                const length = Math.min(columns, characters.length - row * columns);
+                const delta = wasPressed(keyboard, keys.left) ? -1 : 1;
+                cursors[p] = row * columns + (column + delta + length) % length;
+              } else {
+                const rows = Math.ceil(characters.length / columns);
+                const delta = wasPressed(keyboard, keys.up) ? -1 : 1;
+                const nextRow = (row + delta + rows) % rows;
+                cursors[p] = Math.min(characters.length - 1, nextRow * columns + column);
+              }
+            } else {
+              const delta = horizontal ? (wasPressed(keyboard, keys.left) ? -1 : 1)
+                : (wasPressed(keyboard, keys.up) ? -columns : columns);
+              cursors[p] = (cursors[p] + delta + characters.length) % characters.length;
+            }
             playSfx(sfx, 'cursor');
           } else if (!confirmed[p] && wasPressed(keyboard, keys.confirm)) {
             if (characters[cursors[p] % characters.length].selectable === false) continue;
@@ -410,15 +425,19 @@ function createCharacterSelect({ mode, cpuLevel, cpuPlayer, cpuCharacters, onBac
   };
 }
 
-function createCpuLevelMenu() {
+function createCpuLevelMenu({ characters, cpuLevel, onBack } = {}) {
   return createListMenu({
     title: 'CPU 대전 · 난이도 선택',
+    columns: 2,
+    initialIndex: Math.max(0, CPU_LEVELS.findIndex(level => level.id === cpuLevel)),
     items: (app) =>
       CPU_LEVELS.map((level) => ({
         label: level.label,
-        select: () => app.setScene(createCharacterSelect({ mode: 'cpu', cpuLevel: level.id })),
+        select: () => app.setScene(characters
+          ? createGameScene({ mode: 'cpu', cpuLevel: level.id, characters })
+          : createCharacterSelect({ mode: 'cpu', cpuLevel: level.id })),
       })),
-    onBack: (app) => app.goToSinglePlayer(),
+    onBack: (app) => onBack ? onBack(app) : app.goToSinglePlayer(),
   });
 }
 
@@ -527,9 +546,9 @@ function createMultiplayerMenu() {
   return createListMenu({
     title: '멀티플레이',
     items: (app) => [
-      { label: '로컬 대전', select: () => app.setScene(createCharacterSelect({ mode: 'versus' })) },
-      { label: MODES.online ? '온라인 대전' : '온라인 대전 · 준비 중', disabled: !MODES.online,
-        select: () => window.location.assign('online.html') },
+      { label: MODES.multiplayer ? '로컬 대전' : '로컬 대전 · 준비 중', disabled: !MODES.multiplayer, select: () => app.setScene(createCharacterSelect({ mode: 'versus' })) },
+      { label: (MODES.multiplayer && (MODES.online || app.onlineAvailable)) ? '온라인 대전' : '온라인 대전 · 준비 중', disabled: !(MODES.multiplayer && (MODES.online || app.onlineAvailable)),
+        select: () => { void app.openOnline(); } },
     ],
     onBack: (app) => app.goToMenu(),
   });
@@ -543,7 +562,7 @@ function createMainMenu() {
     footer: '↑↓ 선택 · Enter 결정 · Esc 타이틀',
     items: (app) => [
       { label: '싱글플레이', select: () => app.goToSinglePlayer() },
-      { label: '멀티플레이', select: () => app.goToMultiplayer() },
+      { label: MODES.multiplayer ? '멀티플레이' : '멀티플레이 · 준비 중', disabled: !MODES.multiplayer, select: () => app.goToMultiplayer() },
       { label: '설정', select: () => app.setScene(createSettingsMenu()) },
       { label: '기록', select: () => app.setScene(createRecordsMenu()) },
       { label: '게임 방법', select: () => {
@@ -555,4 +574,4 @@ function createMainMenu() {
   });
 }
 
-export { createMainMenu, createSinglePlayerMenu, createMultiplayerMenu, createTitleScene };
+export { createListMenu, createCpuLevelMenu, createCharacterSelect, createMainMenu, createSinglePlayerMenu, createMultiplayerMenu, createTitleScene };

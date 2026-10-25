@@ -13,6 +13,7 @@ const CPU_LEVELS = [
   { id: 'hard', label: '보통' },
   { id: 'expert', label: '어려움' },
   { id: 'master', label: '아주 어려움' },
+  { id: 'grandmaster', label: '달인' },
 ];
 
 // 이동·회전을 마친 뒤 한 번 기다리고 아래 입력을 유지한다. 낙하 중 입력을 끊지 않는다.
@@ -21,10 +22,11 @@ const LEVEL_PARAMS = {
   beginner: { thinkDelay: 12, dropDelayFrames: 208, mistakePercent: 40, mistakePool: 8, targetChain: 2, depth: 1, beamWidth: 2, buildWeight: 8 },
   easy: { thinkDelay: 10, dropDelayFrames: 156, mistakePercent: 40, mistakePool: 14, targetChain: 2, depth: 1, beamWidth: 3, buildWeight: 14 },
   normal: { thinkDelay: 8, dropDelayFrames: 108, mistakePercent: 45, mistakePool: 14, targetChain: 3, depth: 1, beamWidth: 4, buildWeight: 25 },
-  hard: { thinkDelay: 6, dropDelayFrames: 76, mistakePercent: 35, mistakePool: 12, targetChain: 4, depth: 1, beamWidth: 5, buildWeight: 30 },
-  expert: { thinkDelay: 2, dropDelayFrames: 20, mistakePercent: 10, mistakePool: 4, targetChain: 5, depth: 2, beamWidth: 11, buildWeight: 43, watchOpponent: true },
-  // 최상위는 이동·회전을 마치면 인위적인 대기 없이 바로 내린다.
-  master: { thinkDelay: 0, dropDelayFrames: 0, mistakePercent: 0, mistakePool: 1, targetChain: 6, depth: 2, beamWidth: 12, buildWeight: 45, watchOpponent: true, attackCrowdedOpponent: true },
+  hard: { thinkDelay: 7, dropDelayFrames: 100, mistakePercent: 42, mistakePool: 14, targetChain: 3, depth: 1, beamWidth: 5, buildWeight: 26 },
+  expert: { thinkDelay: 5, dropDelayFrames: 84, mistakePercent: 35, mistakePool: 12, targetChain: 4, depth: 2, beamWidth: 7, buildWeight: 30, watchOpponent: true },
+  master: { thinkDelay: 3, dropDelayFrames: 60, mistakePercent: 25, mistakePool: 10, targetChain: 5, depth: 2, beamWidth: 9, buildWeight: 34, watchOpponent: true },
+  // 달인은 기존 최상위 성능을 유지하며 이동·회전 직후 대기 없이 내린다.
+  grandmaster: { thinkDelay: 0, dropDelayFrames: 0, mistakePercent: 0, mistakePool: 1, targetChain: 6, depth: 2, beamWidth: 12, buildWeight: 45, watchOpponent: true, attackCrowdedOpponent: true },
 };
 
 const MAX_STALL = 3;

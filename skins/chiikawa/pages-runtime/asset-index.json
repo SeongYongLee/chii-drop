@@ -6,10 +6,22 @@
     "bytes": 1291333
   },
   {
+    "original": "drafts/battle-shouts-v1/chiikawa.png",
+    "file": "assets/88c6a11822cf5e00c98e.png",
+    "sha256": "88c6a11822cf5e00c98e8317aa7f71bf315e01da144dd0c536c547bed8308966",
+    "bytes": 1385680
+  },
+  {
     "original": "drafts/animation-v8/hachiware.png",
     "file": "assets/88967ae0dd9b7b8f472f.png",
     "sha256": "88967ae0dd9b7b8f472f2ecb80eac3b3ac05ab9e3f64fa1f533c06935154e2c2",
     "bytes": 1273362
+  },
+  {
+    "original": "drafts/battle-shouts-v1/hachiware.png",
+    "file": "assets/171fe7effee1533f59cd.png",
+    "sha256": "171fe7effee1533f59cdd6d414b75037ddd795de4ef5ea9cfd3f23d91ed81e13",
+    "bytes": 1449609
   },
   {
     "original": "drafts/animation-v8/usagi.png",
@@ -18,10 +30,22 @@
     "bytes": 1088194
   },
   {
+    "original": "drafts/usagi-run-v1/usagi.png",
+    "file": "assets/bbf2bc6866be08522639.png",
+    "sha256": "bbf2bc6866be085226397e5c8992c43e6a1b75326c75f775f3dfdf23546b3e71",
+    "bytes": 1083090
+  },
+  {
     "original": "drafts/animation-v8/kurimanju.png",
     "file": "assets/e3e6440417b1f6a03c2d.png",
     "sha256": "e3e6440417b1f6a03c2d493b3a3e9520e1ff303fe97fa4c04342f634aaac8c13",
     "bytes": 1310512
+  },
+  {
+    "original": "drafts/chain-reactions-v2/kurimanju.png",
+    "file": "assets/4c6c15dcb8bd4ed3ff73.png",
+    "sha256": "4c6c15dcb8bd4ed3ff735faae1f265433ff20fed205a0689a1daaf955673c6db",
+    "bytes": 1316397
   },
   {
     "original": "drafts/animation-v8/momonga.png",
@@ -256,6 +280,12 @@
     "file": "assets/d18bcccfa973ab297fff.png",
     "sha256": "d18bcccfa973ab297fff5a62f08d7c6e22e58462d81898ed1272b4f718c3df92",
     "bytes": 1899972
+  },
+  {
+    "original": "drafts/mascot-v1/beetle-walk.png",
+    "file": "assets/7f9fdc900333516d0fdf.png",
+    "sha256": "7f9fdc900333516d0fdff46c3d6b78cb007dec2285e206bc51792865edc4336e",
+    "bytes": 1174297
   },
   {
     "original": "sounds/temporary-bgm-v1/main3.mp3",

@@ -22,6 +22,7 @@ test('스프라이트 로딩 전에는 안내만 표시하고 첫 타이틀부�
   globalThis.document = { addEventListener() {}, getElementById: id => id === 'loading-screen' ? loading : ({ getContext: () => ctx }) };
   const requests = [];
   globalThis.fetch = async (url) => {
+    url = String(url);
     requests.push(url);
     return url.endsWith('characters.json') ? { ok: true, json: async () => ({ characters: {} }) } : {
     ok: true, json: async () => ({ id: 'chiikawa', branding: { title: '테스트 게임', subtitle: '시작 검증' }, characters: [

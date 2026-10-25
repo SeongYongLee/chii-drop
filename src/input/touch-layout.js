@@ -7,7 +7,7 @@ export const TOUCH_BUTTONS = [
   { bit: 2, label: '오른쪽 이동', text: '→', x: 1, y: 0 },
   { bit: 16, label: '왼쪽 회전', text: '↺', x: 0, y: .5 },
   { bit: 8, label: '오른쪽 회전', text: '↻', x: 1, y: .5 },
-  { bit: 256, label: '일시정지', text: 'Ⅱ', x: .5, y: 1 },
+  { bit: 256, label: '대전 메뉴', text: '☰', x: .5, y: 1 },
 ];
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 export function normalizeTouchLayout(value, orientation = 'portrait') {
@@ -34,8 +34,16 @@ export function defaultTouchLayout(orientation, width) {
     layout[1].y = .65; layout[2].y = .65; layout[4].y = 1;
     layout[16].x = 1 - 74 / Math.max(1, width - 64);
   } else {
-    const positions = { 1: [0, .42], 2: [.38, .42], 4: [.19, 1], 16: [.76, .65], 8: [1, .65], 256: [1, 0] };
-    for (const { bit } of TOUCH_BUTTONS) layout[bit] = { x: positions[bit][0], y: positions[bit][1], size: bit === 256 ? 48 : 56 };
+    const size = clamp(Math.round(width * .17), 56, 64), edge = 6, gap = 12;
+    const positions = { 1: [edge, 48], 2: [edge + size + gap, 48],
+      4: [edge + (size + gap) / 2, TOUCH_AREA_HEIGHT - size],
+      16: [width - edge - size * 2 - gap, 80], 8: [width - edge - size, 80],
+      256: [(width - 48) / 2, 0] };
+    for (const { bit } of TOUCH_BUTTONS) {
+      const buttonSize = bit === 256 ? 48 : size;
+      layout[bit] = { x: positions[bit][0] / Math.max(1, width - buttonSize),
+        y: positions[bit][1] / (TOUCH_AREA_HEIGHT - buttonSize), size: buttonSize };
+    }
   }
   return layout;
 }
@@ -51,7 +59,9 @@ export function createTouchLayoutEditor({ view, game, onOpen, onClose }) {
   const gameButtons = [...game.querySelectorAll('button[data-input]')];
   function currentOrientation() { return view.innerWidth > view.innerHeight ? 'landscape' : 'portrait'; }
   function apply() {
-    const next = currentOrientation(), profile = layouts[next] ?? defaultTouchLayout(next, view.innerWidth - 20);
+    const next = currentOrientation();
+    const width = game.clientWidth || (next === 'portrait' ? Math.min(view.innerWidth - 20, 580) : view.innerWidth - 20);
+    const profile = layouts[next] ?? defaultTouchLayout(next, width);
     const signature = JSON.stringify([next, profile]);
     if (signature === applied) return;
     applied = signature;
@@ -90,7 +100,11 @@ export function createTouchLayoutEditor({ view, game, onOpen, onClose }) {
     for (const item of TOUCH_BUTTONS) {
       const option = doc.createElement('option'); option.value = item.bit; option.textContent = item.label; select.append(option);
     }
-    function defaults() { return defaultTouchLayout(orientation, Math.max(view.innerWidth, view.innerHeight) - 20); }
+    function defaults() {
+      const width = orientation === 'portrait' ? Math.min(Math.min(view.innerWidth, view.innerHeight) - 20, 580)
+        : Math.max(view.innerWidth, view.innerHeight) - 20;
+      return defaultTouchLayout(orientation, width);
+    }
     function profile() { return draft[orientation] ?? defaults(); }
     function editableProfile() { return draft[orientation] ??= defaults(); }
     function previewSize(item) {
@@ -101,6 +115,7 @@ export function createTouchLayoutEditor({ view, game, onOpen, onClose }) {
     }
     const previews = TOUCH_BUTTONS.map((item) => {
       const button = doc.createElement('button'); button.type = 'button'; button.textContent = item.text;
+      button.dataset.action = item.bit === 256 ? 'pause' : [8, 16].includes(item.bit) ? 'rotate' : 'move';
       button.setAttribute('aria-label', `${item.label} 배치`); arena.append(button);
       button.addEventListener('click', () => { selected = item.bit; render(); });
       button.addEventListener('pointerdown', (event) => {

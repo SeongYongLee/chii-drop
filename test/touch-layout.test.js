@@ -37,3 +37,20 @@ test('가로·세로 터치 배치를 따로 불러오고 저장소 실패는 �
   assert.deepEqual(loadTouchLayouts({ getItem() { throw Error('blocked'); } }), {});
   assert.deepEqual(loadTouchLayouts({ getItem() { return '{'; } }), {});
 });
+
+test('세로 기본 패드는 작은 휴대폰에서도 양손 영역·일시정지·내리기를 구분한다', () => {
+  for (const width of [300, 355, 370, 410, 580]) {
+    const profile = defaultTouchLayout('portrait', width);
+    const rect = bit => touchButtonRect(profile[bit], width);
+    const left = rect(1), right = rect(2), down = rect(4), ccw = rect(16), cw = rect(8), pause = rect(256);
+    assert.ok(left.size >= 56 && right.size >= 56 && ccw.size >= 56 && cw.size >= 56);
+    assert.ok(right.left + right.size < width / 2);
+    assert.ok(ccw.left > width / 2 && cw.left - ccw.left - ccw.size >= 11.9);
+    assert.ok(down.top >= left.top + left.size + 3.9);
+    assert.equal(down.left + down.size / 2, (left.left + right.left + right.size) / 2);
+    assert.equal(pause.left + pause.size / 2, width / 2);
+    for (const a of Object.values(profile).map(item => touchButtonRect(item, width))) {
+      assert.ok(a.left >= 0 && a.top >= 0 && a.left + a.size <= width && a.top + a.size <= 180);
+    }
+  }
+});

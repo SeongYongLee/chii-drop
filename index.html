@@ -19,6 +19,7 @@
     </section>
     <main class="stage">
       <canvas id="screen" aria-label="게임 화면"></canvas>
+      <button id="game-menu-toggle" class="game-menu-toggle" type="button" aria-label="대전 메뉴" aria-haspopup="dialog" hidden>☰</button>
     </main>
     <section id="mobile-controls" class="mobile-controls" aria-label="터치 조작" hidden>
       <p data-mobile-label role="status" aria-live="polite">불러오는 중…</p>
@@ -39,14 +40,14 @@
       </div>
       <div data-mobile-game class="mobile-pad" hidden>
         <div class="mobile-move">
-          <button type="button" data-input="1" aria-label="왼쪽 이동">←</button>
-          <button type="button" data-input="4" aria-label="빠르게 내리기">↓</button>
-          <button type="button" data-input="2" aria-label="오른쪽 이동">→</button>
+          <button type="button" data-input="1" aria-label="왼쪽 이동"><span aria-hidden="true"><svg viewBox="0 0 34 34" focusable="false"><path d="M25 17H9m7-7-7 7 7 7"/></svg></span><small aria-hidden="true">왼쪽</small></button>
+          <button type="button" data-input="4" aria-label="빠르게 내리기"><span aria-hidden="true"><svg viewBox="0 0 34 34" focusable="false"><path d="M17 9v16m-7-7 7 7 7-7"/></svg></span><small aria-hidden="true">내리기</small></button>
+          <button type="button" data-input="2" aria-label="오른쪽 이동"><span aria-hidden="true"><svg viewBox="0 0 34 34" focusable="false"><path d="M9 17h16m-7-7 7 7-7 7"/></svg></span><small aria-hidden="true">오른쪽</small></button>
         </div>
         <div class="mobile-turn">
-          <button type="button" data-input="16" aria-label="왼쪽 회전">↺</button>
-          <button type="button" data-input="8" aria-label="오른쪽 회전">↻</button>
-          <button type="button" data-input="256" class="mobile-pause" aria-label="일시정지">Ⅱ</button>
+          <button type="button" data-input="16" aria-label="왼쪽 회전"><span aria-hidden="true"><svg viewBox="0 0 34 34" focusable="false"><path d="M10 11a10 10 0 1 1-2 11M10 5v7H3"/></svg></span><small aria-hidden="true">왼 회전</small></button>
+          <button type="button" data-input="8" aria-label="오른쪽 회전"><span aria-hidden="true"><svg viewBox="0 0 34 34" focusable="false"><g transform="translate(34 0) scale(-1 1)"><path d="M10 11a10 10 0 1 1-2 11M10 5v7H3"/></g></svg></span><small aria-hidden="true">오른 회전</small></button>
+          <button type="button" data-input="256" class="mobile-pause" aria-label="대전 메뉴" aria-haspopup="dialog"><span aria-hidden="true"><svg viewBox="0 0 34 34" focusable="false"><path d="M9 10h16M9 17h16M9 24h16"/></svg></span><small aria-hidden="true">메뉴</small></button>
         </div>
       </div>
     </section>

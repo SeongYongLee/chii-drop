@@ -1,0 +1,17 @@
+# 서버 이미지에는 실행 코드·선택 가능 캐릭터 명세만 포함한다.
+**
+!Dockerfile
+!package.json
+!pnpm-lock.yaml
+!server/
+!server/*.js
+!src/
+!src/**
+!scripts/
+!scripts/build-info.mjs
+!skins/
+!skins/chiikawa/
+!skins/chiikawa/pages-runtime/
+!skins/chiikawa/pages-runtime/manifest.json
+**/*.md
+**/*.MD

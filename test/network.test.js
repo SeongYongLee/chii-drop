@@ -81,6 +81,8 @@ test('real WebSocket server relays inputs and publishes authoritative checksums'
   assert.equal((await fetch(base + '/.git/config')).status, 404);
   assert.equal((await fetch(base + '/server/index.js')).status, 404);
   assert.equal((await fetch(base + '/')).status, 200);
+  assert.deepEqual(await (await fetch(base + '/online-config.json')).json(), {enabled:true});
+  assert.equal((await fetch(base + '/src/view/controls-guide.css')).status, 200);
   async function client() {
     const ws = new WebSocket(base.replace('http', 'ws') + '/socket', { origin: base }); clients.push(ws);
     const inbox = []; ws.on('message', (data) => inbox.push(JSON.parse(data)));
@@ -97,7 +99,7 @@ test('real WebSocket server relays inputs and publishes authoritative checksums'
   }
   const a = await client(), b = await client();
   a.send({ type: 'hello', ...version }); b.send({ type: 'hello', ...version });
-  await waitFor(a, 'welcome'); await waitFor(b, 'welcome');
+  const identity = await waitFor(a, 'welcome'); await waitFor(b, 'welcome');
   a.send({ type: 'create', ...version }); const { code } = await waitFor(a, 'joined');
   b.send({ type: 'join', code, ...version });
   await waitFor(b, 'joined');
@@ -111,7 +113,25 @@ test('real WebSocket server relays inputs and publishes authoritative checksums'
   }
   const hashA = await waitFor(a, 'checksum'), hashB = await waitFor(b, 'checksum');
   assert.equal(hashA.hash, stateHash(expected)); assert.deepEqual(hashA, hashB);
-  a.ws.close(); assert.equal((await waitFor(b, 'ended')).type, 'ended');
+  a.ws.terminate();
+  await waitFor(b, 'paused');
+  const rejoined = await client(); rejoined.send({ type: 'hello', ...version, token: identity.token });
+  await waitFor(rejoined, 'welcome'); await waitFor(rejoined, 'joined');
+  const snapA = await waitFor(rejoined, 'snapshot'), snapB = await waitFor(b, 'snapshot');
+  assert.deepEqual(snapA, snapB); assert.equal(snapA.hash, stateHash(expected));
+  for (const c of [rejoined, b]) c.send({ type: 'synced', matchId: start.matchId, epoch: snapA.epoch, hash: snapA.hash });
+  await waitFor(rejoined, 'resumed'); await waitFor(b, 'resumed');
+  for (let f = 60; f < 120; f += 3) {
+    for (const [side, c] of [rejoined, b].entries()) c.send({ type: 'inputBatch', matchId: start.matchId, epoch: snapA.epoch,
+      frame: f, inputs: Array.from({ length: 3 }, (_, i) => input(f + i, side)) });
+    for (let i = 0; i < 3; i++) expected = stepMatch(expected, [input(f + i, 0), input(f + i, 1)]);
+  }
+  const relay = await waitFor(b, 'inputBatch');
+  assert.equal(relay.side, 0); assert.equal(relay.frame, 60);
+  assert.deepEqual(relay.inputs, [60, 61, 62].map(f => input(f, 0)));
+  assert.equal((await waitFor(rejoined, 'checksum')).hash, stateHash(expected));
+  assert.equal((await waitFor(b, 'checksum')).hash, stateHash(expected));
+  rejoined.send({ type: 'leave' }); assert.equal((await waitFor(b, 'ended')).type, 'ended');
 });
 test('authoritative result is emitted once and the completed match stops after the animation', () => {
   const lobby = createRooms(), a = fakePeer(), b = fakePeer();

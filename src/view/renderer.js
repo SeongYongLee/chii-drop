@@ -1,4 +1,7 @@
 import { drawFieldBase } from './field-base.js';
+import { drawFeverField } from './fever-field.js';
+import { drawFieldChain, fieldChainPresentation } from './field-chain.js';
+import { drawMascot } from './mascot.js';
 import { PALETTE, UI_FONT, paper } from './festival.js';
 import { characterPresentation } from './character-situation.js';
 import { SCREEN_HEIGHT, SCREEN_WIDTH, screenHeight, isPortraitScreen } from '../app/screen.js';
@@ -81,9 +84,11 @@ function linksAt(effect, cells, index) {
 }
 
 function drawFieldBack(ctx, x, effect, player) {
-  paper(ctx, x - 4, FIELD_TOP - 3, FIELD_WIDTH + 8, FIELD_HEIGHT + 7, { fill: '#fffdf4', radius: 9 });
+  const fever = Boolean(player.fever) && player.phase !== 'revive';
+  paper(ctx, x - 4, FIELD_TOP - 3, FIELD_WIDTH + 8, FIELD_HEIGHT + 7, { fill: fever ? '#a4cce4' : '#fffdf4', radius: 9 });
+  drawFeverField(ctx, x, player, effect.blinkFrame ?? 0);
   ctx.save();
-  ctx.strokeStyle = '#b8a78e0c'; ctx.lineWidth = 1;
+  ctx.strokeStyle = fever ? '#d6e8ff16' : '#b8a78e0c'; ctx.lineWidth = 1;
   for (let c = 1; c < COLS; c++) {
     ctx.beginPath(); ctx.moveTo(x + c * CELL, FIELD_TOP); ctx.lineTo(x + c * CELL, FIELD_BOTTOM); ctx.stroke();
   }
@@ -205,7 +210,7 @@ function drawPiece(ctx, skin, x, player, showGhost) {
 
   const turn = (piece.orient - piece.rotateFrom + 4) % 4;
   const stepDegrees = turn === 2 ? 22.5 : 11.25;
-  const sign = turn === 3 ? -1 : 1;
+  const sign = turn === 2 ? (piece.rotateDirection ?? 1) : turn === 3 ? -1 : 1;
   const angle = ((piece.orient * 90 - sign * piece.rotateFrames * stepDegrees) * Math.PI) / 180;
   const cx = px + CELL * Math.sin(angle);
   const cy = py - CELL * Math.cos(angle);
@@ -343,7 +348,7 @@ function drawNext(ctx, skin, effect, solo = false) {
   if (anim.frame < NEXT_WAIT && anim.outgoing) {
     drawPair(ctx, skin, anim.outgoing, side.next1.x, side.next1.y - 7 * anim.frame, !solo);
   }
-  drawPair(ctx, skin, anim.pairs[1], NEXT_START.x + dir2 * moving, anim.y2, !solo);
+  if (!anim.waiting) drawPair(ctx, skin, anim.pairs[1], NEXT_START.x + dir2 * moving, anim.y2, !solo);
   drawPair(ctx, skin, anim.pairs[0], side.next2.x + dir1 * 2 * moving, anim.y1, !solo);
   ctx.restore();
 }
@@ -383,14 +388,17 @@ function drawScore(ctx, effect, player) {
   ctx.fillText(text, score.x, score.y + 2);
 }
 
-function drawPortrait(ctx, skin, character, effect, box) {
+function drawPortrait(ctx, skin, character, effect, box, player) {
   if (!character) {
     return;
   }
   const presentation = characterPresentation(effect);
-  skin.drawCharacter(ctx, character.id, presentation.mood, box.x, box.y, box.size,
+  const alpha = fieldChainPresentation(skin, character, effect, player).portraitAlpha;
+  ctx.save(); ctx.globalAlpha *= alpha;
+  if (alpha > 0) skin.drawCharacter(ctx, character.id, presentation.mood, box.x, box.y, box.size,
     { frame: presentation.frame, blinkFrame: effect.blinkFrame,
       chain: effect.characterChain, instance: `portrait-${effect.side}`, presentation: 'battle' });
+  ctx.restore();
   paper(ctx, box.x - 4, box.y + box.size - 2, box.size + 8, 22, { radius: 6, shadow: false });
   ctx.fillStyle = INK;
   ctx.font = `bold 13px ${FONT}`;
@@ -471,6 +479,7 @@ function drawPlayer(ctx, view, index) {
   const effect = view.effects[index];
   const x = SIDES[effect.side].fieldX;
   drawFieldBack(ctx, x, effect, player);
+  drawFieldChain(ctx, view.skin, view.characters[index], effect, player, x);
   drawWarning(ctx, view.skin, x, effect);
   drawShadows(ctx, view.skin, x, player, effect);
   drawBoard(ctx, view.skin, x, player, effect);
@@ -478,8 +487,10 @@ function drawPlayer(ctx, view, index) {
   drawFever(ctx, x, player);
   drawChainLabels(ctx, effect);
   drawAllClear(ctx, x, effect);
-  drawNext(ctx, view.skin, effect, view.match.players.length === 1);
-  drawScore(ctx, effect, player);
+  if (!view.result) {
+    drawNext(ctx, view.skin, effect, view.match.players.length === 1);
+    drawScore(ctx, effect, player);
+  }
 }
 
 function drawPortraitNext(ctx, skin, effects) {
@@ -495,7 +506,7 @@ function drawPortraitNext(ctx, skin, effects) {
       const pair=(value,x,y)=>{ctx.save();ctx.translate(x,y);ctx.scale(2,2);drawPair(ctx,skin,value,0,0,false);ctx.restore()};
       if(anim.frame<NEXT_WAIT&&anim.outgoing)pair(anim.outgoing,first,180-14*anim.frame);
       pair(anim.pairs[0],first+direction*64*(1-progress),180+2*(anim.y1-side.next1.y));
-      pair(anim.pairs[1],first+direction*64*(2-progress),212+2*(anim.y2-side.next2.y));
+      if (!anim.waiting) pair(anim.pairs[1],first+direction*64*(2-progress),212+2*(anim.y2-side.next2.y));
     }
     ctx.restore();
   });
@@ -503,39 +514,49 @@ function drawPortraitNext(ctx, skin, effects) {
 
 function drawPortraitGame(ctx, view, height) {
   const { players } = view.match, boxes = portraitGameLayout(height, players.length);
-  paper(ctx,36,20,888,360,{radius:28,fill:'#fffdf5',shadow:false});
-  drawPortraitNext(ctx,view.skin,view.effects);
+  if (!view.result) {
+    paper(ctx,36,20,888,360,{radius:28,fill:'#fffdf5',shadow:false});
+    drawPortraitNext(ctx,view.skin,view.effects);
+  }
   players.forEach((player, i) => {
     const effect = view.effects[i], character = view.characters[i], box = boxes[i];
     const center=i===0?154:806;
-    if (character) {
-      const presentation = characterPresentation(effect);
-      view.skin.drawCharacter(ctx, character.id, presentation.mood, center-108, 80, 216,
-        { frame:presentation.frame, blinkFrame:effect.blinkFrame, chain:effect.characterChain,
-          instance:`portrait-${effect.side}`, presentation:'battle' });
+    if (!view.result) {
+      if (character) {
+        const presentation = characterPresentation(effect);
+        const alpha = fieldChainPresentation(view.skin, character, effect, player).portraitAlpha;
+        ctx.save(); ctx.globalAlpha *= alpha;
+        if (alpha > 0) view.skin.drawCharacter(ctx, character.id, presentation.mood, center-108, 80, 216,
+          { frame:presentation.frame, blinkFrame:effect.blinkFrame, chain:effect.characterChain,
+            instance:`portrait-${effect.side}`, presentation:'battle' });
+        ctx.restore();
+      }
+      ctx.fillStyle=INK;ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`bold 30px ${FONT}`;
+      ctx.fillText(character?.name ?? `${i+1}P`, center, 52, 212);
+      ctx.font=`bold 34px ${FONT}`;
+      const formula = effect.formula && ['pop-start','pop','chain-fall'].includes(player.phase);
+      ctx.fillText(formula ? `${effect.formula.base}×${effect.formula.multiplier}` : String(effect.displayScore).padStart(8,'0'), center, 332, 212);
     }
-    ctx.fillStyle=INK;ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`bold 30px ${FONT}`;
-    ctx.fillText(character?.name ?? `${i+1}P`, center, 52, 212);
-    ctx.font=`bold 34px ${FONT}`;
-    const formula = effect.formula && ['pop-start','pop','chain-fall'].includes(player.phase);
-    ctx.fillText(formula ? `${effect.formula.base}×${effect.formula.multiplier}` : String(effect.displayScore).padStart(8,'0'), center, 332, 212);
 
     // 기존 필드 좌표를 균등하게 확대해 착지·회전·소거의 움직임을 유지한다.
     const sourceX = SIDES[effect.side].fieldX;
     ctx.save();ctx.translate(box.x,box.y);ctx.scale(box.scale,box.scale);ctx.translate(-sourceX,-FIELD_TOP);
     ctx.beginPath();ctx.rect(sourceX-9,0,FIELD_WIDTH+18,GAME_HEIGHT);ctx.clip();
-    drawFieldBack(ctx,sourceX,effect,player);drawWarning(ctx,view.skin,sourceX,effect);
+    drawFieldBack(ctx,sourceX,effect,player);
+    drawFieldChain(ctx,view.skin,character,effect,player,sourceX);
+    drawWarning(ctx,view.skin,sourceX,effect);
     drawShadows(ctx,view.skin,sourceX,player,effect);drawBoard(ctx,view.skin,sourceX,player,effect);
     drawPiece(ctx,view.skin,sourceX,player,view.showGhost);drawFever(ctx,sourceX,player);
     drawChainLabels(ctx,effect);drawAllClear(ctx,sourceX,effect);drawParticles(ctx,view.skin,effect);
     ctx.restore();
   });
+  if (!view.result) drawMascot(ctx, view, true);
   const project = point => {
     const first=boxes[0], last=boxes.at(-1);
     const xScale = boxes.length>1 ? (last.x+last.width/2-first.x-first.width/2)/384 : first.scale;
     return {x:first.x+first.width/2+(point.x-128)*xScale, y:first.y+(point.y-FIELD_TOP)*first.scale};
   };
-  view.effects.forEach(effect=>drawOrbs(ctx,effect,project));
+  if (!view.result) view.effects.forEach(effect=>drawOrbs(ctx,effect,project));
 }
 
 function drawGame(ctx, view) {
@@ -553,16 +574,17 @@ function drawGame(ctx, view) {
   ctx.clip();
 
   const { players } = view.match;
-  drawNextBox(ctx, players.length === 1);
+  if (!view.result) drawNextBox(ctx, players.length === 1);
   players.forEach((_, i) => drawPlayer(ctx, view, i));
-  players.forEach((_, i) => {
+  if (!view.result) players.forEach((_, i) => {
     const box =
       players.length === 1 ? { x: 448, y: 150, size: 128 } : SIDES[view.effects[i].side].portrait;
-    drawPortrait(ctx, view.skin, view.characters[i], view.effects[i], box);
+    drawPortrait(ctx, view.skin, view.characters[i], view.effects[i], box, players[i]);
   });
+  if (!view.result) drawMascot(ctx, view);
   view.effects.forEach((effect) => {
     drawParticles(ctx, view.skin, effect);
-    drawOrbs(ctx, effect);
+    if (!view.result) drawOrbs(ctx, effect);
   });
   ctx.restore();
 }

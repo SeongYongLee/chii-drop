@@ -1,6 +1,6 @@
 import { createMatch, stepMatch } from '../engine/match.js';
 
-export const PROTOCOL = 2;
+export const PROTOCOL = 6;
 export const MAX_PREDICTION = 8;
 export const MAX_AHEAD = 120;
 
@@ -26,6 +26,12 @@ export class RollbackMatch {
     this.inputs = [new Map(), new Map()];
     this.received = [0, 0];
     this.rollbacks = 0;
+  }
+
+  restore(state, hash) {
+    if (!Number.isInteger(state?.frame) || state.frame < 0 || stateHash(state) !== hash) throw new Error('invalid snapshot');
+    this.state = structuredClone(state); this.confirmedState = structuredClone(state);
+    this.inputs = [new Map(), new Map()]; this.received = [state.frame, state.frame];
   }
 
   get canAdvance() {

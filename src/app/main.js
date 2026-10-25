@@ -13,14 +13,19 @@ import { SKIN_DIR, STORY_DIR, loadSkin } from '../view/skins/index.js';
 import { skinImageFiles } from '../view/skins/image-skin.js';
 import { drawFestivalBackground } from '../view/festival.js';
 
-import { createMainMenu, createSinglePlayerMenu, createMultiplayerMenu, createTitleScene } from './menu-scenes.js';
+import { createCpuLevelMenu, createCharacterSelect, createMainMenu, createSinglePlayerMenu, createMultiplayerMenu, createTitleScene } from './menu-scenes.js';
 import { SCREEN_HEIGHT, SCREEN_WIDTH, screenHeight, setupScreen } from './screen.js';
 import { loadRecords, loadSettings } from './storage.js';
 import { MODES } from './modes.js';
+import { storyTestTarget, startStoryTest } from './story-test.js';
+import { createOnlineView } from '../net/in-game.js';
+import { loadOnlineConfig } from '../net/config.js';
 import { createLoadingProgress, createLoadingScreen } from './loading-progress.js';
 
 const FRAME_MS = 1000 / 60;
 const MAX_STEPS_PER_TICK = 5;
+const storyTest = storyTestTarget(globalThis.location?.href);
+const includeStory = MODES.story || Boolean(storyTest);
 
 const canvas = document.getElementById('screen');
 const ctx = setupScreen(canvas);
@@ -29,6 +34,7 @@ const uiTransition = createUiTransition();
 
 
 const app = {
+  get portraitScreen() { return canvas.portraitScreen === true; },
   keyboard: createKeyboard(),
   sfx: createSfx(),
   settings: loadSettings(),
@@ -46,6 +52,13 @@ const app = {
     app.scene = scene;
     app.mobile?.clear();
     app.mobile?.sync();
+    const scenery = scene.backgroundScene?.() ?? (scene.touchGame?.() ? 'game' : scene.touchTitle ? 'title' : 'menu');
+    const background = app.skin?.backgroundUrl?.(scenery);
+    ctx.pageBackdrop = Boolean(background);
+    if (document.body?.style) {
+      document.body.dataset.pageBackdrop = String(Boolean(background));
+      document.body.style.setProperty('--page-backdrop', background ? `url(${JSON.stringify(background)})` : 'none');
+    }
     app.updateMusic();
   },
   musicScene() {
@@ -64,7 +77,10 @@ const app = {
     app.singlePlayerMenu ??= createSinglePlayerMenu();
     app.setScene(app.singlePlayerMenu);
   },
+  goToCharacterSelect(options) { app.setScene(createCharacterSelect(options)); },
+  goToCpuLevelMenu(options) { app.setScene(createCpuLevelMenu(options)); },
   goToMultiplayer() {
+    if (!MODES.multiplayer) return;
     app.multiplayerMenu ??= createMultiplayerMenu();
     app.setScene(app.multiplayerMenu);
   },
@@ -73,6 +89,12 @@ const app = {
     void configureCharacterVoices(app.sfx, app.skin, app.settings.voice !== false);
     app.updateMusic();
   },
+};
+
+app.openOnline = async () => {
+  if (!MODES.multiplayer) return;
+  app.openOnline = createOnlineView(app, canvas);
+  return app.openOnline();
 };
 
 const loadingScreen = createLoadingScreen(document);
@@ -86,10 +108,13 @@ app.keySettings = createKeySettings({ view: window, keyboard: app.keyboard,
   onOpen: () => app.mobile?.clear(), onClose: () => app.mobile?.clear() });
 app.mobile = attachMobileControls({ view: window, canvas, container: document.getElementById('mobile-controls'),
   keyboard: app.keyboard, onUnlock: () => unlockSfx(app.sfx),
-  getContext: () => ({ enabled: Boolean(app.scene),
+  menuButton: document.getElementById('game-menu-toggle'),
+  onPause: () => app.scene?.openPause?.(),
+  getContext: () => ({ enabled: Boolean(app.scene) && !app.onlineActive,
     mode: app.scene?.touchMode?.() ?? 'menu', player: app.scene?.touchPlayer?.() ?? null,
     gameScreen: app.scene?.touchGame?.() ?? false,
     paused: app.scene?.touchPaused?.() ?? false,
+    hideBack: app.scene?.touchHideBack?.() ?? false,
     backPlayer: app.scene?.touchBackPlayer?.() ?? null,
     local: app.scene?.touchLocal?.() ?? false,
     label: app.scene?.touchLabel?.(app),
@@ -124,7 +149,7 @@ const [skin, script] = await Promise.all([
     },
     onImage: (file, ok) => loading.complete(`image:${file}`, ok),
   }).then(skin => { loading.complete('manifest', Boolean(skin)); loading.settleGroup('image:'); return skin; }),
-  loadSkinScript(MODES.story ? STORY_DIR : SKIN_DIR, { includeStory: MODES.story }).then(script => { loading.complete('characters', Boolean(script)); return script; }),
+  loadSkinScript(includeStory ? STORY_DIR : SKIN_DIR, { includeStory }).then(script => { loading.complete('characters', Boolean(script)); return script; }),
 ]);
 if (skin && script) {
   app.skin = skin;
@@ -134,7 +159,8 @@ if (skin && script) {
   app.applySettings();
   try { await prepareSfx(app.sfx); } catch { /* 소리 장치를 준비할 수 없어도 게임은 시작한다. */ }
   loading.settleGroup('voice:'); loading.settleGroup('effect:'); loading.finish();
-  app.setScene(createTitleScene());
+  if (storyTest) startStoryTest(app, storyTest);
+  else app.setScene(createTitleScene());
   loadingScreen.hide();
   retainMedia(assetWorker, loadedManifest, SKIN_DIR);
   clearPressed(app.keyboard);
@@ -147,6 +173,7 @@ let last = performance.now();
 let accumulator = 0;
 
 function tick(now) {
+  if (app.onlineActive) { last = now; accumulator = 0; requestAnimationFrame(tick); return; }
   accumulator = Math.min(accumulator + now - last, FRAME_MS * MAX_STEPS_PER_TICK);
   last = now;
   while (accumulator >= FRAME_MS) {
@@ -165,3 +192,6 @@ function tick(now) {
 }
 
 if (app.scene) requestAnimationFrame(tick);
+
+// 로컬과 Pages가 같은 공개 연결 설정을 사용한다.
+void loadOnlineConfig().then(info => { app.onlineAvailable = MODES.multiplayer && info.enabled; if (['#online', '#play', '#new-room', '#leaderboard', '#controls'].includes(window.location?.hash) && MODES.multiplayer && (MODES.online || info.enabled)) void app.openOnline(); });

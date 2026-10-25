@@ -94,6 +94,15 @@ test('프레임 사이에 끝난 짧은 탭도 최소 한 프레임 전달하며
   fire(16, 'pointerdown'); fire(16, 'pointerup'); fire(16, 'lostpointercapture');
   assert.equal(touch.read(), 16); assert.equal(touch.read(), 0);
 });
+test('회전을 빠르게 다시 누르면 해제 프레임을 끼워 두 번째 회전도 전달한다', () => {
+  const { touch, fire } = harness(); touch.setEnabled(true);
+  fire(8, 'pointerdown'); assert.equal(touch.read(), 8);
+  fire(8, 'pointerup'); fire(8, 'pointerdown');
+  assert.equal(touch.read(), 0);
+  assert.equal(touch.read(), 8);
+  assert.equal(touch.read(), 8);
+  fire(8, 'pointerup'); assert.equal(touch.read(), 0);
+});
 test('포인터 취소·포커스 이탈·화면 숨김·경기 종료 후 입력이 눌린 채 남지 않는다', () => {
   const { touch, fire, doc, buttons } = harness(); touch.setEnabled(true);
   fire(4, 'pointerdown'); touch.read(); fire(4, 'pointercancel'); assert.equal(touch.read(), 0);

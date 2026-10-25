@@ -45,7 +45,7 @@ const GAME_CODES = new Set(
 );
 
 function createKeyboard() {
-  return { held: new Set(), pressed: new Set(), touchHeld: new Set(), touchPressed: new Set() };
+  return { held: new Set(), pressed: new Set(), touchHeld: new Set(), touchPressed: new Set(), rotationInputs: new Map() };
 }
 
 // 터치와 실제 키보드의 누름 상태를 분리해 한쪽의 해제가 다른 쪽을 끊지 않게 한다.
@@ -58,6 +58,7 @@ function setTouchKeys(keyboard, codes) {
 
 function attachKeyboard(keyboard, target) {
   target.addEventListener('keydown', (event) => {
+    if (keyboard.enabled === false) return;
     if (GAME_CODES.has(event.code) || Object.values(keyboard.bindings ?? {}).some((map) =>
       (Array.isArray(map) ? map : Object.values(map).flat()).includes(event.code))) {
       event.preventDefault();
@@ -75,18 +76,29 @@ function attachKeyboard(keyboard, target) {
     keyboard.pressed.clear();
     keyboard.touchHeld?.clear();
     keyboard.touchPressed?.clear();
+    keyboard.rotationInputs?.clear();
   });
 }
 
 function readInput(keyboard, keymap) {
   let input = 0;
+  let rotationsPressed = 0;
   const group = Object.keys(KEYMAPS).find((id) => KEYMAPS[id] === keymap);
   const physical = keyboard.bindings?.[group] ?? keymap;
   for (const [name, codes] of Object.entries(keymap)) {
     if (physical[name].some((code) => keyboard.held.has(code)) || codes.some((code) => keyboard.touchHeld?.has(code))) {
       input |= INPUT[name];
     }
+    if (name.startsWith('ROTATE_') && physical[name].some(code => keyboard.pressed.has(code))) rotationsPressed |= INPUT[name];
   }
+  // 프레임 사이에 끝난 짧은 회전도 살리고, 재누름 사이에 해제 프레임을 보장한다.
+  // 엔진에는 다른 조작과 같은 프레임 비트만 전달한다.
+  keyboard.rotationInputs ??= new Map();
+  const previous = keyboard.rotationInputs.get(keymap) ?? { input: 0, pending: 0, pressed: 0 };
+  const deferred = previous.input & rotationsPressed & ~previous.pressed;
+  input |= rotationsPressed | previous.pending;
+  input &= ~deferred;
+  keyboard.rotationInputs.set(keymap, { input: input & (INPUT.ROTATE_CW | INPUT.ROTATE_CCW), pending: deferred, pressed: rotationsPressed });
   return input;
 }
 
@@ -98,6 +110,7 @@ function wasPressed(keyboard, codes) {
 function clearPressed(keyboard) {
   keyboard.pressed.clear();
   keyboard.touchPressed?.clear();
+  for (const state of keyboard.rotationInputs?.values() ?? []) state.pressed = 0;
 }
 
 export {

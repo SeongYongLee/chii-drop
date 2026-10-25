@@ -8,9 +8,9 @@ export function isTextEntry(element) {
     && ['text', 'search', 'password', 'email', 'tel', 'url', 'number'].includes(element.type);
 }
 
-export function attachMobileViewport(view) {
+export function attachMobileViewport(view, { shell = view.document.body, root: surface = view.document } = {}) {
   const doc = view.document;
-  const root = doc.documentElement;
+  const root = shell === doc.body ? doc.documentElement : (surface.host ?? shell);
   const viewport = view.visualViewport;
   let frame = null, ensureFocus = false;
   function update() {
@@ -19,20 +19,20 @@ export function attachMobileViewport(view) {
     const top = viewport?.offsetTop ?? 0;
     root.style.setProperty('--visible-height', `${height}px`);
     root.style.setProperty('--visible-top', `${top}px`);
-    const editing = isTextEntry(doc.activeElement);
-    doc.body.dataset.editing = String(editing);
-    doc.body.dataset.compactViewport = String(height < 360);
+    const editing = isTextEntry(surface.activeElement);
+    shell.dataset.editing = String(editing);
+    shell.dataset.compactViewport = String(height < 360);
     // 핀치 줌으로 줄어든 영역을 키보드로 잘못 판단하지 않는다.
     const keyboard = editing && Math.abs((viewport?.scale ?? 1) - 1) < 0.05
       && view.innerHeight - height > 120;
-    doc.body.dataset.keyboardOpen = String(keyboard);
+    shell.dataset.keyboardOpen = String(keyboard);
     if (ensureFocus && editing) {
-      const rect = doc.activeElement.getBoundingClientRect();
-      const dialog = doc.activeElement.closest?.('dialog[open]');
+      const rect = surface.activeElement.getBoundingClientRect();
+      const dialog = surface.activeElement.closest?.('dialog[open]');
       const submit = dialog?.querySelector('button[type="submit"]');
       const bottom = submit ? Math.min(top + height - 12, submit.getBoundingClientRect().top - 12) : top + height - 12;
       if (rect.top < top + 12 || rect.bottom > bottom) {
-        doc.activeElement.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
+        surface.activeElement.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
       }
     }
     ensureFocus = false;
@@ -51,14 +51,14 @@ export function attachMobileViewport(view) {
   viewport?.addEventListener('scroll', scroll);
   schedule();
   return {
-    dismissKeyboard() { if (isTextEntry(doc.activeElement)) doc.activeElement.blur(); },
+    dismissKeyboard() { if (isTextEntry(surface.activeElement)) surface.activeElement.blur(); },
     dispose() {
       if (frame !== null) view.cancelAnimationFrame(frame);
       doc.removeEventListener('focusin', resize); doc.removeEventListener('focusout', scroll);
       view.removeEventListener('resize', resize);
       viewport?.removeEventListener('resize', resize); viewport?.removeEventListener('scroll', scroll);
       root.style.removeProperty('--visible-height'); root.style.removeProperty('--visible-top');
-      delete doc.body.dataset.editing; delete doc.body.dataset.keyboardOpen; delete doc.body.dataset.compactViewport;
+      delete shell.dataset.editing; delete shell.dataset.keyboardOpen; delete shell.dataset.compactViewport;
     },
   };
 }

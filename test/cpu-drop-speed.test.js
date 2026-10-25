@@ -32,7 +32,7 @@ test('조작 후 한 번 기다렸다가 고정될 때까지 아래 입력을 �
   const waits = CPU_LEVELS.map(({ id }) => {
     const { inputs, heights } = fall(id);
     const firstDrop = inputs.indexOf(INPUT.DOWN);
-    if (id === 'master') assert.equal(firstDrop, 0, '아주 어려움은 조작 후 즉시 내려야 한다');
+    if (id === 'grandmaster') assert.equal(firstDrop, 0, '달인은 조작 후 즉시 내려야 한다');
     else assert.ok(firstDrop > 0, `${id}: 조작 후 대기가 있어야 한다`);
     assert.ok(inputs.slice(0, firstDrop).every(input => input === 0));
     assert.ok(inputs.slice(firstDrop).every(input => input === INPUT.DOWN), `${id}: 낙하 중 입력을 끊었다`);
@@ -67,7 +67,7 @@ test('필드가 높으면 대기를 줄이고 이미 바닥에 닿았으면 즉�
     const empty = stepCpu(cpu, p, match.table).cpu.dropWait;
     for (let y = ROWS - 6; y < ROWS; y++) p.board.cells[y * COLS + 2] = 1 + y % 2;
     const high = stepCpu(cpu, p, match.table).cpu.dropWait;
-    if (id === 'master') assert.equal(high, 0);
+    if (id === 'grandmaster') assert.equal(high, 0);
     else assert.ok(high < empty);
     p.board.cells.fill(0); p.piece.h = 0;
     const grounded = stepCpu(cpu, p, match.table);
@@ -75,9 +75,9 @@ test('필드가 높으면 대기를 줄이고 이미 바닥에 닿았으면 즉�
   }
 });
 
-test('아주 어려움은 대기 편차와 무관하게 즉시 연속 낙하한다', () => {
+test('달인은 대기 편차와 무관하게 즉시 연속 낙하한다', () => {
   for (const jitter of [-2, -1, 0, 1, 2]) {
-    const { match, cpu } = ready('master');
+    const { match, cpu } = ready('grandmaster');
     cpu.dropJitter = jitter;
     const result = stepCpu(cpu, match.players[0], match.table);
     assert.equal(result.input, INPUT.DOWN);

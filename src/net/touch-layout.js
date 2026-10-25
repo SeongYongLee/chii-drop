@@ -8,10 +8,10 @@ export function fitTouch(value, width, height, landscape) {
   const setting = normalizeTouch(value);
   // 작은 화면에서도 양손 조작 영역과 게임판을 확보하고 버튼끼리 겹치지 않게 한다.
   const available = Math.max(0, width - 2 * setting.edge - (landscape ? 4 : 3) * setting.gap - (landscape ? 160 : 0));
-  const size = Math.max(44, Math.min(setting.size, available / 4, (height - setting.lift - setting.gap) / 2));
+  const size = Math.max(48, Math.min(setting.size, available / 4, (height - setting.lift - setting.gap) / 2));
   return { ...setting, size, wing: 2 * size + setting.gap, controlHeight: 2 * size + setting.gap + setting.lift };
 }
-export function attachTouchLayout({ view, dialog, container, preview, onEdit = () => {} }) {
+export function attachTouchLayout({ view, dialog, container, preview, surface = view.document.documentElement, onEdit = () => {} }) {
   let saved;
   try { saved = JSON.parse(view.localStorage.getItem(KEY)); } catch { /* 저장 차단 시 기본값 */ }
   const settings = { portrait: normalizeTouch(saved?.portrait), landscape: normalizeTouch(saved?.landscape) };
@@ -23,8 +23,10 @@ export function attachTouchLayout({ view, dialog, container, preview, onEdit = (
   };
   function update() {
     const mode = orientation();
-    const layout = fitTouch(settings[mode], view.document.body.clientWidth - 24, view.innerHeight - 100, mode === 'landscape');
-    applyVars(view.document.documentElement, layout);
+    const width = surface.clientWidth || view.innerWidth;
+    const height = surface.clientHeight || view.innerHeight;
+    const layout = fitTouch(settings[mode], width - 24, height - (mode === 'landscape' ? 24 : 100), mode === 'landscape');
+    applyVars(surface, layout);
     container.dataset.swapped = String(layout.swapped);
     if (dialog.open) renderPreview();
   }
@@ -50,7 +52,7 @@ export function attachTouchLayout({ view, dialog, container, preview, onEdit = (
   $('touch-reset').addEventListener('click', () => { settings[$('touch-orientation').value] = normalizeTouch(); save(); });
   $('close-touch-options').addEventListener('click', () => dialog.close());
   view.addEventListener('resize', update);
-  const observer = new view.ResizeObserver(update); observer.observe(preview);
+  const observer = new view.ResizeObserver(update); observer.observe(preview); observer.observe(surface);
   update();
   return { open() { onEdit(); $('touch-orientation').value = orientation(); dialog.showModal(); renderPreview(); $('close-touch-options').focus({ preventScroll: true }); } };
 }

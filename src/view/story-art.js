@@ -47,8 +47,16 @@ function cup(ctx, x, y) {
 function drawStoryForm(ctx, palette, x, y, size, reach = false, skin = null, motion = {}) {
   if (palette.charId && skin?.characterRoster?.some((entry) => entry.id === palette.charId)) {
     skin.drawCharacter(ctx, palette.charId, reach ? 'fever' : motion.mood ?? 'idle', x, y, size,
-      { ...motion, reducedMotion: reach || motion.reducedMotion, instance: 'story-revealed-form' });
+      { ...motion, silhouette: Boolean(palette.silhouette), silhouetteOpacity: 1,
+        reducedMotion: reach || motion.reducedMotion, instance: 'story-revealed-form' });
     return;
+  }
+  if (palette.silhouette) {
+    ctx.save(); ctx.translate(x, y); ctx.scale(size / 210, size / 210);
+    for (const [cx, cy, rx, ry] of [[105,115,91,79],[53,52,29,35],[155,52,29,35],[57,165,35,18],[164,163,26,17],[reach ? -4 : 38,171,24,13]]) {
+      oval(ctx, cx, cy, rx, ry, '#09090d');
+    }
+    ctx.restore(); return;
   }
   ctx.save(); ctx.translate(x, y); ctx.scale(size / 210, size / 210);
   oval(ctx, 105, 185, 100, 13, '#16151f44');
@@ -76,9 +84,9 @@ function reachingHand(ctx, x, y, color = '#f8eee9', length = 28, edge = null) {
 function photo(ctx, app, script, visual, guests, shot) {
   const old = visual === 'oldPhoto', faded = visual === 'memory';
   panel(ctx, 120, 40, 720, 305, old ? '#ded1b9' : '#fffaf2');
-  if (!old && app.skin.hasBackground?.(shot.hostForm === 'large' ? 'inside' : 'summit')) {
+  if (!old && app.skin.hasBackground?.(shot.background ?? (shot.hostForm === 'large' ? 'inside' : 'summit'))) {
     ctx.save(); ctx.translate(140, 58);
-    app.skin.drawBackground(ctx, 680, 238, shot.hostForm === 'large' ? 'inside' : 'summit');
+    app.skin.drawBackground(ctx, 680, 238, shot.background ?? (shot.hostForm === 'large' ? 'inside' : 'summit'));
     ctx.restore();
   } else panel(ctx, 140, 58, 680, 238, old ? '#c6b799' : '#e7dbe2');
   if (old) {
@@ -134,7 +142,10 @@ function drawStoryArt(ctx, app, script, visual, guests = [], shot = {}) {
       ctx.save(); if (painted && !closeThreshold) { ctx.translate(-178, 0); }
       figure(ctx, app, script, 'player', closeThreshold ? 130 : 228, 194, 120, 'idle', shot);
       figure(ctx, app, script, 'companion', closeThreshold ? 24 : 124, 184, 108, 'idle', shot);
-      drawStoryForm(ctx, characterOf(script, SECRET_FINAL).storyForm ?? {}, closeThreshold ? 370 : 411, 91, 253, true, app.skin, { frame: shot.frame, reducedMotion: shot.reducedMotion });
+      if (shot.hostForm === 'small') {
+        figure(ctx, app, script, SECRET_FINAL, closeThreshold ? 340 : 411, 185, 132, 'idle', shot);
+        reachingHand(ctx, closeThreshold ? 336 : 411, 292, '#f8eee9', 18);
+      } else drawStoryForm(ctx, characterOf(script, SECRET_FINAL).storyForm ?? {}, closeThreshold ? 370 : 411, 91, 253, true, app.skin, { frame: shot.frame, reducedMotion: shot.reducedMotion });
       // 전용 배경의 문턱은 약 (320, 292). 작은 손끝 298과 큰 손끝 336 사이에 틈을 남긴다.
       reachingHand(ctx, closeThreshold ? 245 : 323, 292, '#f8eee9', closeThreshold ? 53 : 55, closeThreshold ? '#8a6e68' : null);
       ctx.restore();
@@ -153,7 +164,19 @@ function drawStoryArt(ctx, app, script, visual, guests = [], shot = {}) {
       if (shot.snacks && !painted) { for (let i = 0; i < 5; i++) { cup(ctx, 531 + i * 53, 295); snack(ctx, 531 + i * 53, 322); } }
     } else {
       HIDDEN_IDS.forEach((id, i) => figure(ctx, app, script, id, painted ? 362 + i * 148 : 218 + i * 135, painted ? 172 : 100, 105, 'idle', shot));
-      figure(ctx, app, script, SECRET_FINAL, painted ? 224 : 414, 206, 132, 'idle', shot);
+      if (shot.phase === 'restore') {
+        ctx.save(); ctx.globalAlpha *= 1 - (shot.progress ?? 1);
+        drawStoryForm(ctx, characterOf(script, SECRET_FINAL).storyForm ?? {}, painted ? 170 : 294, painted ? 79 : 52, painted ? 240 : 285, false, app.skin);
+        ctx.restore();
+        ctx.save(); ctx.globalAlpha *= shot.progress ?? 1;
+      }
+      figure(ctx, app, script, SECRET_FINAL, painted ? 235 : 414, shot.hostForm === 'small' ? 78 : 206, 132, 'idle', shot);
+      if (shot.phase === 'restore') ctx.restore();
+      if (shot.medal) medal(ctx, painted ? 301 : 480, shot.hostForm === 'small' ? 183 : 315, .6);
+      if (shot.hostForm === 'small' && shot.phase !== 'alone') {
+        figure(ctx, app, script, 'player', 132, 209, 106, 'idle', shot);
+        figure(ctx, app, script, 'companion', 215, 221, 91, 'idle', shot);
+      }
       if (shot.phase === 'gather' && !painted) for (let i = 0; i < 5; i++) cup(ctx, 550 + i * 50, 297);
     }
   } else if (visual === 'invitation' || visual === 'register') {

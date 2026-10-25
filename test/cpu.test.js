@@ -61,7 +61,7 @@ function playMatch(seed, levels, limit) {
   return match;
 }
 
-test('CPU 난이도 목록은 입문부터 아주 어려움까지 여섯 단계다', () => {
+test('CPU 난이도 목록은 입문부터 달인까지 일곱 단계다', () => {
   assert.deepEqual(
     CPU_LEVELS.map(({ id, label }) => [id, label]),
     [
@@ -71,6 +71,7 @@ test('CPU 난이도 목록은 입문부터 아주 어려움까지 여섯 단계�
       ['hard', '보통'],
       ['expert', '어려움'],
       ['master', '아주 어려움'],
+      ['grandmaster', '달인'],
     ],
   );
 });

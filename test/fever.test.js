@@ -59,6 +59,23 @@ test('연쇄 결과에 따라 다음 배치 크기가 정해진다 (15.1절)', (
   assert.equal(finishFeverChain(feverPlayer(5, { allClear: true }), 5).fever.target, 8);
 });
 
+test('피버는 목표에 못 미친 1회 소거도 연쇄 종료 즉시 다음 필드로 교체한다', () => {
+  let match = run(bossMatch(), 1 + REVIVE_FRAMES);
+  const cells = fieldFromRows(['.....2', '1111..']);
+  match = { ...match, players: match.players.map((p, i) => i === 1
+    ? { ...p, phase: 'check', chain: 0, board: { ...p.board, cells } } : p) };
+  let seedEvent;
+  for (let frame = 0; frame < 600 && !seedEvent; frame++) {
+    match = run(match, 1);
+    seedEvent = match.players[1].events.find(e => e.type === 'feverSeed');
+  }
+  assert.ok(seedEvent);
+  assert.equal(seedEvent.success, false);
+  assert.equal(match.players[1].chain, 1);
+  assert.notDeepEqual(match.players[1].board.cells, cells);
+  assert.ok(match.players[1].events.some(e => e.type === 'chainEnd' && e.chain === 1));
+});
+
 test('피버 중 연쇄가 끝나면 3연쇄부터 0.5초씩 시간이 늘어난다', () => {
   assert.equal(finishFeverChain(feverPlayer(5), 2).fever.timer, 600);
   assert.equal(finishFeverChain(feverPlayer(5), 3).fever.timer, 630);

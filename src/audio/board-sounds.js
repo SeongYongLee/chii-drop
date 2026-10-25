@@ -11,7 +11,7 @@ function touchingGround(player) {
 }
 
 // 엔진에 소리 이벤트를 추가하지 않고, 확정된 전후 상태에서 실제 접촉을 읽는다.
-function boardSoundEvents(before, after) {
+function boardSoundEvents(before, after, warningChange, arrivalSounds = []) {
   if (!before) return [];
   const events = [];
   const touched = touchingGround(after) && !touchingGround(before);
@@ -27,12 +27,14 @@ function boardSoundEvents(before, after) {
   if (blocks) events.push({ type: 'land', amount: blocks });
   if (weeds) events.push({ type: 'garbageLand', amount: weeds });
   const oldWarning = warningCount(before), total = warningCount(after);
-  if (total > oldWarning) events.push({ type: 'warning', amount: total - oldWarning, total });
-  return events;
+  if (warningChange !== undefined) {
+    if (warningChange) events.push(warningChange);
+  } else if (total > oldWarning) events.push({ type: 'warning', amount: total - oldWarning, total });
+  return [...events, ...arrivalSounds];
 }
 
-function playBoardSounds(sfx, before, after, channel) {
-  for (const event of boardSoundEvents(before, after)) playSfx(sfx, event.type, { ...event, channel });
+function playBoardSounds(sfx, before, after, channel, warningChange, arrivalSounds) {
+  for (const event of boardSoundEvents(before, after, warningChange, arrivalSounds)) playSfx(sfx, event.type, { ...event, channel });
 }
 
 export { boardSoundEvents, playBoardSounds };

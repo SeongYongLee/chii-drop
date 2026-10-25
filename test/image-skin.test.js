@@ -24,6 +24,46 @@ async function animatedSkin(t, moods, extra = [], metadata = {}) {
   return { draw, loads, skin, ctx, draws };
 }
 
+test('달리기 컷의 동선과 방향 반전은 크기를 유지하고 움직임 줄이기는 제자리 대표 컷을 쓴다', async t => {
+  const clip = { file: 'run.png', columns: 3, loop: false, poster: 1,
+    frames: [{ frame: 0, duration: 4 }, { frame: 1, duration: 4, flipX: true }, { frame: 2, duration: 5 }],
+    travel: [{ frame: 0, x: 0, y: 0 }, { frame: 4, x: .2, y: -.1 }, { frame: 12, x: 0, y: 0 }] };
+  const { draw, ctx } = await animatedSkin(t, { idle: 'idle.png', chain5: clip });
+  const transforms = [];
+  Object.assign(ctx, { save: () => transforms.push('save'), restore: () => transforms.push('restore'),
+    translate: (...args) => transforms.push(args), scale: (...args) => transforms.push(args) });
+  assert.deepEqual(draw(0, 'happy', false, { chain: 5 }).slice(4), [0, 0, 100, 100]);
+  assert.deepEqual(draw(4, 'happy', false, { chain: 5 }).slice(4), [20, -10, 100, 100]);
+  assert.deepEqual(transforms.slice(-4), ['save', [140, 0], [-1, 1], 'restore']);
+  assert.deepEqual(draw(4, 'happy', true, { chain: 5 }).slice(4), [0, 0, 100, 100]);
+  assert.deepEqual(draw(12, 'happy', false, { chain: 5 }).slice(4), [0, 0, 100, 100]);
+});
+
+test('관전 캐릭터는 걷기 컷을 교대로 재생하고 정지 모드에서는 대표 컷을 쓴다', async t => {
+  const { skin, ctx, draws, loads } = await animatedSkin(t, { idle: 'idle.png' }, [], {
+    mascot: { moods: {
+      idle: { file: 'mascot.png', columns: 3, poster: 0, frames: [0, 1, 2] },
+      walk: { file: 'mascot.png', columns: 3, poster: 0, frames: [1, 0, 2, 0] },
+    } },
+  });
+  assert.ok(skin.drawMascot);
+  for (const [frame, expected] of [[0, 100], [6, 0], [12, 200], [18, 0], [24, 100]]) {
+    skin.drawMascot(ctx, 'walk', 0, 0, 32, { frame });
+    assert.equal(draws.at(-1)[1], expected);
+  }
+  skin.drawMascot(ctx, 'walk', 0, 0, 32, { frame: 12, reducedMotion: true });
+  assert.equal(draws.at(-1)[1], 100);
+  assert.equal(loads.filter(url => url === 'skin/mascot.png').length, 1);
+});
+
+test('필드 연쇄 연출은 스킨에서 명시적으로 허용한 캐릭터만 사용한다', async t => {
+  const { skin } = await animatedSkin(t, { idle: 'idle.png' }, [
+    { id: 'char-2', name: 'Second', fieldChainReaction: true, moods: { idle: 'idle.png' } },
+    { id: 'char-3', name: 'Third', fieldChainReaction: false, moods: { idle: 'idle.png' } },
+  ]);
+  assert.deepEqual(skin.fieldChainCharacters, ['char-2']);
+});
+
 test('선택창·경기 배율은 모든 표정의 정지·동작 컷과 실루엣의 중심·발 위치를 유지한다', async (t) => {
   const moods = Object.fromEntries(['idle', 'happy', 'sad', 'win', 'lose', 'leading', 'trailing'].map(mood =>
     [mood, { file: `${mood}.png`, columns: 3, offsetY: -10, frames: [0, 1, 2] }]));
@@ -357,8 +397,9 @@ test('실루엣은 색·얼굴을 검게 숨기고 다음 캐릭터의 그리기
     drawImage(){draws.push({filter:this.filter,alpha:this.globalAlpha});},
   };
   skin.drawCharacter(ctx,'char-1','idle',0,0,100,{silhouette:true,reducedMotion:true});
+  skin.drawCharacter(ctx,'char-1','idle',0,0,100,{silhouette:true,silhouetteOpacity:1,reducedMotion:true});
   skin.drawCharacter(ctx,'char-1','idle',0,0,100,{reducedMotion:true});
-  assert.deepEqual(draws,[{filter:'brightness(0)',alpha:.55},{filter:'none',alpha:1}]);
+  assert.deepEqual(draws,[{filter:'brightness(0)',alpha:.55},{filter:'brightness(0)',alpha:1},{filter:'none',alpha:1}]);
 });
 
 test('준비 중 실루엣도 프레임에 따라 기존 스프라이트 애니메이션을 재생한다', async (t) => {

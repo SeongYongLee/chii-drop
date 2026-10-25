@@ -59,6 +59,7 @@ test('Pages 배포본에는 실행 자료와 루트 README만 포함하고 로�
   assert.equal(info.scenes,undefined);
   assert.equal(await readFile(`dist/${STORY}`,'utf8'),await readFile(STORY,'utf8'));
   validateStory(JSON.parse(await readFile(`dist/${STORY}`,'utf8')),manifest);
+  assert.deepEqual(JSON.parse(await readFile('dist/online-config.json','utf8')), JSON.parse(await readFile('online-config.json','utf8'))); // 공개 설정도 소스와 동일하게 배포한다.
   const online=await readFile('dist/online.html','utf8');
   assert.equal(online,await readFile('online.html','utf8'));
   assert.ok(online.includes('src/net/entry.js'));

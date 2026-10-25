@@ -23,26 +23,30 @@ test('이전 스킨 선택값만 제거하고 음량·음악·경기 기록은 �
 test('이전 CPU 승패는 유지하고 새 난이도 기록은 0승 0패로 준비한다', (t) => {
   const previous = globalThis.window;
   globalThis.window = { localStorage: { getItem: () => JSON.stringify({ soloBest: 100,
-    cpu: { easy: { win: 3, lose: 2 }, hard: { win: 1, lose: 4 }, expert: { win: 5, lose: 6 } } }) } };
+    cpu: { easy: { win: 3, lose: 2 }, hard: { win: 1, lose: 4 }, expert: { win: 5, lose: 6 }, master: { win: 7, lose: 8 } } }) } };
   t.after(() => { globalThis.window = previous; });
   const records = loadRecords();
   assert.equal(records.soloBest, 100); assert.deepEqual(records.cpu.hard, { win: 1, lose: 4 });
   assert.deepEqual(records.cpu.easy, { win: 3, lose: 2 }); assert.deepEqual(records.cpu.expert, { win: 5, lose: 6 });
-  assert.deepEqual(records.cpu.master, { win: 0, lose: 0 });
+  assert.deepEqual(records.cpu.master, { win: 7, lose: 8 });
+  assert.deepEqual(records.cpu.grandmaster, { win: 0, lose: 0 });
   assert.deepEqual(records.cpu.beginner, { win: 0, lose: 0 });
 });
 
-test('입문 경기 기록을 저장하고 다시 불러와도 다른 난이도 기록과 분리된다', (t) => {
+test('입문·달인 경기 기록은 저장 후에도 기존 난이도 기록과 분리된다', (t) => {
   const previous = globalThis.window;
   const values = new Map();
   globalThis.window = { localStorage: { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value) } };
   t.after(() => { globalThis.window = previous; });
   const records = loadRecords();
   records.cpu.beginner.win++;
+  records.cpu.grandmaster.lose++;
   saveRecords(records);
   const loaded = loadRecords();
   assert.deepEqual(loaded.cpu.beginner, { win: 1, lose: 0 });
   assert.deepEqual(loaded.cpu.easy, { win: 0, lose: 0 });
+  assert.deepEqual(loaded.cpu.master, { win: 0, lose: 0 });
+  assert.deepEqual(loaded.cpu.grandmaster, { win: 0, lose: 1 });
 });
 
 test('착지 위치는 새 설정·저장소 차단 시 기본 켜짐이며 저장한 꺼짐은 유지한다', (t) => {

@@ -22,7 +22,8 @@ test('공개 캐릭터는 장면·표정과 무관하게 같은 보정과 고정
   for (const character of data.characters) delete character.portraitSizing;
   const original = await loadImageSkin(root.pathname);
   let call;
-  const ctx = { drawImage: (...args) => { call = args.slice(5); } };
+  const ctx = { drawImage: (...args) => { call = args.slice(5); },
+    save() {}, restore() {}, translate() {}, scale() {} };
   const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-7, `${actual} != ${expected}`);
   for (const character of manifest.characters) {
     const { scale, baseline } = character.portraitSizing;

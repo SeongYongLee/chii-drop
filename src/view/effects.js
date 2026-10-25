@@ -5,6 +5,7 @@ import { COLS, HIDDEN_ROWS, NEXT_WAIT, POP_FRAMES, ROWS } from '../engine/rules.
 
 import { CELL, FIELD_TOP, NEXT_START, SIDES } from './layout.js';
 import { tickSituation } from './character-situation.js';
+import { FIELD_CHAIN_FRAMES, FIELD_CHAIN_FADE } from './field-chain.js';
 
 // 13절의 연출 상태. 표현 전용이며 엔진 상태와 경기 난수에 영향을 주지 않는다.
 const MOOD_FRAMES = 80;
@@ -36,6 +37,7 @@ function createEffect(side) {
     moodTimer: 0,
     characterFrame: 0,
     characterChain: 0,
+    fieldChain: null,
     blinkFrame: 0,
     situation: 'neutral',
     situationCandidate: 'neutral',
@@ -45,6 +47,8 @@ function createEffect(side) {
     particles: [],
     chainLabels: [],
     warning: { value: 0, icons: [], frame: WARNING_SPREAD_FRAMES },
+    warningChange: null,
+    arrivalSounds: [],
     quake: { amplitude: 0, phase: 0, columns: 0, landed: new Set(), offsets: new Array(COLS).fill(0) },
     orbs: [],
     offsetLabels: [],
@@ -75,6 +79,13 @@ function tickCharacters(effects) {
     effect.characterFrame += 1;
     effect.blinkFrame += 1;
     effect.situationFrame += 1;
+    if (effect.fieldChain) {
+      const reaction = effect.fieldChain;
+      reaction.frame += 1;
+      if (reaction.age !== undefined) reaction.age += 1;
+      if (reaction.endFrame !== null && reaction.frame >=
+          Math.max(FIELD_CHAIN_FRAMES + FIELD_CHAIN_FADE*2, reaction.endFrame ?? 0) + FIELD_CHAIN_FADE*2) effect.fieldChain = null;
+    }
   }
 }
 
@@ -160,11 +171,12 @@ function spawnPopParticles(effect, cell) {
   }
 }
 
-function startOrb(effect, event, opponentSide, origin) {
+function startOrb(effect, event, opponentSide, origin, chain) {
   const ownBand = { x: fieldX(effect) + 96, y: 16 };
   const enemyBand = { x: SIDES[opponentSide].fieldX + 96, y: 16 };
   effect.orbs.push({
     kind: event.type,
+    chain: chain ?? 1,
     from: origin,
     ownBand,
     enemyBand,
@@ -214,6 +226,8 @@ function orbArrival(orb) {
 function handleEvents(effect, player, opponentSide) {
   for (const event of player.events) {
     if (event.type === 'clear') {
+      effect.fieldChain = event.chain >= 3 ? { chain: event.chain, frame: 0,
+        age: effect.fieldChain?.age ?? 0, endFrame: null } : null;
       const center = clearCenter(effect, event.groups);
       effect.chainLabels.push({ chain: event.chain, x: center.x, y: center.y, vy: 8, age: 0 });
       const base = 10 * event.groups.reduce((sum, g) => sum + g.cells.length, 0);
@@ -226,15 +240,17 @@ function handleEvents(effect, player, opponentSide) {
         effect.allClear.leaving = 0;
       }
       effect.lastClearCenter = center;
+    } else if (event.type === 'chainEnd') {
+      if (effect.fieldChain) effect.fieldChain.endFrame = effect.fieldChain.frame;
     } else if (event.type === 'attack' && opponentSide !== null) {
       const offsetOrb = effect.orbs.find((o) => o.kind === 'offset' && o.frame === 0);
       if (offsetOrb) {
         offsetOrb.continues = true;
       } else {
-        startOrb(effect, event, opponentSide, effect.lastClearCenter);
+        startOrb(effect, event, opponentSide, effect.lastClearCenter, player.chain);
       }
     } else if (event.type === 'offset' && opponentSide !== null) {
-      startOrb(effect, event, opponentSide, effect.lastClearCenter);
+      startOrb(effect, event, opponentSide, effect.lastClearCenter, player.chain);
     } else if (event.type === 'allClear') {
       effect.allClear = { y: 448 + 24, age: 0, leaving: null };
     } else if (event.type === 'garbage') {
@@ -301,6 +317,7 @@ function tickNext(effect, player, table) {
     effect.lastNextIndex = player.nextIndex;
     effect.next = {
       frame: 0,
+      waiting: player.frame === 0,
       outgoing: player.piece ? [player.piece.pivot, player.piece.child] : null,
       pairs: nextPairs(player, table),
       v1: -7,
@@ -311,6 +328,10 @@ function tickNext(effect, player, table) {
     return;
   }
   const anim = effect.next;
+  // 준비 카운트다운은 엔진 프레임 0에 머문다. 첫 쌍을 NEXT에서 미리 내보내지 않는다.
+  // 첫 출현의 추가 대기 4프레임도 마친 뒤 NEXT 이동을 시작한다.
+  if (anim) anim.waiting = player.frame === 0 || (player.phase === 'next' && anim.frame === 0 && player.phaseTimer > NEXT_WAIT);
+  if (anim?.waiting) return;
   if (!anim || NEXT_PAUSE_PHASES.has(player.phase) || anim.frame >= NEXT_WAIT + 16) {
     return;
   }
@@ -387,6 +408,7 @@ function tickScore(effect, player) {
 
 // 매 프레임 한 번 호출한다. opponentSide는 혼자하기면 null.
 function tickEffect(effect, player, { table, opponentSide, opponent = null }) {
+  effect.arrivalSounds = [];
   tickSituation(effect, player, opponent);
   handleEvents(effect, player, opponentSide);
   if (player.phase === 'check') {
@@ -399,8 +421,15 @@ function tickEffect(effect, player, { table, opponentSide, opponent = null }) {
   tickPop(effect, player);
   tickScore(effect, player);
 
+  // 공격 예고와 같은 프레임에 상쇄 결과를 반영한다. 구슬 연출은 독립적으로 계속한다.
+  const visibleOffset = player.events.some(event => event.type === 'offset' && event.visibleAmount > 0);
   const warning = warningCount(player);
+  effect.warningChange = null;
   if (warning !== effect.warning.value) {
+    const difference = warning - effect.warning.value;
+    if (difference > 0 || visibleOffset) effect.warningChange = {
+      type: difference > 0 ? 'warning' : 'offset', amount: Math.abs(difference), total: warning,
+    };
     effect.warning = { value: warning, icons: decomposeWarning(warning), frame: 0 };
   } else if (effect.warning.frame < WARNING_SPREAD_FRAMES) {
     effect.warning.frame += 1;
@@ -428,6 +457,10 @@ function tickEffect(effect, player, { table, opponentSide, opponent = null }) {
       const frame = orb.frame + 1;
       if (orb.kind === 'offset' && frame === ORB_WAIT + OFFSET_TRAVEL) {
         effect.offsetLabels.push({ x: orb.ownBand.x, y: orb.ownBand.y + 32, vy: -1, age: 0 });
+        effect.arrivalSounds.push({ type: 'offsetImpact', chain: orb.chain });
+      }
+      if (frame === orbArrival(orb) && (orb.kind === 'attack' || orb.continues)) {
+        effect.arrivalSounds.push({ type: 'attackImpact', chain: orb.chain });
       }
       return { ...orb, frame };
     })

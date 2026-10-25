@@ -2,6 +2,7 @@ import { playRecordedSfx, preloadRecordedSfx } from './foley-bank.js';
 import { preloadCharacterVoices } from './character-voice.js';
 import { unlockMusic } from './music.js';
 import { playSoftContact } from './soft-contact.js';
+import { playArrivalImpact } from './arrival-impact.js';
 
 // CC0 녹음 편집본을 우선 사용하고 자료가 없으면 직접 합성한 소리로 대체한다.
 const PENTATONIC = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21];
@@ -139,6 +140,7 @@ function playSfx(sfx, name, options) {
     return;
   }
   if (playSoftContact(sfx, name, options)) return;
+  if (playArrivalImpact(sfx, name, options)) return;
   if (!playRecordedSfx(sfx, name, options)) SOUNDS[name === 'land' ? 'lock' : name]?.(sfx, options);
 }
 

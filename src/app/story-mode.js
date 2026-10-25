@@ -8,8 +8,8 @@ import { loadStory, saveStory } from './storage.js';
 import { createTowerScene } from './tower-scene.js';
 
 // 스토리 모드의 장면 흐름: 대사 → 탑(상대 선정) → 경기 전 대사 → 경기 → 경기 후 대사 → …
-function createStoryFlow(app) {
-  const saved = loadStory();
+function createStoryFlow(app, { testMode = false, onExit, onTestState = () => {} } = {}) {
+  const saved = testMode ? null : loadStory();
   const story = {
     run: saved?.run ?? null,
     records: { ...createRecords(), ...saved?.records },
@@ -18,10 +18,15 @@ function createStoryFlow(app) {
   let hostRevealed = false;
   let lastTowerFloor = story.run?.floorIndex ?? 0;
   const suspendedRun = story.run;
+  let activeMatch = null;
+  let testPhase = null;
+  const notify = (phase, opponent = null, skippable = true) => { testPhase = phase; if (testMode) onTestState({ phase, opponent, skippable }); };
 
-  const save = () => saveStory({ run: challenge ? suspendedRun : story.run, records: story.records });
+  const save = () => { if (!testMode) saveStory({ run: challenge ? suspendedRun : story.run, records: story.records }); };
 
   const showLines = (keys, opponent, next) => {
+    activeMatch = null;
+    notify('dialogue', opponent, !keys.includes('secretFinal.fever'));
     let lines = sceneLines(app.storyScript, keys, opponent);
     if (hostRevealed && opponent === SECRET_FINAL && keys.includes(SECRET_FINAL + '.lose') && lines.length) {
       lines = [{ ...lines[0], visual: 'inside', stage: { ...lines[0].stage, hostForm: 'large', phase: 'wait', quiet: true } }, ...lines.slice(1)];
@@ -29,6 +34,7 @@ function createStoryFlow(app) {
     const guests = keys.includes('secretEnding') || opponent === SECRET_FINAL
       ? [...HIDDEN_IDS, SECRET_FINAL] : story.run?.hiddenMet ?? [];
     app.setScene(createDialogueScene({ lines, script: app.storyScript, opponent, guests, onDone: next,
+      skippable: !keys.includes('secretFinal.fever'),
       musicScene: keys.some((key) => ['ceremony', 'secretEnding', 'done'].includes(key)) ? 'result' : 'story',
       scenery: opponent === SECRET_FINAL ? 'inside' : ['meadow', 'market', 'grove', 'hill', 'summit'][story.run?.floorIndex ?? 0],
     }));
@@ -36,7 +42,8 @@ function createStoryFlow(app) {
 
   const toMenu = () => {
     save();
-    app.goToSinglePlayer();
+    if (testMode && onExit) onExit();
+    else app.goToSinglePlayer();
   };
 
   function toTower() {
@@ -60,6 +67,8 @@ function createStoryFlow(app) {
       showLines(['secretEnding'], SECRET_FINAL, finishRun);
       return;
     }
+    activeMatch = null;
+    notify('tower');
     app.setScene(createTowerScene({
       run: story.run, records: story.records, script: app.storyScript,
       fromFloor: lastTowerFloor,
@@ -100,9 +109,11 @@ function createStoryFlow(app) {
         reviveLine: sceneLines(app.storyScript, [`${opponent}.fever`], opponent)[0]?.text,
         onRevive: (onDone) => {
           hostRevealed = true;
+          notify('dialogue', opponent, opponent !== SECRET_FINAL);
           return createDialogueScene({
+            skippable: opponent !== SECRET_FINAL,
             lines: sceneLines(app.storyScript, [`${opponent}.fever`], opponent),
-            script: app.storyScript, opponent, onDone,
+            script: app.storyScript, opponent, onDone: () => { onDone(); notify('battle', opponent); },
             guests: [...HIDDEN_IDS, SECRET_FINAL], scenery: opponent === SECRET_FINAL ? 'inside' : 'dialogue',
           });
         },
@@ -121,6 +132,8 @@ function createStoryFlow(app) {
         },
       }),
     );
+    activeMatch = { opponent, scene: app.scene };
+    notify('battle', opponent);
   }
 
   function afterMatch(opponent, result) {
@@ -144,6 +157,36 @@ function createStoryFlow(app) {
   }
 
   return {
+    // 로컬 검토 UI만 사용하는 진입점. 일반 진행의 해금·저장 정책은 바꾸지 않는다.
+    testStart(target = 'opening') {
+      if (!testMode || !['opening', 'secretFinal', 'reveal', 'secretEnding'].includes(target)) return false;
+      story.run = createRun();
+      story.records = createRecords();
+      hostRevealed = false;
+      lastTowerFloor = 0;
+      if (target === 'opening') {
+        showLines(['opening'], null, toTower);
+      } else {
+        story.run = { ...story.run, floorIndex: FLOORS.length, stage: 'secretFinal', hiddenMet: [...HIDDEN_IDS] };
+        lastTowerFloor = FLOORS.length;
+        if (target === 'secretFinal') showLines(['secretFinal.invite'], null, () => beforeMatch(SECRET_FINAL));
+        else if (target === 'reveal') showLines(['secretFinal.fever'], SECRET_FINAL, toMenu);
+        else showLines(['secretEnding'], SECRET_FINAL, toMenu);
+      }
+      return true;
+    },
+    testFinish(won) {
+      if (!testMode || testPhase !== 'battle' || !activeMatch || activeMatch.scene !== app.scene) return false;
+      const { opponent } = activeMatch;
+      activeMatch = null;
+      // 승패 처리만 대화 흐름으로 전달한다. 엔진 상태·난수·일반 기록을 수정하지 않는다.
+      const finish = () => afterMatch(opponent, { won: Boolean(won), score: won ? 40000 : 0, seconds: 140 });
+      if (won && opponent === SECRET_FINAL && !hostRevealed) {
+        hostRevealed = true;
+        showLines(['secretFinal.fever'], opponent, finish);
+      } else finish();
+      return true;
+    },
     hasRun: () => story.run !== null,
     hiddenWins: () => HIDDEN_IDS.filter((id) => story.records.hiddenWon.includes(id)).length,
     canChallenge: () => story.records.mainCleared && secretUnlocked(story.records),

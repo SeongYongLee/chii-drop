@@ -1,7 +1,7 @@
 import { defaultKeyBindings, keyLabel } from '../input/key-settings.js';
 
 export const CONTROLS_GUIDE_KEY = 'chii-drop:controls-guide:v2';
-export function guideContext(mode, touch) { return `${mode === 'versus' ? 'versus' : 'solo'}:${touch ? 'touch' : 'keyboard'}`; }
+export function guideContext(mode, touch) { return `${mode === 'online' ? 'online' : mode === 'versus' ? 'versus' : 'solo'}:${touch ? 'touch' : 'keyboard'}`; }
 export function hasSeenGuide(storage, context) {
   try { return JSON.parse(storage?.getItem(CONTROLS_GUIDE_KEY) ?? '{}')?.[context] === true; } catch { return false; }
 }
@@ -68,14 +68,14 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
       };
       if (touch) {
         addCard('양손으로 터치하세요', [['왼쪽 패드 ← →', '이동'], ['왼쪽 패드 ↓', '빠르게 내리기'],
-          ['오른쪽 패드 ↺ / ↻', '왼쪽 / 오른쪽 회전'], ['일시정지 버튼', '잠시 멈추기']], true);
+          ['오른쪽 패드 ↺ / ↻', '왼쪽 / 오른쪽 회전'], mode === 'online' ? ['옵션 버튼', '터치 배치 변경'] : ['일시정지 버튼', '잠시 멈추기']], true);
       } else {
         const bindings = app.keyboard.bindings ?? defaultKeyBindings();
         if (mode === 'versus') { addCard('1P', guideRows(bindings, 'p1')); addCard('2P', guideRows(bindings, 'p2')); }
         else addCard('키보드', guideRows(bindings));
       }
       const note = doc.createElement('p');
-      note.textContent = touch ? (mode === 'versus' ? '1P / 2P 버튼으로 조작할 플레이어를 바꿔요. 설정에서 터치 영역을 바꿀 수 있어요.' : '설정에서 터치 영역을 바꿀 수 있어요.')
+      note.textContent = mode === 'online' ? '온라인 경기는 일시정지할 수 없어요. 양쪽 모두 안내를 확인하고 준비하면 시작합니다.' : touch ? (mode === 'versus' ? '1P / 2P 버튼으로 조작할 플레이어를 바꿔요. 설정에서 터치 영역을 바꿀 수 있어요.' : '설정에서 터치 영역을 바꿀 수 있어요.')
         : `${(app.keyboard.bindings ?? defaultKeyBindings()).pause.map(keyLabel).join(' / ')}: 일시정지 · 설정에서 키 변경`;
       const actions = doc.createElement('div'); actions.className = 'game-guide-actions';
       const previous = doc.createElement('button'), button = doc.createElement('button'); previous.type = button.type = 'button'; previous.textContent = '게임 설명';
@@ -150,4 +150,15 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
       if (openingKeys.size) { dialog.tabIndex = -1; dialog.focus(); } else button.focus();
     },
   }, { stamps });
+}
+
+
+// 온라인은 준비 패킷을 보내기 전에 같은 안내를 확인한다. 엔진 시간은 진행하지 않는다.
+export function showOnlineControls({ keyboard, touch = false, force = false }) {
+  return new Promise(resolve => {
+    const done = {};
+    const app = { keyboard, mobile: { visible: touch, clear() {} },
+      setScene(scene) { if (scene === done) resolve(); else queueMicrotask(() => scene.update()); } };
+    withControlsGuide(app, { mode: 'online', force, background: { draw() {} }, next: () => done });
+  });
 }

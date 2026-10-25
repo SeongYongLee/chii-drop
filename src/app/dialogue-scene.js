@@ -31,7 +31,7 @@ function wrapText(ctx, text, width) {
 }
 
 // lines: [{ who, text, mood }], opponent: 오른쪽에 설 상대 ID
-function createDialogueScene({ lines, script, opponent, onDone, guests = [], scenery = 'dialogue', musicScene = 'story', startLine = 0 }) {
+function createDialogueScene({ lines, script, opponent, onDone, guests = [], scenery = 'dialogue', musicScene = 'story', startLine = 0, skippable = true }) {
   let index = Math.max(0, Math.min(lines.length - 1, Math.trunc(startLine) || 0));
   const directions = compileDirections(lines);
   const ages = Array(lines.length).fill(0);
@@ -81,7 +81,7 @@ function createDialogueScene({ lines, script, opponent, onDone, guests = [], sce
           playVoiceBlip(app.sfx, blipFor(profile, line.text, i, line.mood));
         }
       }
-      if (wasPressed(keyboard, MENU_KEYS.back)) {
+      if (skippable && wasPressed(keyboard, MENU_KEYS.back)) {
         playSfx(app.sfx, 'cancel');
         finish(app);
       } else if (wasPressed(keyboard, MENU_KEYS.confirm)) {
@@ -193,7 +193,7 @@ function createDialogueScene({ lines, script, opponent, onDone, guests = [], sce
       ctx.font = `13px ${FONT}`;
       ctx.textAlign = 'right';
       ctx.textBaseline = 'top';
-      ctx.fillText('Enter 다음 · Esc 건너뛰기', SCREEN_WIDTH - 72, 518);
+      ctx.fillText(skippable ? 'Enter 다음 · Esc 건너뛰기' : 'Enter 다음 · 장면 전체 건너뛰기 불가', SCREEN_WIDTH - 72, 518);
     },
   };
 }
