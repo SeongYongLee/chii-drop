@@ -5,11 +5,14 @@ import { chooseBattleScenery, applyPageBackdrop } from '../src/view/battle-backg
 import { createGameScene } from '../src/app/game-scene.js';
 
 test('대전 배경 후보는 스포일러를 제외한 명시 목록이며 실행 팩과 같다', async () => {
-  const manifest = JSON.parse(await readFile('skins/chiikawa/manifest.json', 'utf8'));
   const runtime = JSON.parse(await readFile('skins/chiikawa/pages-runtime/manifest.json', 'utf8'));
-  assert.deepEqual(manifest.battleSceneries, ['meadow', 'market', 'grove', 'hill', 'summit']);
-  assert.deepEqual(runtime.battleSceneries, manifest.battleSceneries);
-  for (const scenery of manifest.battleSceneries) assert.ok(manifest.backgrounds[`game:${scenery}`]);
+  assert.deepEqual(runtime.battleSceneries, ['meadow', 'market', 'grove', 'hill', 'summit']);
+  for (const scenery of runtime.battleSceneries) assert.ok(runtime.backgrounds[`game:${scenery}`]);
+  // 로컬 제작 매니페스트는 공개 저장소에 포함하지 않는다.
+  let local;
+  try { local = await readFile('skins/chiikawa/manifest.json', 'utf8'); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
+  if (local) assert.deepEqual(runtime.battleSceneries, JSON.parse(local).battleSceneries);
 });
 
 test('선택은 허용 목록만 사용하고 직전 배경을 피하며 후보 없는 스킨도 동작한다', () => {
