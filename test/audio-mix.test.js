@@ -13,9 +13,9 @@ test('이전 전체 음량은 유지하고 새 개별 음량은 10으로 시작�
   const settings = loadSettings();
   assert.equal(settings.volume, 3);
   assert.equal(settings.music, false);
-  assert.deepEqual(mixLevels(settings), { master: .3, effects: 1, music: 2.25, voice: 1 });
+  assert.deepEqual(mixLevels(settings), { master: .3, effects: 1, music: 3.375, voice: 1 });
   assert.deepEqual(mixLevels({ volume: -1, effectsVolume: 30, musicVolume: NaN, voiceVolume: 5 }),
-    { master: 0, effects: 1, music: 2.25, voice: .5 });
+    { master: 0, effects: 1, music: 3.375, voice: .5 });
 });
 
 test('전체·효과음·목소리 음량은 별도로 적용되고 효과음 0에서도 목소리 출력은 유지된다', async t => {
@@ -58,7 +58,7 @@ test('배경음악은 전체와 배경음악 음량만 곱하고 조절 시 곡�
   let mix = mixLevels({ volume: 5, musicVolume: 4, effectsVolume: 0, voiceVolume: 0 });
   configureMusic(sfx, skin, { volume: mix.master * mix.music });
   const audio = sfx.musicAudio;
-  assert.ok(Math.abs(audio.volume - .09) < 1e-10);
+  assert.ok(Math.abs(audio.volume - .135) < 1e-10);
   mix = mixLevels({ volume: 5, musicVolume: 0 });
   configureMusic(sfx, skin, { volume: mix.master * mix.music });
   assert.equal(sfx.musicAudio, audio);
