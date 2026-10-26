@@ -8,7 +8,7 @@ const smooth = value => { const t = Math.max(0, Math.min(1, value)); return t*t*
 function fieldChainPresentation(skin, character, effect, player,
   reduced = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false) {
   const reaction = effect.fieldChain;
-  if (!character || player?.lost || !skin.fieldChainCharacters?.includes(character.id) || !reaction || reaction.chain < 3) {
+  if (!character || player?.lost || !skin.fieldChainCharacters?.includes(character.id) || !reaction || reaction.chain < 1) {
     return { fieldAlpha: 0, portraitAlpha: 1, frame: 0 };
   }
   const duration = Math.min(FIELD_CHAIN_FRAMES, skin.fieldChainFrames?.(character.id, reaction.chain) ?? 80);

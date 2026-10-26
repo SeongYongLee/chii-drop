@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { loadImageSkin } from '../src/view/skins/image-skin.js';
+import { loadImageSkin, skinImageFiles } from '../src/view/skins/image-skin.js';
 import { situationMotionAt } from '../src/view/character-situation.js';
 
 async function animatedSkin(t, moods, extra = [], metadata = {}) {
@@ -110,14 +110,15 @@ test('우세·열세는 긴 시간에도 대표 표정을 유지하며 작은 �
 
 test('연쇄 단계는 다른 클립을 고르고 일반 기쁨·결과 표정과 누락 스킨은 유지한다', async (t) => {
   const moods = { idle: 'idle.png', happy: 'happy.png', win: 'win.png', lose: 'lose.png' };
-  for (const tier of [1, 3, 5, 7]) moods[`chain${tier}`] = {
+  for (const tier of [1, 2, 3, 4, 5, 6, 7]) moods[`chain${tier}`] = {
     file: `chain${tier}.png`, columns: 3, loop: false, poster: 1,
-    frames: [{ frame: 0, duration: 4 }, { frame: 1, duration: 3 }, { frame: 2, duration: 5 }],
+    frames: [{ frame: 0, duration: 4 + tier }, { frame: 1, duration: 3 }, { frame: 2, duration: 5 }],
   };
-  const { draw, draws, loads } = await animatedSkin(t, moods);
-  for (const [chain, tier] of [[1, 1], [2, 1], [3, 3], [4, 3], [5, 5], [6, 5], [7, 7], [19, 7]]) {
+  const { draw, draws, loads, skin } = await animatedSkin(t, moods);
+  for (const [chain, tier] of [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7], [19, 7]]) {
     draw(0, 'happy', false, { chain });
     assert.equal(draws.at(-1)[0].url, `skin/chain${tier}.png`);
+    assert.equal(skin.fieldChainFrames('char-1', chain),12+tier);
     assert.equal(draw(999, 'happy', false, { chain })[0], 200);
     assert.equal(draw(0, 'happy', true, { chain })[0], 100);
   }
@@ -125,7 +126,17 @@ test('연쇄 단계는 다른 클립을 고르고 일반 기쁨·결과 표정�
     draw(0, mood, false, { chain: mood === 'happy' ? 0 : 7 });
     assert.equal(draws.at(-1)[0].url, `skin/${mood}.png`);
   }
-  assert.equal(loads.length, 8);
+  assert.equal(loads.length, 11);
+});
+
+test('일부 연쇄 컷만 있는 스킨은 요청 단계 이하의 가장 가까운 컷으로 대체한다', async t => {
+  const { draw, draws, skin } = await animatedSkin(t, { idle:'idle.png',happy:'happy.png',
+    chain1:'first.png',chain3:'third.png',chain5:'fifth.png' });
+  for (const [chain,file] of [[2,'first'],[4,'third'],[6,'fifth'],[7,'fifth']]) {
+    draw(0,'happy',false,{chain});
+    assert.equal(draws.at(-1)[0].url,`skin/${file}.png`);
+    assert.equal(skin.fieldChainFrames('char-1',chain),80);
+  }
 });
 
 test('연쇄 전용 컷이 없으면 기존 기쁨으로 안전하게 대체한다', async (t) => {
@@ -412,4 +423,20 @@ test('준비 중 실루엣도 프레임에 따라 기존 스프라이트 애니�
   };
   for(const frame of [0,5]) skin.drawCharacter(ctx,'char-1','idle',0,0,100,{silhouette:true,frame});
   assert.notEqual(sourceX[0],sourceX[1]);
+});
+
+ test('필드 전용 동작은 별도 발걸음·이동 시간을 사용하고 초상·정지·누락 대체를 지킨다', async t => {
+  const clip={file:'pose.png',columns:3,loop:false,frames:[{frame:1,duration:12}],
+    fieldAction:{file:'pose.png',columns:3,loop:false,poster:1,
+      frames:[{file:'feet.png',frame:0,duration:4},{frame:1,duration:8},{file:'feet.png',frame:2,duration:4}],
+      fieldTravel:[{frame:0,x:0,y:0},{frame:4,x:.2,y:0},{frame:11,x:.2,y:0},{frame:15,x:0,y:0}]}};
+  assert.deepEqual(new Set(skinImageFiles({characters:[{moods:{chain1:clip}}]})),new Set(['pose.png','feet.png']));
+  const {draw,draws,skin}=await animatedSkin(t,{idle:'idle.png',chain1:clip,
+    chain2:{...clip,fieldAction:{file:'missing.png',frames:[0]}}});
+  assert.equal(skin.fieldChainFrames('char-1',1),16,'field choreography lifetime includes running in and out');
+  draw(0,'happy',false,{chain:1});assert.equal(draws.at(-1)[0].url,'skin/pose.png');
+  draw(0,'happy',false,{chain:1,presentation:'field'});assert.equal(draws.at(-1)[0].url,'skin/feet.png');
+  assert.equal(draw(6,'happy',false,{chain:1,presentation:'field'})[4],20);
+  assert.equal(draw(6,'happy',true,{chain:1,presentation:'field'})[4],0);
+  draw(0,'happy',false,{chain:2,presentation:'field'});assert.equal(draws.at(-1)[0].url,'skin/pose.png');
 });

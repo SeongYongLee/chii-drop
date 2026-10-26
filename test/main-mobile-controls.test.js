@@ -46,6 +46,15 @@ test('타이틀의 짧은 화면 탭을 한 프레임 결정 입력으로 바꾸
   h.controller.read(); assert.equal(h.taps.length, 1);
 });
 
+test('관전처럼 상태 안내가 없는 화면에서는 중복 안내 줄을 숨긴다', () => {
+  const h = harness();
+  h.context({ enabled: true, mode: 'menu', label: '' });
+  assert.equal(h.parts.label.hidden, true);
+  h.context({ enabled: true, mode: 'menu', label: '설정' });
+  assert.equal(h.parts.label.hidden, false);
+  assert.equal(h.parts.label.textContent, '설정');
+});
+
 test('터치 결정 상태는 화면 전환 때 비우고 경기에서 이동·회전을 동시에 전달한다', () => {
   const h = harness();
   h.fire(h.button(M.confirm), 'pointerdown'); h.controller.read();

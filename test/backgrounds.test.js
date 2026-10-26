@@ -5,11 +5,13 @@ import { loadImageSkin } from '../src/view/skins/image-skin.js';
 test('장면별 배경은 공유 파일을 한 번 로드하고 누락 장면은 공통 배경으로 표시한다', async (t) => {
   t.mock.method(globalThis, 'fetch', async () => ({ok:true,json:async()=>({
     background:{file:'common.png'},backgrounds:{market:{file:'tea.png'},'game:market':{file:'tea.png'},inside:{file:'missing.png'}},
+    battleSceneries:['market','inside','missing'],
   })}));
   const previous=globalThis.Image,loads=[];
   globalThis.Image=class{width=1600;height=900;set src(url){this.url=url;loads.push(url);queueMicrotask(()=>url.includes('missing')?this.onerror():this.onload())}};
   t.after(()=>{globalThis.Image=previous});
   const skin=await loadImageSkin('skin');
+  assert.deepEqual(skin.battleSceneries, ['market']);
   const draws=[],ctx={drawImage:(image)=>draws.push(image.url)};
   for(const scene of ['market','game:market','inside','unknown'])skin.drawBackground(ctx,960,540,scene);
   assert.deepEqual(draws,['skin/tea.png','skin/tea.png','skin/common.png','skin/common.png']);

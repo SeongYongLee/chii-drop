@@ -15,6 +15,7 @@ function setup(options = {}) {
   lobby.handle(peers[0], { type: 'create', rated: true });
   lobby.handle(peers[1], { type: 'join', code: peers[0].room.code });
   peers.forEach(p => lobby.handle(p, { type: 'ready' }));
+  peers.forEach(p => lobby.handle(p, { type: 'confirmCharacter', selectionId: peers[0].room.selectionId }));
   return { lobby, peers, room: peers[0].room };
 }
 

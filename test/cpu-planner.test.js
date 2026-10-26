@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createCpu, stepCpu } from '../src/cpu/cpu.js';
+import { CPU_LEVELS, createCpu, stepCpu } from '../src/cpu/cpu.js';
+import { randomInt } from '../src/engine/rng.js';
 import { chainPotential, evaluatePlacements } from '../src/cpu/evaluate.js';
 import { createMatch, stepMatch } from '../src/engine/match.js';
 import { columnHeight, fieldFromRows } from '../src/engine/field.js';
@@ -28,6 +29,61 @@ function chosen(match, cpu) {
   return evaluatePlacements(match.players[0].board.cells, match.players[0].piece, 0)
     .find((p) => p.x === cpu.target.x && p.orient === cpu.target.orient);
 }
+
+test('달인은 최상위 동점만 자체 난수로 선택하며 같은 시드로 재현한다', () => {
+  const match = createMatch({ seed: 1 });
+  const before = structuredClone(match);
+  const targets = new Set();
+  function select(seed) {
+    let cpu = createCpu({ level: 'grandmaster', seed });
+    let ranked;
+    for (let frame = 0; frame < 100 && !cpu.planned; frame++) {
+      if (cpu.thinking) {
+        const search = advanceBuildSearch(cpu.thinking);
+        if (search.done) ranked = buildSearchResults(search);
+      }
+      cpu = stepCpu(cpu, match.players[0], match.table, match.players[1]).cpu;
+    }
+    assert.ok(cpu.planned);
+    const selected = ranked.find(p => p.x === cpu.target.x && p.orient === cpu.target.orient);
+    assert.equal(selected.value, ranked[0].value, '평가가 낮은 후보는 선택하지 않는다');
+    return cpu;
+  }
+  for (let seed = 1; seed <= 16; seed++) {
+    const cpu = select(seed);
+    assert.deepEqual(cpu, select(seed));
+    targets.add(JSON.stringify(cpu.target));
+  }
+  assert.ok(targets.size > 1, '동점 배치는 시드에 따라 달라진다');
+  assert.deepEqual(match, before, '경기 상태와 경기 난수는 변경하지 않는다');
+});
+
+test('모든 난이도가 실수하지 않는 턴에는 최상위 동점 배치를 다양하게 선택한다', () => {
+  const match = createMatch({ seed: 1 });
+  const before = structuredClone(match);
+  for (const { id } of CPU_LEVELS) {
+    const targets = new Set();
+    for (let seed = 1; seed <= 32; seed++) {
+      // 동점 선택 다음의 확률 추첨이 50 이상이면 모든 난이도에서 실수가 없다.
+      if (randomInt(randomInt(seed, 1).state, 100).value < 50) continue;
+      let cpu = createCpu({ level: id, seed }), ranked;
+      for (let frame = 0; frame < 100 && !cpu.planned; frame++) {
+        if (cpu.thinking) {
+          const search = advanceBuildSearch(cpu.thinking);
+          if (search.done) ranked = buildSearchResults(search);
+        }
+        cpu = stepCpu(cpu, match.players[0], match.table, match.players[1]).cpu;
+      }
+      assert.ok(cpu.planned, id);
+      assert.ok(ranked.filter(option => option.value === ranked[0].value).length > 1, `${id}: 동점 후보가 있는 판`);
+      const selected = ranked.find(option => option.x === cpu.target.x && option.orient === cpu.target.orient);
+      assert.equal(selected?.value, ranked[0].value, `${id}: 최고 평가 유지`);
+      targets.add(JSON.stringify(cpu.target));
+    }
+    assert.ok(targets.size > 1, `${id}: 동점 선택이 한 위치에 고정되지 않는다`);
+  }
+  assert.deepEqual(match, before);
+});
 
 test('쉬움은 NEXT 첫 쌍에 맞춰 배치를 바꾸고 그 이후 쌍과 경기 상태는 건드리지 않는다', () => {
   const match = createMatch({ seed: 4, playerCount: 1,
@@ -66,6 +122,87 @@ test('방해 예고와 이미 시작한 상대 공격에는 연쇄 쌓기보다 
   enemy.phase = 'flash';
   assert.ok(chosen(safe, planned(safe, enemy).cpu).chains >= 1);
   assert.equal(safe.players[0].stocks.a, 0, '실제 공격 도착 전의 판단이어야 한다');
+});
+
+function recoveryFixture(incoming, child = 2) {
+  const match = createMatch({ seed: 4, playerCount: 1, fields: [fieldFromRows([
+    '..2...', '422...', '441...', '21444.', '211333', 'GGGGGG', 'GGGGGG', 'GGGGGG',
+  ])] });
+  match.players[0].piece = { ...match.players[0].piece, pivot: 1, child };
+  match.players[0].stocks.a = incoming;
+  match.table[1] = [2, 4]; match.table[2] = [4, 4];
+  return match;
+}
+
+test('한 줄 예고의 즉시 소거 강제는 하위 세 단계만 유지하고 보통 이상은 회복 수를 허용한다', () => {
+  for (const { id } of CPU_LEVELS) {
+    let preparations = 0;
+    for (let seed = 1; seed <= 16; seed++) {
+      for (const incoming of [6, 30]) {
+        const match = recoveryFixture(incoming);
+        let cpu = createCpu({ level: id, seed });
+        for (let frame = 0; frame < 100 && !cpu.planned; frame++) {
+          cpu = stepCpu(cpu, match.players[0], match.table).cpu;
+        }
+        assert.ok(cpu.planned);
+        const option = chosen(match, cpu);
+        assert.ok(option && !option.lethal);
+        if (incoming === 30) assert.ok(option.chains > 0, `${id}: 공간 부족 시 즉시 상쇄`);
+        else if (option.chains === 0) preparations++;
+      }
+    }
+    if (['beginner', 'easy', 'normal'].includes(id)) assert.equal(preparations, 0, id);
+    else assert.ok(preparations > 0, `${id}: 연쇄 준비 선택도 남아야 한다`);
+  }
+});
+
+test('보통~아주 어려움은 예고를 견딘 뒤 실제로 2연쇄 이상 반격한다', () => {
+  for (const level of ['hard', 'expert', 'master']) {
+    let match = recoveryFixture(6), cpu = createCpu({ level, seed: 30 });
+    let locks = 0, maxChain = 0, received = 0;
+    while (match.phase !== 'over' && match.frame < 5000 && locks < 8) {
+      const result = stepCpu(cpu, match.players[0], match.table);
+      cpu = result.cpu; match = stepMatch(match, [result.input]);
+      for (const event of match.players[0].events) {
+        if (event.type === 'lock') locks++;
+        if (event.type === 'chainEnd') maxChain = Math.max(maxChain, event.chain);
+        if (event.type === 'garbage') received += event.amount;
+      }
+    }
+    assert.equal(locks, 8, level);
+    assert.equal(match.players[0].lost, false, level);
+    assert.equal(received, 6, level);
+    assert.ok(maxChain >= 2, `${level}: 반격 ${maxChain}연쇄`);
+  }
+});
+
+test('달인은 잡초를 맞아 높아진 판에서도 1연쇄 대신 기반을 남기고 실제 3연쇄로 회복한다', () => {
+  let match = recoveryFixture(6);
+  const options = evaluatePlacements(match.players[0].board.cells, match.players[0].piece, 6);
+  assert.equal(Math.max(...options.filter(option => !option.lethal).map(option => option.chains)), 1);
+  assert.equal(chosen(match, planned(match, undefined, 'grandmaster').cpu).chains, 0);
+  let cpu = createCpu({ level: 'grandmaster', seed: 30 });
+  let locks = 0, largest = 0, received = 0;
+  while (match.phase !== 'over' && match.frame < 3000 && locks < 8) {
+    const result = stepCpu(cpu, match.players[0], match.table);
+    cpu = result.cpu; match = stepMatch(match, [result.input]);
+    for (const event of match.players[0].events) {
+      if (event.type === 'lock') locks++;
+      if (event.type === 'chainEnd') largest = Math.max(largest, event.chain);
+      if (event.type === 'garbage') received += event.amount;
+    }
+  }
+  assert.equal(received, 6, '실제로 방해를 받은 뒤의 조작까지 검사한다');
+  assert.equal(locks, 8);
+  assert.equal(match.players[0].lost, false);
+  assert.ok(largest >= 3, `회복 연쇄 ${largest}`);
+});
+
+test('달인은 받을 공간이 부족하면 즉시 상쇄하고 이미 가능한 큰 반격도 활용한다', () => {
+  const emergency = recoveryFixture(30);
+  assert.equal(chosen(emergency, planned(emergency, undefined, 'grandmaster').cpu).chains, 1);
+  const counter = recoveryFixture(30, 4);
+  assert.ok(chosen(counter, planned(counter, undefined, 'grandmaster').cpu).chains >= 3);
 });
 
 test('탐색 후보가 하나여도 실수는 다양한 안전 배치로 반영하고 큰 방해에는 상쇄를 지킨다', () => {
@@ -122,13 +259,19 @@ test('아주 어려움도 계산을 나눠서 엔진을 보존하고 NEXT가 없
 });
 
 test('달인은 실제 조작으로 6연쇄 이상을 반복해 쌓는다', () => {
- let match = createMatch({seed:1,playerCount:1}),cpu=createCpu({level:'grandmaster',seed:31});
- let locks=0,largeChains=0;
- while(match.phase !== 'over' && match.frame < 30000 && locks < 120){
-   const result=stepCpu(cpu,match.players[0],match.table);cpu=result.cpu;
-   match=stepMatch(match,[result.input]);
-   for(const event of match.players[0].events){if(event.type==='lock')locks++;if(event.type==='chainEnd'&&event.chain>=6)largeChains++;}
+ // 동점 선택을 무작위화했으므로 한 경기의 고정 경로 대신 여러 블록 순서를 검사한다.
+ const counts = [];
+ for (let seed = 1; seed <= 5; seed++) {
+   let match = createMatch({seed,playerCount:1}),cpu=createCpu({level:'grandmaster',seed:31});
+   let locks=0,largeChains=0;
+   while(match.phase !== 'over' && match.frame < 30000 && locks < 120){
+     const result=stepCpu(cpu,match.players[0],match.table);cpu=result.cpu;
+     match=stepMatch(match,[result.input]);
+     for(const event of match.players[0].events){if(event.type==='lock')locks++;if(event.type==='chainEnd'&&event.chain>=6)largeChains++;}
+   }
+   assert.equal(locks,120);assert.equal(match.players[0].lost,false);
+   counts.push(largeChains);
  }
- assert.equal(locks,120);assert.equal(match.players[0].lost,false);
- assert.ok(largeChains>=2,`6연쇄 이상 ${largeChains}회`);
+ assert.ok(counts.reduce((sum, count) => sum + count, 0) >= 10, `6연쇄 횟수: ${counts}`);
+ assert.ok(counts.filter(count => count >= 2).length >= 3, `반복 발화 경기 수: ${counts}`);
 });

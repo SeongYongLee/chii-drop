@@ -41,3 +41,30 @@ test('같은 시드와 입력이면 둘이서 대전 결과가 같다', () => {
   const b = stepMany(createSession({ mode: 'versus', seed: 3 }), inputs, 3000);
   assert.deepEqual(a, b);
 });
+
+test('CPU 관전은 양쪽 난이도와 난수를 분리하고 사람 입력 없이 같은 경기로 진행한다', () => {
+  const options = { mode: 'watch', seed: 11, cpuSeed: 7, cpuLevels: ['normal', 'hard'] };
+  const session = createSession(options);
+  assert.equal(session.cpuLeft.level, 'normal');
+  assert.equal(session.cpu.level, 'hard');
+  assert.notDeepEqual(session.cpuLeft.rng, session.cpu.rng);
+  const ready = stepMany(session, [0, 0], READY_FRAMES);
+  assert.equal(ready.match.frame, 0);
+  assert.deepEqual(ready.cpuLeft, session.cpuLeft);
+  assert.deepEqual(ready.cpu, session.cpu);
+  const a = stepMany(session, [0, 0], 1000);
+  const b = stepMany(createSession(options), [INPUT.DOWN | INPUT.LEFT | INPUT.ROTATE_CW, INPUT.RIGHT], 1000);
+  assert.deepEqual(a, b);
+  assert.ok(a.match.players.every(player => player.board.cells.some(Boolean)), '양쪽 모두 실제로 블록을 쌓는다');
+});
+
+test('CPU 관전도 패배 연출이 끝나면 결과 화면에서 멈춘다', () => {
+  const session = createSession({ mode: 'watch', seed: 3, cpuSeed: 5 });
+  session.phase = 'playing';
+  session.match.players[0].board.cells[2 * 6 + 2] = 9;
+  session.match.players[0].phase = 'turn-start';
+  const done = stepMany(session, [0, 0], 300);
+  assert.equal(done.phase, 'result');
+  assert.equal(done.match.winner, 1);
+  assert.equal(stepSession(done, [INPUT.DOWN, INPUT.DOWN]), done);
+});

@@ -17,7 +17,7 @@ function peer(lobby, token) {
 const latest = (p, type) => p.messages.findLast((m) => m.type === type);
 function make(lobby, a, options = {}) { lobby.handle(a, { type: 'create', ...options }); return a.room; }
 function joinRoom(lobby, b, room, password) { lobby.handle(b, { type: 'join', code: room.code, password }); }
-function start(lobby, a, b) { lobby.handle(a, { type: 'ready' }); lobby.handle(b, { type: 'ready' }); }
+function start(lobby, a, b) { lobby.handle(a, { type: 'ready' }); lobby.handle(b, { type: 'ready' }); lobby.handle(a, { type: 'confirmCharacter', selectionId: a.room.selectionId }); lobby.handle(b, { type: 'confirmCharacter', selectionId: b.room.selectionId }); }
 
 test('Elo rewards upsets more and rates 4-player placements with zero-sum integer deltas', () => {
   const favorite = [{ id: 'a', rating: 1900, place: 1 }, { id: 'b', rating: 1500, place: 2 }];
@@ -58,13 +58,15 @@ test('rated disconnect is a single forfeit, pre-game/casual departures do not ch
   const lobby = createRooms(), a = peer(lobby), b = peer(lobby);
   let room = make(lobby, a, { rated: true }); joinRoom(lobby, b, room); lobby.handle(a, { type: 'leave' });
   assert.equal(lobby.profiles.get(a.profileId).games, 0);
+  lobby.handle(b, { type: 'leave' });
   room = make(lobby, a, { rated: false }); joinRoom(lobby, b, room); start(lobby, a, b); lobby.handle(a, { type: 'leave' });
   assert.equal(lobby.profiles.get(a.profileId).rating, 1500);
+  lobby.handle(b, { type: 'leave' });
   room = make(lobby, a, { rated: true }); joinRoom(lobby, b, room); start(lobby, a, b); lobby.leave(a); lobby.leave(a);
   assert.equal(lobby.profiles.get(a.profileId).rating, 1484);
   assert.equal(lobby.profiles.get(b.profileId).rating, 1516);
   assert.equal(lobby.profiles.get(a.profileId).games, 1);
-  assert.equal(lobby.rooms.size, 0);
+  assert.equal(lobby.rooms.size, 1);
   assert.equal(latest(b, 'settlement').result.reason, 'forfeit');
 });
 test('same identity cannot join twice, spoofed results and unsupported 4-player rooms are rejected', () => {
@@ -104,22 +106,44 @@ test('a completed room can rematch with fresh match ID and ignores frames from t
   assert.equal(lobby.profiles.get(a.profileId).games, 1);
 });
 
-test('캐릭터 선택은 양쪽 좌석과 시작 패킷에 유지되며 준비 중·경기 중 변경을 거부한다', () => {
+test('양쪽 준비 후 캐릭터를 선택하고 모두 결정해야 시작하며 취소·오래된 결정을 안전하게 처리한다', () => {
   const lobby=createRooms({characters:['actor-a','actor-b','actor-c']});
   const a=peer(lobby),b=peer(lobby);const room=make(lobby,a);joinRoom(lobby,b,room);
-  lobby.handle(a,{type:'character',charId:'actor-c'});
-  assert.equal(latest(b,'room').room.players[0].charId,'actor-c');
-  lobby.handle(a,{type:'character',charId:'hidden'});
-  assert.equal(latest(a,'error').reason,'선택할 수 없는 캐릭터입니다.');
-  assert.equal(a.charId,'actor-c');
-  lobby.handle(a,{type:'ready'});
-  lobby.handle(a,{type:'character',charId:'actor-b'});assert.equal(a.charId,'actor-c');
-  lobby.handle(a,{type:'ready',ready:false});
-  lobby.handle(a,{type:'character',charId:'actor-b'});
-  lobby.handle(b,{type:'character',charId:'actor-a'});start(lobby,a,b);
-  assert.deepEqual(latest(a,'start').players.map(player=>player.charId),['actor-b','actor-a']);
-  lobby.handle(b,{type:'character',charId:'actor-c'});assert.equal(b.charId,'actor-a');
-  room.finished=true;lobby.handle(a,{type:'returnRoom'});
-  assert.deepEqual(latest(b,'room').room.players.map(player=>player.charId),['actor-b','actor-a']);
-  start(lobby,a,b);assert.deepEqual(latest(b,'start').players.map(player=>player.charId),['actor-b','actor-a']);
+  lobby.handle(a,{type:'character',charId:'actor-c'}); assert.equal(a.charId,'actor-a');
+  for(const p of [a,b]) lobby.handle(p,{type:'ready'});
+  const selectionId=room.selectionId; assert.ok(selectionId); assert.equal(room.state,null);
+  assert.equal(latest(b,'room').room.phase,'selecting');
+  lobby.handle(a,{type:'character',charId:'actor-c',selectionId}); assert.equal(a.charId,'actor-c');
+  lobby.handle(a,{type:'character',charId:'hidden',selectionId}); assert.equal(latest(a,'error').reason,'선택할 수 없는 캐릭터입니다.');
+  lobby.handle(a,{type:'confirmCharacter',selectionId}); assert.equal(room.state,null);
+  lobby.handle(a,{type:'character',charId:'actor-b',selectionId}); assert.equal(a.charId,'actor-c');
+  lobby.handle(b,{type:'cancelSelection',selectionId}); assert.equal(room.state,null); assert.equal(room.selectionId,null); assert.equal(room.ready.size,0);
+  assert.equal(lobby.profiles.get(a.profileId).games,0);
+  for(const p of [a,b]) lobby.handle(p,{type:'ready'});
+  lobby.handle(a,{type:'confirmCharacter',selectionId}); assert.equal(room.confirmed.size,0);
+  const current=room.selectionId;
+  lobby.handle(a,{type:'character',charId:'actor-b',selectionId:current});
+  lobby.handle(b,{type:'character',charId:'actor-a',selectionId:current});
+  for(const p of [a,b]) lobby.handle(p,{type:'confirmCharacter',selectionId:current});
+  assert.deepEqual(latest(a,'start').players.map(p=>p.charId),['actor-b','actor-a']);
+  lobby.handle(b,{type:'character',charId:'actor-c',selectionId:current}); assert.equal(b.charId,'actor-a');
+  room.finished=true;lobby.handle(a,{type:'returnRoom'}); start(lobby,a,b);
+  assert.deepEqual(latest(b,'start').players.map(p=>p.charId),['actor-b','actor-a']);
+});
+
+test('캐릭터 선택 단계는 저장·복원하고 선택 중 이탈은 레이트 없이 대기실로 돌린다', () => {
+  const lobby=createRooms(), a=peer(lobby), b=peer(lobby), observer=peer(lobby);
+  const room=make(lobby,a,{rated:true});joinRoom(lobby,b,room);
+  lobby.handle(observer,{type:'watch',code:room.code});
+  for(const p of [a,b]) lobby.handle(p,{type:'ready'});
+  const selectionId=room.selectionId; lobby.handle(a,{type:'confirmCharacter',selectionId});
+  const copy=createRooms({profiles:lobby.profiles});
+  copy.restore(JSON.parse(JSON.stringify(lobby.snapshot())),()=>({send(){}}));
+  const restored=copy.rooms.get(room.code);
+  assert.equal(restored.selectionId,selectionId);assert.deepEqual([...restored.confirmed],[0]);assert.equal(restored.state,null);
+  lobby.handle(observer,{type:'confirmCharacter',selectionId});assert.equal(room.confirmed.size,1);
+  lobby.handle(b,{type:'leave'});
+  assert.equal(a.room,room);assert.equal(room.state,null);assert.equal(room.selectionId,null);assert.equal(room.ready.size,0);
+  assert.equal(lobby.profiles.get(a.profileId).games,0);assert.equal(lobby.profiles.get(b.profileId).games,0);
+  assert.ok(latest(observer,'reset'));
 });

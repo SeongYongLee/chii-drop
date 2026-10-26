@@ -10,6 +10,7 @@ import { drawStoryForm } from '../view/story-art.js';
 import { drawFieldResults, drawResultActions, resultMenuLayout } from '../view/field-results.js';
 import { drawPauseMenu } from '../view/pause-menu.js';
 import { drawFeverEntry, FEVER_ENTRY_FRAMES, FEVER_GO_FRAMES } from '../view/fever-entry.js';
+import { chooseBattleScenery } from '../view/battle-backgrounds.js';
 
 import { GO_FRAMES, createSession, sessionPlayers, stepSession } from './session.js';
 import { saveRecords } from './storage.js';
@@ -19,6 +20,7 @@ function returnMenuLabel(scene) {
   return scene.options.mode === 'versus' ? '멀티플레이' : '싱글플레이';
 }
 function pauseItems(scene) {
+  if (scene.options.mode === 'watch') return ['계속 관전', '다시 시작', '관전 설정으로'];
   return [PAUSE_ITEMS[0], PAUSE_ITEMS[1], `${returnMenuLabel(scene)}로`];
 }
 function returnToModeMenu(app, scene) {
@@ -36,6 +38,7 @@ function makeSeed() {
 }
 
 function humanInputs(app, mode) {
+  if (mode === 'watch') return [0, 0];
   if (mode === 'versus') {
     return [readInput(app.keyboard, KEYMAPS.p1), readInput(app.keyboard, KEYMAPS.p2)];
   }
@@ -57,7 +60,7 @@ function playEventSounds(app, events, isHuman, channel) {
 function recordResult(app, scene) {
   const { session, options } = scene;
   const { records } = app;
-  if (session.mode === 'story') {
+  if (session.mode === 'story' || session.mode === 'watch') {
     return;
   }
   if (session.mode === 'solo') {
@@ -93,18 +96,19 @@ function onMatchOver(app, scene) {
     scene.options.characters.forEach((character, i) => playCharacterVoice(app.sfx, character.id,
       i === winner ? 'win' : 'lose', { channel: i }));
   }
-  const humanWon = session.mode === 'versus' ? winner >= 0 : winner === 0;
+  const humanWon = ['versus', 'watch'].includes(session.mode) ? winner >= 0 : winner === 0;
   playSfx(app.sfx, humanWon ? 'win' : 'over');
 }
 
 function startRound(scene) {
-  const { mode, cpuLevel, boss, story } = scene.options;
+  const { mode, cpuLevel, cpuLevels, boss, story } = scene.options;
   if (scene.tally.some((wins) => wins >= SET_WINS)) {
     scene.tally = [0, 0];
   }
-  scene.session = createSession({ mode, seed: makeSeed(), cpuLevel, cpuSeed: makeSeed(), boss, story });
+  scene.session = createSession({ mode, seed: makeSeed(), cpuLevel, cpuLevels, cpuSeed: makeSeed(), boss, story });
   // 프레임마다 교체되는 경기 상태와 별도로 이번 판의 음악 선택을 유지한다.
   scene.musicSession = {};
+  scene.sceneryReady = false;
   scene.effects = createEffects(mode === 'solo' ? 1 : 2);
   // 첫 화면부터 첫 쌍이 NEXT에 보이도록 준비하되 출현 연출은 진행하지 않는다.
   sessionPlayers(scene.session).forEach((player, i, players) => tickEffect(scene.effects[i], player, {
@@ -119,6 +123,18 @@ function startRound(scene) {
   scene.feverEntrySide = null;
   scene.revealedForm = false;
   scene.resultFrame = 0;
+}
+
+function gameScenery(scene, skin) {
+  if (!scene.sceneryReady) {
+    scene.scenery = scene.options.scenery;
+    if (!scene.scenery && ['cpu', 'versus', 'watch'].includes(scene.options.mode)) {
+      scene.scenery = chooseBattleScenery(skin, scene.previousScenery, () => makeSeed() / 0x100000000);
+      scene.previousScenery = scene.scenery;
+    }
+    scene.sceneryReady = true;
+  }
+  return scene.scenery;
 }
 
 function updatePause(app, scene) {
@@ -210,7 +226,7 @@ function updateGame(app, scene) {
       opponentSide: players.length > 1 ? 1 - i : null,
       opponent: players.length > 1 ? players[1 - i] : null,
     });
-    const isHuman = !session.cpu || i === 0;
+    const isHuman = session.mode !== 'watch' && (!session.cpu || i === 0);
     playBoardSounds(app.sfx, sessionPlayers(session)[i], player, i, scene.effects[i].warningChange, scene.effects[i].arrivalSounds);
     playEventSounds(app, player.events, isHuman, i);
     playCharacterEvents(app.sfx, scene.options.characters[i]?.id, player.events, i);
@@ -257,8 +273,9 @@ function updateStoryResult(app, scene) {
 }
 
 function resultActions(scene) {
+  if (scene.session.mode === 'watch') return ['다시 관전', '관전 설정'];
   if (scene.session.mode === 'story') return storyResult(scene).won ? ['계속하기'] : ['다시 도전', `${returnMenuLabel(scene)}로`];
-  return ['다시하기', '메인메뉴', ...(scene.session.mode === 'cpu' ? ['캐릭터 선택', '난이도 선택'] : [])];
+  return ['다시하기', '메인메뉴', ...(scene.session.mode === 'cpu' ? ['대전 설정'] : [])];
 }
 
 function chooseResult(app, scene, index) {
@@ -269,12 +286,10 @@ function chooseResult(app, scene, index) {
     if (!index) scene.options.onFinish(app, result);
     else if (!result.won) scene.options.onQuit(app, result);
   } else if (!index) startRound(scene);
+  else if (index === 1 && scene.session.mode === 'watch') returnToModeMenu(app, scene);
   else if (index === 1) app.goToMenu();
-  else if (index === 2 && scene.session.mode === 'cpu') app.goToCharacterSelect({
-    mode: 'cpu', cpuLevel: scene.options.cpuLevel, onBack: () => app.setScene(scene.screen),
-  });
-  else if (index === 3 && scene.session.mode === 'cpu') app.goToCpuLevelMenu({
-    characters: scene.options.characters, cpuLevel: scene.options.cpuLevel, onBack: () => app.setScene(scene.screen),
+  else if (index === 2 && scene.session.mode === 'cpu') app.goToMatchSetup({
+    mode: 'cpu', characters: scene.options.characters, cpuLevel: scene.options.cpuLevel, onBack: () => app.setScene(scene.screen),
   });
 }
 
@@ -292,7 +307,7 @@ function drawGameScene(ctx, app, scene) {
         else app.skin.drawCharacter(ctx, id, mood, x, y, size, motion);
       },
     } : app.skin,
-    scenery: scene.options.scenery,
+    scenery: gameScenery(scene, app.skin),
     match: session.match,
     effects: scene.effects,
     characters: scene.options.characters,
@@ -339,21 +354,24 @@ function createGameScene(options) {
   const screen = {
     get touchColumns() { return scene.session.phase === 'result' && options.mode === 'cpu' ? 2 : 1; },
     touchGame: () => !scene.reviveDialogue,
-    backgroundScene: () => options.scenery ? `game:${options.scenery}` : 'game',
+    backgroundScene: (skin) => {
+      const scenery = gameScenery(scene, skin);
+      return scenery ? `game:${scenery}` : 'game';
+    },
     openPause() { scene.paused = true; scene.pauseIndex = 0; },
     touchPaused: () => scene.paused,
-    touchHideBack: () => scene.session.phase === 'result' && !scene.paused,
-    touchDirect: () => scene.paused || scene.session.phase === 'result',
+    touchHideBack: () => (scene.session.phase === 'result' || options.mode === 'watch') && !scene.paused,
+    touchDirect: () => options.mode === 'watch' || scene.paused || scene.session.phase === 'result',
     touchItems: (app) => scene.paused ? pauseItems(scene).map((label, index) => ({
       label, selected:scene.pauseIndex === index, activate:() => selectPauseItem(app,scene,index),
     })) : scene.session.phase === 'result' ? resultActions(scene).map((label, index) => ({
       label, selected: index === scene.resultIndex, disabled: scene.resultDelay > 0, activate: () => chooseResult(app, scene, index),
-    })) : [],
-    touchMode: () => scene.reviveDialogue || scene.paused || scene.session.phase === 'result' ? 'menu' : 'game',
+    })) : options.mode === 'watch' ? [{ label: '일시정지', activate: () => screen.openPause() }] : [],
+    touchMode: () => options.mode === 'watch' || scene.reviveDialogue || scene.paused || scene.session.phase === 'result' ? 'menu' : 'game',
     touchLocal: () => options.mode === 'versus' && !scene.reviveDialogue && !scene.paused && scene.session.phase !== 'result',
     touchLabel: () => scene.paused ? `일시정지 · ${pauseItems(scene)[scene.pauseIndex]}`
       : scene.session.phase === 'result' ? '경기 종료 · 다음 행동을 선택하세요'
-      : '이동 · 빠르게 내리기 · 회전',
+      : options.mode === 'watch' ? 'CPU 관전 · 자동으로 대전 중' : '이동 · 빠르게 내리기 · 회전',
     tap(app, { x, y }, viewport) {
       if (scene.session.phase === 'result' && !scene.paused) {
         if (viewport?.portrait) return true;

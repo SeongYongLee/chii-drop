@@ -61,6 +61,7 @@ test('rooms lock two seats, require readiness, isolate rooms and clean up discon
   lobby.handle(a, { type: 'ready' });
   assert.equal(a.room.state, null);
   lobby.handle(b, { type: 'ready' });
+  lobby.handle(a, { type: 'confirmCharacter', selectionId: a.room.selectionId }); lobby.handle(b, { type: 'confirmCharacter', selectionId: b.room.selectionId });
   assert.equal(a.messages.findLast((m) => m.type === 'start').seed, b.messages.findLast((m) => m.type === 'start').seed);
   assert.throws(() => lobby.handle(a, { type: 'input', matchId: a.room.matchId, frame: 1, input: 0 }));
   lobby.handle(a, { type: 'input', matchId: a.room.matchId, frame: 0, input: 8, side: 1 });
@@ -68,9 +69,10 @@ test('rooms lock two seats, require readiness, isolate rooms and clean up discon
   lobby.handle(b, { type: 'input', matchId: b.room.matchId, frame: 0, input: 4 });
   assert.equal(a.room.state.frame, 1);
   lobby.leave(a);
-  assert.equal(lobby.rooms.size, 0);
-  assert.equal(b.room, null);
-  assert.ok(b.messages.some((m) => m.type === 'ended'));
+  assert.equal(lobby.rooms.size, 1);
+  assert.equal(b.room.peers.length, 1);
+  assert.equal(b.side, 0);
+  assert.ok(b.messages.some((m) => m.type === 'reset'));
 });
 test('real WebSocket server relays inputs and publishes authoritative checksums', async (t) => {
   const { server, wss } = createOnlineServer();
@@ -104,6 +106,10 @@ test('real WebSocket server relays inputs and publishes authoritative checksums'
   b.send({ type: 'join', code, ...version });
   await waitFor(b, 'joined');
   a.send({ type: 'ready' }); b.send({ type: 'ready' });
+  for (const c of [a, b]) {
+    let m; do { m = await waitFor(c, 'room'); } while (m.room.phase !== 'selecting');
+    c.send({ type: 'confirmCharacter', selectionId: m.room.selectionId });
+  }
   const start = await waitFor(a, 'start'); await waitFor(b, 'start');
   let expected = createMatch({ seed: start.seed });
   for (let f = 0; f < 60; f++) {
@@ -131,14 +137,14 @@ test('real WebSocket server relays inputs and publishes authoritative checksums'
   assert.deepEqual(relay.inputs, [60, 61, 62].map(f => input(f, 0)));
   assert.equal((await waitFor(rejoined, 'checksum')).hash, stateHash(expected));
   assert.equal((await waitFor(b, 'checksum')).hash, stateHash(expected));
-  rejoined.send({ type: 'leave' }); assert.equal((await waitFor(b, 'ended')).type, 'ended');
+  rejoined.send({ type: 'leave' }); assert.equal((await waitFor(b, 'reset')).side, 0);
 });
 test('authoritative result is emitted once and the completed match stops after the animation', () => {
   const lobby = createRooms(), a = fakePeer(), b = fakePeer();
   identify(lobby, a, b);
   lobby.handle(a, { type: 'create', ...version });
   lobby.handle(b, { type: 'join', code: a.room.code, ...version });
-  lobby.handle(a, { type: 'ready' }); lobby.handle(b, { type: 'ready' });
+  lobby.handle(a, { type: 'ready' }); lobby.handle(b, { type: 'ready' }); lobby.handle(a, { type: 'confirmCharacter', selectionId: a.room.selectionId }); lobby.handle(b, { type: 'confirmCharacter', selectionId: b.room.selectionId });
   const room = a.room;
   room.started -= 600000; // 가상 시간이 흐른 대전을 빠르게 검증한다.
   for (let f = 0; f < 5000 && !room.finished; f++) {

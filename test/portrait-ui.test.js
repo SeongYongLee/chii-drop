@@ -53,7 +53,7 @@ test('세로 캐릭터 선택은 네 칸짜리 가로 시안을 축소하지 않
   single.touchItems(h.app).find(item=>item.label==='연습').activate();
   const scene=h.app.scene;scene.draw(h.ctx,h.app);h.check();
   assert.equal(h.characters.length,1);assert.ok(h.characters[0][5]>=300);
-  assert.ok(h.text.includes('캐릭터 선택'));
+  assert.ok(h.text.includes('연습'));
 });
 
 test('확대한 세로 일시정지 팝업은 실제 터치 위치로 재개할 수 있다',()=>{

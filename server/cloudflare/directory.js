@@ -1,5 +1,6 @@
 import { DurableObject } from 'cloudflare:workers';
 import { randomBytes } from 'node:crypto';
+import { ROOM_CAPACITY, roomHeadcount } from '../../src/net/room-capacity.js';
 import { createProfileStore } from '../profiles.js';
 import { accept, checkVersion, closeUnauthenticated, parseMessage, rateLimit, readState, send, setupStorage, writeState } from './shared.js';
 
@@ -45,10 +46,9 @@ export class Directory extends DurableObject {
       if ((this.revisions[code] ?? -1) >= revision) return;
       this.revisions[code] = revision;
       if (view) this.rooms[code] = view;
-      else {
-        delete this.rooms[code];
-        for (const [id, room] of Object.entries(this.claims)) if (room === code) delete this.claims[id];
-      }
+      else delete this.rooms[code];
+      const seated = new Set([...(view?.players.map(player => player.id) ?? []), ...(view?.spectatorIds ?? [])]);
+      for (const [id, room] of Object.entries(this.claims)) if (room === code && !seated.has(id)) delete this.claims[id];
       this.persist(); this.publish();
       if (!view) await this.matchmake();
     });
@@ -69,7 +69,8 @@ export class Directory extends DurableObject {
     if (creating && Object.keys(this.rooms).length >= Number(this.env.MAX_ROOMS ?? 5)) throw new Error('방이 가득 찼습니다.');
     const code = creating ? randomBytes(4).toString('hex').toUpperCase() : msg.code.toUpperCase();
     if (!creating && !this.rooms[code]) throw new Error('입장 가능한 방이 없습니다.');
-    if (!creating && (this.rooms[code].phase !== 'waiting' || this.rooms[code].players.length >= 2)) throw new Error('입장 가능한 방이 없습니다.');
+    if (!creating && roomHeadcount(this.rooms[code]) >= ROOM_CAPACITY) throw new Error('방 입장 인원이 가득 찼습니다. (최대 6명)');
+    if (!creating && msg.type !== 'watch' && (this.rooms[code].phase !== 'waiting' || this.rooms[code].players.length >= 2)) throw new Error('입장 가능한 방이 없습니다.');
     const view = await this.env.ROOMS.getByName(code).reserve(profile, { ...msg, code });
     // 이 RPC 안에서는 Directory로 역호출하지 않는다. 전역 직렬화 교착을 막는다.
     this.rooms[code] = view; this.claims[profile.id] = code;
@@ -127,7 +128,7 @@ export class Directory extends DurableObject {
         else if (msg.type === 'rename') {
           if (this.claims[profile.id] || this.queue[profile.id]) throw new Error('로비에서 닉네임을 변경하세요.');
           send(ws, { type: 'profile', profile: this.profiles.rename(profile.id, msg.name) });
-        } else if (msg.type === 'create' || msg.type === 'join') {
+        } else if (msg.type === 'create' || msg.type === 'join' || msg.type === 'watch') {
           if (msg.mode && msg.mode !== 'duel') throw new Error('현재 1대1만 지원합니다.');
           if (this.queue[profile.id]) throw new Error('매칭을 취소해 주세요.');
           await this.enter(ws, profile, msg);

@@ -10,7 +10,15 @@ import { compileIdleMotion, idleMotionAt } from '../character-idle.js';
 import { situationMotionAt } from '../character-situation.js';
 import { compileTravel, travelAt } from '../character-travel.js';
 
-const MOODS = ['idle', 'happy', 'sad', 'win', 'lose', 'fever', 'chain1', 'chain3', 'chain5', 'chain7', 'idleMove1', 'idleMove2', 'leading', 'trailing'];
+const MOODS = ['idle', 'happy', 'sad', 'win', 'lose', 'fever', 'chain1', 'chain2', 'chain3', 'chain4', 'chain5', 'chain6', 'chain7', 'idleMove1', 'idleMove2', 'leading', 'trailing'];
+
+function chainClip(moods, chain) {
+  if (!Number.isFinite(chain) || chain < 1) return null;
+  for (let tier = Math.min(7, Math.floor(chain)); tier >= 1; tier--) {
+    if (moods?.[`chain${tier}`]) return moods[`chain${tier}`];
+  }
+  return null;
+}
 const SHAPE_SCALE = {
   squash: [1.16, 0.78],
   stretch: [0.88, 1.12],
@@ -107,8 +115,9 @@ function spriteAt(clip, frame = 0, still = false, blink = null) {
 export function skinImageFiles(manifest) {
   const entries = [...Object.values(manifest.blobs ?? {}), manifest.background, ...Object.values(manifest.backgrounds ?? {}),
     ...(manifest.characters ?? []).flatMap(character => MOODS.map(mood => character.moods?.[mood]))];
-  return [...new Set(entries.filter(Boolean).flatMap(entry => typeof entry === 'string' ? [entry]
-    : entry.file ? [entry.file, ...(Array.isArray(entry.frames) ? entry.frames : []).map(part => part?.file).filter(Boolean)] : []))];
+  const files = entry => !entry ? [] : typeof entry === 'string' ? [entry]
+    : [...(entry.file ? [entry.file] : []), ...(entry.frames ?? []).map(part => part?.file).filter(Boolean), ...files(entry.fieldAction)];
+  return [...new Set(entries.flatMap(files))];
 }
 
 async function loadImageMap(baseUrl, entries, pending, onImage) {
@@ -118,19 +127,23 @@ async function loadImageMap(baseUrl, entries, pending, onImage) {
     }));
     return pending.get(file);
   };
-  const loaded = await Promise.all(
-    entries.map(async ([key, entry]) => {
-      if (!entry) return [key, null];
-      const file = typeof entry === 'string' ? entry : entry.file;
-      if (!file) return [key, null];
-      const image = await loadFile(file);
-      if (!image) return [key, null];
-      const images = Array.isArray(entry.frames) ? await Promise.all(entry.frames.map((part) =>
-        part && typeof part === 'object' && part.file ? loadFile(part.file) : image)) : [];
-      if (images.some((image) => !image)) return [key, null];
-      return [key, spriteClip(image, entry, images)];
-    }),
-  );
+  const loadEntry = async (entry, allowField = true) => {
+    if (!entry) return null;
+    const file = typeof entry === 'string' ? entry : entry.file;
+    if (!file) return null;
+    const image = await loadFile(file);
+    if (!image) return null;
+    const images = Array.isArray(entry.frames) ? await Promise.all(entry.frames.map(part =>
+      part && typeof part === 'object' && part.file ? loadFile(part.file) : image)) : [];
+    if (images.some(image => !image)) return null;
+    const clip = spriteClip(image, entry, images);
+    if (!clip) return null;
+    if (allowField && entry.fieldAction) {
+      clip.fieldAction = await loadEntry(entry.fieldAction, false);
+    }
+    return clip;
+  };
+  const loaded = await Promise.all(entries.map(async ([key, entry]) => [key, await loadEntry(entry)]));
   return Object.fromEntries(loaded.filter(([, image]) => image !== null));
 }
 
@@ -222,11 +235,12 @@ async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
     fieldChainCharacters: (manifest.characters ?? []).filter(c => c.fieldChainReaction === true).map(c => c.id),
     fieldChainFrames(id, chain) {
       const character = characters.find(c => c.id === id);
-      const tier = chain >= 7 ? 7 : chain >= 5 ? 5 : 3;
-      return character?.moods[`chain${tier}`]?.total ?? 80;
+      const clip = chainClip(character?.moods, chain);
+      return (clip?.fieldAction ?? clip)?.total ?? 80;
     },
     characterRoster: characters.map(({ id, name, selectable, selectionVisible, voiceAvailable }) => ({ id, name, selectable, selectionVisible, voiceAvailable })),
     hasBackground(scene) { return Boolean(backgrounds[scene]); },
+    battleSceneries: (manifest.battleSceneries ?? []).filter(scene => backgrounds[`game:${scene}`]),
     backgroundUrl(scene) {
       const clip = backgrounds[scene] ?? background;
       return clip ? spriteAt(clip).image.src : null;
@@ -285,11 +299,10 @@ async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
         ctx.restore();
         return;
       }
-      const chainTier = Number.isFinite(motion.chain) && motion.chain >= 1
-        ? motion.chain >= 7 ? 7 : motion.chain >= 5 ? 5 : motion.chain >= 3 ? 3 : 1 : 0;
-      const reaction = mood === 'happy' && chainTier ? character.moods[`chain${chainTier}`] : null;
+      const reaction = mood === 'happy' ? chainClip(character.moods, motion.chain) : null;
       const situationFallback = mood === 'leading' ? character.moods.happy : mood === 'trailing' ? character.moods.sad : null;
-      const clip = reaction ?? character.moods[mood] ?? situationFallback ?? character.moods.idle ?? Object.values(character.moods)[0];
+      const selected = reaction ?? character.moods[mood] ?? situationFallback ?? character.moods.idle ?? Object.values(character.moods)[0];
+      const clip = motion.presentation === 'field' ? selected.fieldAction ?? selected : selected;
       const still = motion.reducedMotion ?? globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
       const instance = motion.instance ?? `${x}:${y}:${size}`;
       const visualFrame = motion.blinkFrame ?? motion.frame ?? 0;

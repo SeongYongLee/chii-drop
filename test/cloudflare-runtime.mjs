@@ -12,6 +12,7 @@ import { RULES_VERSION } from '../src/engine/rules.js';
 import { createMatch, stepMatch } from '../src/engine/match.js';
 import { createInputBatcher } from '../src/net/input-batch.js';
 import { createOnlineServer } from '../server/index.js';
+import { SpectatorMatch } from '../src/net/spectator.js';
 
 const delay = ms => new Promise(r => setTimeout(r, ms));
 const reserved = createServer(); reserved.listen(0, '127.0.0.1'); await once(reserved, 'listening');
@@ -60,6 +61,12 @@ async function identity(c) { const m = await take(c, 'welcome'); c.token ??= m.t
 function inputs(c, matchId, epoch, from, until) {
   for (let f = from; f < until; f += 3) c.send({ type: 'inputBatch', matchId, epoch, frame: f, inputs: [0, 0, 0] });
 }
+async function confirmSelection(...clients) {
+  for (const c of clients) {
+    let m; do { m = await take(c, 'room'); } while (m.room.phase !== 'selecting');
+    c.send({ type: 'confirmCharacter', selectionId: m.room.selectionId });
+  }
+}
 async function goRoom(c, code) { const next = await client(c.token, code); c.ws.close(); await identity(next); await take(next, 'joined'); return next; }
 try {
   await start();
@@ -74,24 +81,44 @@ try {
   b.send({ type: 'join', code, password: 'test' }); assert.equal((await take(b, 'route')).code, code); checks++;
   a = await goRoom(a, code); b = await goRoom(b, code);
   a.send({ type: 'heartbeat' }); await take(a, 'heartbeatAck'); checks++;
-  a.send({ type: 'ready' }); b.send({ type: 'ready' });
+  a.send({ type: 'ready' }); b.send({ type: 'ready' }); await confirmSelection(a, b);
   const startMsg = await take(a, 'start'); await take(b, 'start');
   inputs(a, startMsg.matchId, 0, 0, 60); inputs(b, startMsg.matchId, 0, 0, 60);
   let expected = createMatch({ seed: startMsg.seed });
   for (let f = 0; f < 60; f++) expected = stepMatch(expected, [0, 0]);
   assert.equal((await take(a, 'checksum')).hash, stateHash(expected));
   assert.equal((await take(b, 'checksum')).hash, stateHash(expected)); checks++;
+  let observer = await client(); const observerProfile = await identity(observer);
+  observer.send({ type: 'watch', code, password: 'wrong' }); await take(observer, 'error');
+  observer.send({ type: 'watch', code, password: 'test' }); await take(observer, 'route');
+  observer = await goRoom(observer, code);
+  const observerToken = observer.token;
+  const watchSnapshot = await take(observer, 'spectatorSnapshot');
+  assert.equal(watchSnapshot.hash, stateHash(expected)); assert.equal(watchSnapshot.paused, false);
+  observer.send({ type: 'ready' }); assert.match((await take(observer, 'error')).reason, /관전/); checks++;
   const tokenA = a.token, tokenB = b.token;
   a.ws.terminate(); await take(b, 'paused');
   a = await client(tokenA, code); await identity(a); await take(a, 'joined');
   const snap = await take(a, 'snapshot'); assert.equal(snap.hash, stateHash(expected));
   assert.deepEqual(await take(b, 'snapshot'), snap);
+  const watchResync = await take(observer, 'spectatorSnapshot'); assert.equal(watchResync.epoch, snap.epoch);
+  const observerGame = new SpectatorMatch(watchResync.state, watchResync.hash);
   for (const c of [a, b]) c.send({ type: 'synced', matchId: startMsg.matchId, epoch: snap.epoch, hash: snap.hash });
   await take(a, 'resumed'); await take(b, 'resumed'); checks++;
   inputs(a, startMsg.matchId, snap.epoch, 60, 120); inputs(b, startMsg.matchId, snap.epoch, 60, 120);
   for (let f = 60; f < 120; f++) expected = stepMatch(expected, [0, 0]);
   assert.equal((await take(a, 'checksum')).hash, stateHash(expected));
   assert.equal((await take(b, 'checksum')).hash, stateHash(expected)); checks++;
+  for (let i = 0; i < 10; i++) {
+    const packet = await take(observer, 'spectatorFrames'); observerGame.receiveBatch(packet.frame, packet.inputs);
+    while (observerGame.canAdvance) observerGame.advance();
+  }
+  assert.equal(stateHash(observerGame.state), stateHash(expected));
+  observer.ws.terminate(); await delay(100);
+  observer = await client(observerToken, code); await identity(observer);
+  assert.equal((await take(observer, 'joined')).role, 'spectator');
+  const spectatorReconnect = await take(observer, 'spectatorSnapshot');
+  assert.equal(spectatorReconnect.epoch, snap.epoch); assert.equal(spectatorReconnect.paused, false); checks++;
   // 연결을 끊은 뒤 런타임을 재시작해 같은 SQLite에서 경기 상태·기한을 복원한다.
   a.ws.terminate(); await take(b, 'paused'); b.ws.terminate(); await delay(100);
   await stop(); await start();
@@ -103,7 +130,46 @@ try {
   await take(a, 'snapshot'); const finalSnap = await take(a, 'snapshot'); assert.equal(finalSnap.epoch, restored.epoch);
   for (const c of [a, b]) c.send({ type: 'synced', matchId: startMsg.matchId, epoch: restored.epoch, hash: restored.hash });
   await take(a, 'resumed'); await take(b, 'resumed'); checks++;
-  a.send({ type: 'leave' }); await take(b, 'ended'); await take(b, 'route');
+  observer = await client(observerToken); await identity(observer); assert.equal((await take(observer, 'route')).code, code);
+  observer = await goRoom(observer, code);
+  assert.equal((await take(observer, 'spectatorSnapshot')).hash, stateHash(expected));
+  observer.send({ type: 'leave' }); await take(observer, 'route'); observer.ws.close();
+  const observerLobby = await client(observerToken); assert.equal((await identity(observerLobby)).rating, observerProfile.rating);
+  await take(observerLobby, 'lobby'); observerLobby.ws.close(); checks++;
+  b.messages = b.messages.filter(m => m.type !== 'room');
+  a.send({ type: 'watchInstead' });
+  assert.equal((await take(a, 'joined')).role, 'spectator'); await take(a, 'reset');
+  assert.equal((await take(b, 'reset')).side, 0);
+  const retained = (await take(b, 'room')).room;
+  assert.equal(retained.code, code); assert.equal(retained.players.length, 1); assert.equal(retained.phase, 'waiting');
+  assert.equal(retained.spectators, 1); checks++;
+  a.send({ type: 'leave' });
+  assert.equal((await take(a, 'route')).code, null);
+  const departed = await client(tokenA); await identity(departed); await take(departed, 'lobby'); departed.ws.close();
+  let promoted = await client(observerToken); await identity(promoted);
+  promoted.send({ type: 'watch', code, password: 'test' }); await take(promoted, 'route');
+  promoted = await goRoom(promoted, code); promoted.messages = promoted.messages.filter(m => m.type !== 'room');
+  promoted.send({ type: 'takeSeat' }); assert.equal((await take(promoted, 'joined')).side, 1);
+  const promotedRoom = (await take(promoted, 'room')).room;
+  assert.equal(promotedRoom.code, code); assert.equal(promotedRoom.spectators, 0);
+  assert.equal(promotedRoom.players[1].id, observerProfile.id);
+  promoted.send({ type: 'watchInstead' }); assert.equal((await take(promoted, 'joined')).role, 'spectator');
+  await take(promoted, 'reset');
+  let switchedRoom = (await take(promoted, 'room')).room;
+  assert.equal(switchedRoom.players.length, 1); assert.equal(switchedRoom.spectators, 1);
+  assert.equal(switchedRoom.code, code);
+  promoted.send({ type: 'takeSeat' }); assert.equal((await take(promoted, 'joined')).side, 1);
+  switchedRoom = (await take(promoted, 'room')).room; assert.equal(switchedRoom.spectators, 0); checks++;
+  promoted.send({ type: 'leave' }); await take(promoted, 'route'); promoted.ws.close();
+  const afterPromotion = await client(observerToken); assert.equal((await identity(afterPromotion)).rating, observerProfile.rating);
+  await take(afterPromotion, 'lobby'); afterPromotion.ws.close(); checks++;
+  // 나간 사용자의 claim만 해제하고, 남은 방은 같은 코드로 새 참가자를 받는다.
+  let replacement = await client(); await identity(replacement);
+  replacement.send({ type: 'join', code, password: 'test' }); await take(replacement, 'route');
+  replacement = await goRoom(replacement, code);
+  replacement.send({ type: 'leave' }); await take(b, 'reset'); await take(replacement, 'route'); replacement.ws.close();
+  b.send({ type: 'leave' }); await take(b, 'route');
+  checks++;
   a.ws.close(); b.ws.close();
   let winner = await client(tokenB); assert.equal((await identity(winner)).rating, 1516);
   await stop(); await start();
@@ -115,7 +181,8 @@ try {
   x.send({ type: 'queue', rated: false }); y.send({ type: 'queue', rated: false });
   const rx = await take(x, 'route'), ry = await take(y, 'route'); assert.equal(rx.code, ry.code); checks++;
   const xr = await goRoom(x, rx.code), yr = await goRoom(y, ry.code);
-  xr.send({ type: 'leave' }); await take(yr, 'route'); xr.ws.close(); yr.ws.close();
+  xr.send({ type: 'leave' }); await take(yr, 'reset'); await take(xr, 'route');
+  yr.send({ type: 'leave' }); await take(yr, 'route'); xr.ws.close(); yr.ws.close();
   // 10클라이언트/5개 방을 실제 프레임 속도로 동시에 진행한다.
   const games = [];
   for (let i = 0; i < 5; i++) {
@@ -123,7 +190,7 @@ try {
     p.send({ type: 'create', rated: false }); const route = await take(p, 'route');
     q.send({ type: 'join', code: route.code }); await take(q, 'route');
     p = await goRoom(p, route.code); q = await goRoom(q, route.code);
-    p.send({ type: 'ready' }); q.send({ type: 'ready' });
+    p.send({ type: 'ready' }); q.send({ type: 'ready' }); await confirmSelection(p, q);
     const start = await take(p, 'start'); await take(q, 'start');
     games.push({ peers: [p, q], start, batchers: [createInputBatcher(), createInputBatcher()] });
   }
@@ -138,7 +205,8 @@ try {
     let expected = createMatch({ seed: g.start.seed });
     for (let f = 0; f < 60; f++) expected = stepMatch(expected, [0, 0]);
     for (const p of g.peers) assert.equal((await take(p, 'checksum')).hash, stateHash(expected));
-    g.peers[0].send({ type: 'leave' }); await take(g.peers[1], 'route');
+    g.peers[0].send({ type: 'leave' }); await take(g.peers[1], 'reset'); await take(g.peers[0], 'route');
+    g.peers[1].send({ type: 'leave' }); await take(g.peers[1], 'route');
     g.peers.forEach(p => p.ws.close());
   }
   checks++;
@@ -146,11 +214,54 @@ try {
   timeoutA.send({ type: 'create', rated: true }); const timeoutRoom = (await take(timeoutA, 'route')).code;
   timeoutB.send({ type: 'join', code: timeoutRoom }); await take(timeoutB, 'route');
   timeoutA = await goRoom(timeoutA, timeoutRoom); timeoutB = await goRoom(timeoutB, timeoutRoom);
-  timeoutA.send({ type: 'ready' }); timeoutB.send({ type: 'ready' }); await take(timeoutA, 'start'); await take(timeoutB, 'start');
+  timeoutA.send({ type: 'ready' }); timeoutB.send({ type: 'ready' }); await confirmSelection(timeoutA, timeoutB); await take(timeoutA, 'start'); await take(timeoutB, 'start');
   const timeoutToken = timeoutB.token;
   timeoutA.ws.terminate(); await take(timeoutB, 'paused');
-  await take(timeoutB, 'ended', 15000); await take(timeoutB, 'route'); timeoutB.ws.close();
+  await take(timeoutB, 'reset', 15000);
+  timeoutB.send({ type: 'leave' }); await take(timeoutB, 'route'); timeoutB.ws.close();
   const timeoutWinner = await client(timeoutToken); assert.equal((await identity(timeoutWinner)).rating, 1516); checks++;
+  // 총원 6명: 신규 입장만 제한하고, 기존 6명의 역할 전환은 허용한다.
+  let fullA = await client(), fullB = await client(); await identity(fullA); await identity(fullB);
+  fullA.send({ type: 'create', rated: false }); const fullCode = (await take(fullA, 'route')).code;
+  fullB.send({ type: 'join', code: fullCode }); await take(fullB, 'route');
+  fullA = await goRoom(fullA, fullCode); fullB = await goRoom(fullB, fullCode);
+  const viewers = [];
+  for (let i = 0; i < 4; i++) {
+    let viewer = await client(); await identity(viewer); viewer.send({ type: 'watch', code: fullCode }); await take(viewer, 'route');
+    viewer = await goRoom(viewer, fullCode); viewers.push(viewer);
+  }
+  const outside = await client(); await identity(outside);
+  for (const type of ['watch', 'join']) {
+    outside.send({ type, code: fullCode }); assert.match((await take(outside, 'error')).reason, /최대 6명/);
+  }
+  fullA.send({ type: 'watchInstead' }); assert.equal((await take(fullA, 'joined')).role, 'spectator');
+  fullB.messages = fullB.messages.filter(m => m.type !== 'room');
+  fullB.send({ type: 'watchInstead' }); assert.equal((await take(fullB, 'joined')).role, 'spectator');
+  const allWatching = (await take(fullB, 'room')).room;
+  assert.equal(allWatching.players.length, 0); assert.equal(allWatching.spectators, 6); assert.equal(allWatching.memberCapacity, 6);
+  outside.send({ type: 'join', code: fullCode }); assert.match((await take(outside, 'error')).reason, /최대 6명/);
+  fullA.send({ type: 'takeSeat' }); assert.equal((await take(fullA, 'joined')).side, 0);
+  fullB.send({ type: 'takeSeat' }); assert.equal((await take(fullB, 'joined')).side, 1);
+  for (const c of [fullA, fullB, ...viewers]) c.messages = c.messages.filter(m => !['room', 'reset'].includes(m.type));
+  fullA.send({ type: 'ready' }); fullB.send({ type: 'ready' }); await confirmSelection(fullA, fullB);
+  const finalStart = await take(fullA, 'start'); await take(fullB, 'start');
+  for (let frame = 0; frame < 3600 && !fullA.messages.some(m => m.type === 'finished'); frame += 3) {
+    for (const c of [fullA, fullB]) c.send({ type: 'inputBatch', matchId: finalStart.matchId, epoch: 0, frame, inputs: [4, 4, 4] });
+    await delay(50);
+  }
+  await take(fullA, 'finished'); await take(viewers[0], 'finished');
+  viewers[0].send({ type: 'returnRoom' }); assert.match((await take(viewers[0], 'error')).reason, /관전/);
+  for (const c of [fullA, fullB, ...viewers]) c.messages = c.messages.filter(m => m.type !== 'room');
+  fullA.send({ type: 'returnRoom' });
+  for (const c of [fullA, fullB, ...viewers]) {
+    await take(c, 'reset'); const returnedRoom = (await take(c, 'room')).room;
+    assert.equal(returnedRoom.code, fullCode); assert.equal(returnedRoom.phase, 'waiting');
+    assert.equal(returnedRoom.spectatorList.length, 4);
+    assert.ok(returnedRoom.spectatorList.every(p => p.name && p.connected));
+  }
+  checks++;
+  for (const c of [...viewers, fullA, fullB]) { c.send({ type: 'leave' }); await take(c, 'route'); c.ws.close(); }
+  outside.ws.close(); checks++;
   console.log(`Cloudflare 로컬 통합 검증 ${checks}개 통과: Origin·버전·비밀번호·자동 heartbeat·대전·재접속·호스트 재시작·레이트 저장·자동 매칭`);
 } catch (error) { console.error(logs); throw error; }
 finally {

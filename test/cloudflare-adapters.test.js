@@ -20,6 +20,7 @@ test('durable room snapshots preserve pending inputs, password locks and reconne
   lobby.handle(a, { type: 'create', password: 'local-only', rated: true });
   lobby.handle(b, { type: 'join', code: a.room.code, password: 'local-only' });
   for (const p of [a, b]) lobby.handle(p, { type: 'ready' });
+  for (const p of [a, b]) lobby.handle(p, { type: 'confirmCharacter', selectionId: a.room.selectionId });
   lobby.handle(a, { type: 'inputBatch', matchId: a.room.matchId, frame: 0, inputs: [2, 0, 0] });
   lobby.disconnect(a);
   const deadline = a.room.deadline, saved = JSON.parse(JSON.stringify(lobby.snapshot()));

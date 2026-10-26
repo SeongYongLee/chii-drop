@@ -5,6 +5,7 @@ import { RULES_VERSION } from '../src/engine/rules.js';
 import { MAX_AHEAD, PROTOCOL, stateHash, validInput } from '../src/net/rollback.js';
 import { createProfileStore } from './profiles.js';
 import { validInputBatch } from '../src/net/input-batch.js';
+import { ROOM_CAPACITY, PLAYER_CAPACITY, SPECTATOR_CAPACITY, roomHeadcount } from '../src/net/room-capacity.js';
 
 function passwordHash(salt, password) { return createHash('sha256').update(salt).update(password).digest(); }
 function passwordValue(value) {
@@ -22,16 +23,18 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
   const availableCharacters = new Set(characters);
   const rooms = new Map(), peers = new Set(), queue = new Map();
   const send = (peer, message) => { if (!peer.disconnected) peer.send(message); };
-  const broadcast = (room, message) => room.peers.forEach((p) => send(p, message));
+  const broadcast = (room, message) => [...room.peers, ...room.spectators].forEach((p) => send(p, message));
   const error = (peer, reason) => send(peer, { type: 'error', reason });
-  function roomView(room) {
+  function roomView(room, includeSpectators = false) {
     return { code: room.code, name: room.name, rated: room.rated, locked: !!room.password,
-      mode: 'duel', capacity: 2, phase: room.state ? 'playing' : 'waiting',
-      players: room.peers.map((p) => ({ ...profiles.get(p.profileId), side: p.side, charId: p.charId, ready: room.ready.has(p.side) })) };
+      mode: 'duel', capacity: PLAYER_CAPACITY, memberCapacity: ROOM_CAPACITY,
+      spectators: room.spectators.length, spectatorCapacity: SPECTATOR_CAPACITY, phase: room.state ? 'playing' : room.selectionId ? 'selecting' : 'waiting', selectionId: room.selectionId ?? null,
+      ...(includeSpectators ? { spectatorList: room.spectators.map(p => ({ id: p.profileId, name: profiles.get(p.profileId).name, connected: !p.disconnected })) } : {}),
+      players: room.peers.map((p) => ({ ...profiles.get(p.profileId), side: p.side, charId: p.charId, ready: room.ready.has(p.side), confirmed: room.confirmed?.has(p.side) ?? false })) };
   }
-  function updateRoom(room) { broadcast(room, { type: 'room', room: roomView(room) }); }
+  function updateRoom(room) { broadcast(room, { type: 'room', room: roomView(room, true) }); }
   function updateLobby() {
-    const list = [...rooms.values()].map(roomView);
+    const list = [...rooms.values()].map(room => roomView(room));
     for (const p of peers) send(p, { type: 'lobby', rooms: list, online: peers.size });
   }
   function updateRankings() {
@@ -48,17 +51,45 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
     updateRankings();
     return room.settlement;
   }
+  function clearMatch(room) {
+    room.state = null; room.matchId = null; room.ready.clear(); room.settlement = null;
+    room.selectionId = null; room.confirmed = new Set();
+    room.spectatorInputs = [];
+    for (const key of ['started', 'epoch', 'paused', 'deadline', 'syncing', 'acks', 'next', 'inputs', 'finished', 'resultSent', 'resultFrame']) delete room[key];
+  }
+  function removeRoomPeers(room, removed, reason, retained = null) {
+    const remaining = room.peers.filter(p => !removed.includes(p) && !p.disconnected);
+    for (const p of room.peers) if (!remaining.includes(p) && p !== retained) {
+      p.room = null;
+      send(p, { type: 'ended', reason: '방을 나왔습니다. 로비에서 다시 참가하세요.' });
+    }
+    room.peers = remaining;
+    if (!remaining.length && !room.spectators.some(p => !p.disconnected)) {
+      for (const p of room.spectators) { p.room = null; send(p, { type: 'ended', reason: '대전 참가자가 모두 나가 방을 종료했습니다.' }); }
+      room.spectators = []; rooms.delete(room.code); updateLobby(); return;
+    }
+    clearMatch(room);
+    remaining.forEach((p, side) => {
+      p.side = side;
+      send(p, { type: 'reset', side, reason });
+    });
+    for (const p of room.spectators) send(p, { type: 'reset', reason: '대전 참가자가 나갔습니다. 같은 방에서 다음 경기를 기다립니다.' });
+    updateRoom(room); updateLobby();
+  }
   function exitRoom(peer) {
     const room = peer.room;
     queue.delete(peer);
     if (!room) return;
-    if (room.state && !room.settlement) settle(room, 1 - peer.side, 'forfeit');
-    rooms.delete(room.code);
-    room.peers.forEach((p) => {
-      p.room = null;
-      send(p, { type: 'ended', reason: p !== peer && room.state && !room.finished ? '상대가 이탈하여 경기를 종료했습니다.' : '방을 나왔습니다. 로비에서 다시 참가하세요.' });
-    });
-    updateLobby();
+    if (peer.spectator) {
+      room.spectators = room.spectators.filter(p => p !== peer); peer.room = null;
+      if (!room.peers.length && !room.spectators.length) rooms.delete(room.code);
+      send(peer, { type: 'ended', reason: '관전을 종료했습니다.' }); updateRoom(room); updateLobby(); return;
+    }
+    const forfeited = room.state && !room.settlement;
+    if (forfeited) settle(room, 1 - peer.side, 'forfeit');
+    removeRoomPeers(room, [peer], forfeited
+      ? '상대가 이탈하여 기권승 처리했습니다. 같은 방에서 새 상대를 기다려 주세요.'
+      : '상대가 방을 나갔습니다. 같은 방에서 새 상대를 기다려 주세요.');
   }
   function leave(peer) {
     exitRoom(peer); queue.delete(peer); peers.delete(peer); updateLobby();
@@ -72,25 +103,36 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
     if (!peers.has(peer)) return;
     peers.delete(peer); queue.delete(peer);
     const room = peer.room;
+    if (room && peer.spectator) {
+      peer.disconnected = true; peer.deadline = now() + reconnectGrace; updateRoom(room); updateLobby(); return;
+    }
     if (!room?.state || room.finished) { exitRoom(peer); updateLobby(); return; }
     peer.disconnected = true;
     pause(room); updateLobby();
   }
   function sweep() {
+    for (const room of rooms.values()) for (const p of [...room.spectators]) if (p.disconnected && now() >= p.deadline) exitRoom(p);
     for (const room of rooms.values()) if (room.paused && now() >= room.deadline) {
       const missing = room.peers.filter(p => p.disconnected || (room.syncing && !room.acks?.has(p.side)));
       if (!room.settlement) settle(room, missing.length === 1 ? 1 - missing[0].side : -1, 'forfeit');
-      rooms.delete(room.code);
-      for (const p of room.peers) { p.room = null; send(p, { type: 'ended', reason: '30초 재접속 유예가 끝나 경기를 종료했습니다.' }); }
-      updateLobby();
+      removeRoomPeers(room, missing, '재접속 유예가 끝나 경기를 종료했습니다. 같은 방에서 새 상대를 기다려 주세요.');
     }
   }
   function synchronize(room) {
     pause(room);
     room.epoch++; room.syncing = true; room.acks = new Set();
     room.next = [room.state.frame, room.state.frame]; room.inputs = [new Map(), new Map()];
-    broadcast(room, { type: 'snapshot', matchId: room.matchId, epoch: room.epoch,
-      remaining: Math.max(0, room.deadline - now()), state: room.state, hash: stateHash(room.state), players: roomView(room).players });
+    room.spectatorInputs = [];
+    const snapshot = { type: 'snapshot', matchId: room.matchId, epoch: room.epoch,
+      remaining: Math.max(0, room.deadline - now()), state: room.state, hash: stateHash(room.state), players: roomView(room).players };
+    for (const p of room.peers) send(p, snapshot);
+    for (const p of room.spectators) spectatorSnapshot(room, p);
+  }
+  function spectatorSnapshot(room, peer) {
+    if (!room.state) return;
+    send(peer, { type: 'spectatorSnapshot', matchId: room.matchId, epoch: room.epoch,
+      state: room.state, hash: stateHash(room.state), players: roomView(room).players,
+      paused: !!room.paused, remaining: Math.max(0, (room.deadline ?? now()) - now()), finished: !!room.finished });
   }
   function makeRoom({ name = '함께 대전해요', rated = false, password = '' } = {}) {
     if (rooms.size >= 100) throw new Error('서버의 방이 가득 찼습니다.');
@@ -99,15 +141,21 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
     let code;
     do { code = randomBytes(4).toString('hex').toUpperCase(); } while (rooms.has(code));
     const room = { code, name: name.trim(), rated, salt, password: pass ? passwordHash(salt, pass) : null,
-      peers: [], ready: new Set(), state: null };
+      peers: [], spectators: [], spectatorInputs: [], ready: new Set(), state: null };
     rooms.set(code, room); return room;
   }
   function seat(room, peer) {
-    queue.delete(peer); peer.side = room.peers.length;
+    queue.delete(peer); peer.spectator = false; peer.side = room.peers.length;
     if (!availableCharacters.has(peer.charId)) peer.charId = characters[peer.side % characters.length];
     peer.room = room; room.peers.push(peer);
     send(peer, { type: 'joined', code: room.code, side: peer.side });
     updateRoom(room); updateLobby();
+  }
+  function watch(room, peer) {
+    if (!room.spectators.length) room.spectatorInputs = [];
+    queue.delete(peer); peer.spectator = true; peer.side = null; peer.room = room; room.spectators.push(peer);
+    send(peer, { type: 'joined', code: room.code, role: 'spectator', side: null });
+    updateRoom(room); spectatorSnapshot(room, peer); updateLobby();
   }
   function matchmake() {
     const waiting = [...queue.entries()];
@@ -138,13 +186,15 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
         peer.profileId = identity.profile.id; peers.add(peer);
         send(peer, { type: 'welcome', ...identity });
         send(peer, { type: 'rankings', rankings: profiles.rankings() });
-        const reserved = [...rooms.values()].flatMap(r => r.peers).find(p => p.disconnected && p.profileId === peer.profileId);
+        const reserved = [...rooms.values()].flatMap(r => [...r.peers, ...r.spectators]).find(p => p.disconnected && p.profileId === peer.profileId);
         if (reserved) {
           const room = reserved.room;
-          peer.room = room; peer.side = reserved.side; peer.charId = reserved.charId;
-          room.peers[peer.side] = peer; reserved.room = null;
-          send(peer, { type: 'joined', code: room.code, side: peer.side }); updateRoom(room);
-          if (room.state) synchronize(room);
+          peer.room = room; peer.side = reserved.side; peer.charId = reserved.charId; peer.spectator = !!reserved.spectator;
+          if (peer.spectator) room.spectators[room.spectators.indexOf(reserved)] = peer;
+          else room.peers[peer.side] = peer;
+          reserved.room = null;
+          send(peer, { type: 'joined', code: room.code, side: peer.side, role: peer.spectator ? 'spectator' : 'player' }); updateRoom(room);
+          if (room.state) { if (peer.spectator) spectatorSnapshot(room, peer); else synchronize(room); }
         }
         updateLobby();
       } catch (e) { error(peer, e.message); }
@@ -163,46 +213,86 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
       if (peer.room || queue.has(peer) || typeof msg.rated !== 'boolean') { error(peer, '현재 자동 매칭을 시작할 수 없습니다.'); return; }
       queue.set(peer, { at: now(), rated: msg.rated }); send(peer, { type: 'queued', active: true, rated: msg.rated }); matchmake(); return;
     }
-    if (msg.type === 'create' || msg.type === 'join') {
+    if (msg.type === 'create' || msg.type === 'join' || msg.type === 'watch') {
       if (peer.room || queue.has(peer)) { error(peer, '먼저 현재 방이나 매칭 대기에서 나와 주세요.'); return; }
       if (msg.mode !== undefined && msg.mode !== 'duel') { error(peer, '현재 1대1만 지원합니다.'); return; }
       try {
         if (msg.type === 'create') seat(makeRoom(msg), peer);
         else {
           const room = typeof msg.code === 'string' && rooms.get(msg.code.toUpperCase());
-          if (!room || room.peers.length !== 1 || room.state) { error(peer, '입장 가능한 방을 찾을 수 없습니다.'); return; }
+          if (!room) { error(peer, '입장 가능한 방을 찾을 수 없습니다.'); return; }
+          if (roomHeadcount(room) >= ROOM_CAPACITY) { error(peer, '방 입장 인원이 가득 찼습니다. (최대 6명)'); return; }
+          if (msg.type !== 'watch' && (room.peers.length >= PLAYER_CAPACITY || room.state || room.selectionId)) { error(peer, '입장 가능한 방을 찾을 수 없습니다.'); return; }
           const attempt = passwordValue(msg.password);
           if (room.password && !timingSafeEqual(room.password, passwordHash(room.salt, attempt))) { error(peer, '비밀번호가 일치하지 않습니다.'); return; }
-          seat(room, peer);
+          if (msg.type === 'watch') watch(room, peer); else { peer.spectator = false; seat(room, peer); }
         }
       } catch (e) { error(peer, e.message); }
       return;
     }
     const room = peer.room;
     if (!room) throw new Error('not in room');
+    if (msg.type === 'returnRoom' && !peer.spectator) {
+      if (!room.finished) { error(peer, '경기가 끝난 뒤 대기실로 돌아갈 수 있습니다.'); return; }
+      clearMatch(room);
+      broadcast(room, { type: 'reset' }); updateRoom(room); updateLobby(); return;
+    }
+    if (peer.spectator) {
+      if (msg.type === 'takeSeat') {
+        if (room.state || room.selectionId || room.peers.length >= 2) { error(peer, '경기가 끝나고 빈자리가 생기면 참가할 수 있습니다.'); return; }
+        room.spectators = room.spectators.filter(p => p !== peer);
+        delete peer.deadline; room.ready.clear();
+        seat(room, peer);
+      } else if (msg.type === 'resync' && msg.matchId === room.matchId) spectatorSnapshot(room, peer);
+      else error(peer, '관전 중에는 경기 조작이나 준비 상태를 변경할 수 없습니다.');
+      return;
+    }
     if (room.paused && now() >= room.deadline) { sweep(); return; }
+    if (msg.type === 'watchInstead') {
+      const forfeited = room.state && !room.settlement;
+      if (forfeited) settle(room, 1 - peer.side, 'forfeit');
+      peer.spectator = true; peer.side = null; room.spectators.push(peer);
+      send(peer, { type: 'joined', code: room.code, role: 'spectator', side: null });
+      removeRoomPeers(room, [peer], forfeited
+        ? '상대가 관전으로 전환하여 기권승 처리했습니다. 같은 방에서 새 상대를 기다려 주세요.'
+        : '상대가 관전으로 전환했습니다. 같은 방에서 새 상대를 기다려 주세요.', peer);
+      return;
+    }
     if (msg.type === 'character') {
-      if (room.state || room.ready.has(peer.side)) { error(peer, '준비를 취소한 뒤 캐릭터를 선택해 주세요.'); return; }
+      if (room.state || !room.selectionId || msg.selectionId !== room.selectionId || room.confirmed.has(peer.side)) { error(peer, '캐릭터 선택 화면에서 선택해 주세요.'); return; }
       if (!availableCharacters.has(msg.charId)) { error(peer, '선택할 수 없는 캐릭터입니다.'); return; }
       peer.charId = msg.charId; updateRoom(room); return;
     }
     if (msg.type === 'ready') {
-      if (room.state || room.peers.length !== 2) { error(peer, '상대가 참가한 후 준비할 수 있습니다.'); return; }
+      if (room.state || room.selectionId || room.peers.length !== 2) { error(peer, '상대가 참가한 후 준비할 수 있습니다.'); return; }
       if (msg.ready === false) room.ready.delete(peer.side); else room.ready.add(peer.side);
       updateRoom(room);
       if (room.ready.size === 2) {
+        room.selectionId = randomUUID(); room.confirmed = new Set();
+        updateRoom(room); updateLobby();
+      }
+      return;
+    }
+    if (msg.type === 'cancelSelection') {
+      if (!room.state && room.selectionId && msg.selectionId === room.selectionId) {
+        clearMatch(room); broadcast(room, { type: 'reset', reason: '캐릭터 선택을 취소했습니다. 다시 준비해 주세요.' }); updateRoom(room); updateLobby();
+      }
+      return;
+    }
+    if (msg.type === 'confirmCharacter') {
+      if (room.state || !room.selectionId || msg.selectionId !== room.selectionId || room.peers.length !== 2) { error(peer, '진행 중인 캐릭터 선택을 확인해 주세요.'); return; }
+      room.confirmed.add(peer.side); updateRoom(room);
+      if (room.confirmed.size === 2) {
         const seed = randomBytes(4).readUInt32LE();
         room.state = createMatch({ seed }); room.started = now(); room.matchId = randomUUID();
         room.epoch = 0; room.paused = false; room.deadline = null; room.syncing = false;
         room.next = [0, 0]; room.inputs = [new Map(), new Map()];
-        broadcast(room, { type: 'start', seed, matchId: room.matchId, players: roomView(room).players }); updateLobby();
+        room.spectatorInputs = [];
+        for (const p of room.peers) send(p, { type: 'start', seed, matchId: room.matchId, players: roomView(room).players });
+        for (const p of room.spectators) spectatorSnapshot(room, p);
+        updateLobby();
       }
       return;
-    }
-    if (msg.type === 'returnRoom') {
-      if (!room.finished) { error(peer, '경기가 끝난 뒤 대기실로 돌아갈 수 있습니다.'); return; }
-      room.state = null; room.matchId = null; room.ready.clear(); room.settlement = null; room.finished = false; room.resultSent = false;
-      broadcast(room, { type: 'reset' }); updateRoom(room); updateLobby(); return;
     }
     if (msg.type === 'resync' && msg.matchId === room.matchId) {
       if (!room.finished && !room.paused) synchronize(room);
@@ -243,7 +333,15 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
     if (relay) send(room.peers[1 - peer.side], { type: 'input', matchId: room.matchId, epoch: room.epoch, side: peer.side, frame, input });
     while (room.inputs.every((map) => map.has(room.state.frame))) {
       const f = room.state.frame;
-      room.state = stepMatch(room.state, room.inputs.map((map) => map.get(f)));
+      const pair = room.inputs.map((map) => map.get(f));
+      room.state = stepMatch(room.state, pair);
+      if (room.spectators.length) {
+        room.spectatorInputs.push(pair);
+        if (room.spectatorInputs.length >= 6 || room.state.phase === 'over') {
+          const inputs = room.spectatorInputs; room.spectatorInputs = [];
+          for (const p of room.spectators) send(p, { type: 'spectatorFrames', matchId: room.matchId, epoch: room.epoch, frame: room.state.frame - inputs.length, inputs });
+        }
+      }
       room.inputs.forEach((map) => map.delete(f));
       if (room.state.frame % 60 === 0) broadcast(room, { type: 'checksum', matchId: room.matchId, epoch: room.epoch, frame: room.state.frame, hash: stateHash(room.state) });
       if (room.state.phase === 'over' && !room.resultSent) {
@@ -261,7 +359,8 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
     return [...rooms.values()].map(room => ({ ...room,
       password: room.password?.toString('hex') ?? null,
       peers: room.peers.map(p => ({ profileId: p.profileId, side: p.side, charId: p.charId, disconnected: !!p.disconnected })),
-      ready: [...room.ready], acks: room.acks ? [...room.acks] : undefined,
+      spectators: room.spectators.map(p => ({ profileId: p.profileId, side: null, spectator: true, disconnected: !!p.disconnected, deadline: p.deadline })),
+      ready: [...room.ready], confirmed: [...(room.confirmed ?? [])], acks: room.acks ? [...room.acks] : undefined,
       inputs: room.inputs?.map(map => [...map]),
     }));
   }
@@ -269,13 +368,19 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
     rooms.clear(); peers.clear(); queue.clear();
     for (const value of saved) {
       const room = { ...value, password: value.password ? Buffer.from(value.password, 'hex') : null,
-        ready: new Set(value.ready), acks: value.acks ? new Set(value.acks) : undefined,
+        ready: new Set(value.ready), confirmed: new Set(value.confirmed ?? []), acks: value.acks ? new Set(value.acks) : undefined,
         inputs: value.inputs?.map(entries => new Map(entries)) };
       room.peers = value.peers.map(meta => {
         const peer = Object.assign(makePeer(meta), meta, { room });
         if (!peer.disconnected) peers.add(peer);
         return peer;
       });
+      room.spectators = (value.spectators ?? []).map(meta => {
+        const peer = Object.assign(makePeer(meta), meta, { room });
+        if (!peer.disconnected) peers.add(peer);
+        return peer;
+      });
+      room.spectatorInputs ??= [];
       rooms.set(room.code, room);
     }
   }

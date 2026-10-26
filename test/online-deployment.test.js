@@ -68,6 +68,10 @@ test('운영 서버는 Pages Origin만 허용하고 편집·정적 자료를 차
   a.send({ type: 'create' }); const { code } = await wait(a, 'joined');
   b.send({ type: 'join', code }); await wait(b, 'joined');
   a.send({ type: 'ready' }); b.send({ type: 'ready' });
+  for (const c of [a, b]) {
+    let m; do { m = await wait(c, 'room'); } while (m.room.phase !== 'selecting');
+    c.send({ type: 'confirmCharacter', selectionId: m.room.selectionId });
+  }
   const start = await wait(a, 'start'); await wait(b, 'start');
   for (let frame = 0; frame < 60; frame++) for (const c of [a, b]) c.send({ type: 'input', matchId: start.matchId, frame, input: 0 });
   const hashA = await wait(a, 'checksum'), hashB = await wait(b, 'checksum');

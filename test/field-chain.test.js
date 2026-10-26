@@ -5,7 +5,7 @@ import { createEffects, tickCharacters, tickEffect, setMood } from '../src/view/
 import { drawGame } from '../src/view/renderer.js';
 import { drawFieldChain, FIELD_CHAIN_FRAMES, FIELD_CHAIN_FADE, fieldChainPresentation } from '../src/view/field-chain.js';
 
-test('3연쇄부터 독립 시계로 재생하며 새 연쇄에서 재시작하고 최대 수명에 종료한다', () => {
+test('1연쇄부터 독립 시계로 재생하며 새 연쇄에서 재시작하고 최대 수명에 종료한다', () => {
   const match = createMatch({ seed: 42, playerCount: 1 }), player = match.players[0];
   const [effect] = createEffects(1);
   let age = 0;
@@ -14,9 +14,9 @@ test('3연쇄부터 독립 시계로 재생하며 새 연쇄에서 재시작하�
     const before = structuredClone(match);
     tickEffect(effect, player, { table: match.table, opponentSide: null });
     assert.deepEqual(match, before);
-    assert.deepEqual(effect.fieldChain, chain < 3 ? null : { chain, frame: 0, age, endFrame: null });
+    assert.deepEqual(effect.fieldChain, chain < 1 ? null : { chain, frame: 0, age, endFrame: null });
     tickCharacters([effect]);
-    if (chain >= 3) age += 1;
+    if (chain >= 1) age += 1;
   }
   setMood(effect, 'sad'); // 중앙 초상화가 피격으로 바뀌어도 이미 시작한 연쇄 컷은 유지한다.
   assert.equal(effect.fieldChain.frame, 1);

@@ -226,7 +226,7 @@ function orbArrival(orb) {
 function handleEvents(effect, player, opponentSide) {
   for (const event of player.events) {
     if (event.type === 'clear') {
-      effect.fieldChain = event.chain >= 3 ? { chain: event.chain, frame: 0,
+      effect.fieldChain = event.chain >= 1 ? { chain: event.chain, frame: 0,
         age: effect.fieldChain?.age ?? 0, endFrame: null } : null;
       const center = clearCenter(effect, event.groups);
       effect.chainLabels.push({ chain: event.chain, x: center.x, y: center.y, vy: 8, age: 0 });

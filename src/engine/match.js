@@ -52,24 +52,25 @@ function hasProjectileFrom(projectiles, from) {
   return projectiles.some((p) => p.from === from);
 }
 
-// 9.3절. 공격 생성, 도착(C → B), 확정(B → A).
+// 필드 계산 직후 등록해야 다음 플레이어가 같은 프레임의 공격도 상쇄한다.
+function registerAttacks(players, flying, from) {
+  if (players.length < 2) return;
+  for (const event of players[from].events) {
+    if (event.type !== 'attack') continue;
+    const to = 1 - from;
+    const target = players[to];
+    players[to] = { ...target, stocks: { ...target.stocks, c: Math.min(GARBAGE_CAP, target.stocks.c + event.amount) } };
+    flying.push({ from, to, framesLeft: event.afterOffset ? OFFSET_ARRIVAL_FRAMES : ATTACK_ARRIVAL_FRAMES, amount: event.amount });
+  }
+}
+
+// 9.3절. 필드 계산 후 연출 도착(C → B), 확정(B → A).
 function exchangeGarbage(players, projectiles) {
   let nextPlayers = players.slice();
   let flying = projectiles.slice();
   if (nextPlayers.length < 2) {
     return { players: nextPlayers, projectiles: [] };
   }
-
-  nextPlayers.forEach((player, from) => {
-    for (const event of player.events) {
-      if (event.type === 'attack') {
-        const to = 1 - from;
-        const target = nextPlayers[to];
-        nextPlayers[to] = { ...target, stocks: { ...target.stocks, c: Math.min(GARBAGE_CAP, target.stocks.c + event.amount) } };
-        flying.push({ from, to, framesLeft: event.afterOffset ? OFFSET_ARRIVAL_FRAMES : ATTACK_ARRIVAL_FRAMES, amount: event.amount });
-      }
-    }
-  });
 
   nextPlayers.forEach((player, from) => {
     if (player.events.some((e) => e.type === 'chainEnd') && !hasProjectileFrom(flying, from)) {
@@ -118,20 +119,24 @@ function stepMatch(match, inputs) {
   let world = { table: match.table, rng: match.rng, timer: match.timer };
   const over = match.phase === 'over';
   // 경기가 끝나면 진 쪽의 무너지는 연출만 진행한다.
-  const players = match.players.map((player, i) => {
+  const players = match.players.slice();
+  const flying = match.projectiles.slice();
+  for (let i = 0; i < players.length; i++) {
+    const player = players[i];
     if (over && !player.lost) {
-      return player;
+      continue;
     }
     const result = stepPlayer(player, over ? 0 : (inputs[i] ?? 0), world);
     world = result.world;
-    return result.player;
-  });
+    players[i] = result.player;
+    if (!over) registerAttacks(players, flying, i);
+  }
 
   if (over) {
     return { ...match, frame: match.frame + 1, players, rng: world.rng };
   }
 
-  const exchanged = exchangeGarbage(players, match.projectiles);
+  const exchanged = exchangeGarbage(players, flying);
   const anyLost = exchanged.players.some((p) => p.lost);
   const result = decideResult(exchanged.players);
   return {

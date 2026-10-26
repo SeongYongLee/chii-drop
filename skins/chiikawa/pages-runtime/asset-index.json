@@ -6,10 +6,28 @@
     "bytes": 1291333
   },
   {
-    "original": "drafts/battle-shouts-v1/chiikawa.png",
-    "file": "assets/88c6a11822cf5e00c98e.png",
-    "sha256": "88c6a11822cf5e00c98e8317aa7f71bf315e01da144dd0c536c547bed8308966",
-    "bytes": 1385680
+    "original": "drafts/chain-quality-v4/chiikawa-1-2.png",
+    "file": "assets/71f0a7aaa413929800f8.png",
+    "sha256": "71f0a7aaa413929800f8c52940636483b11750a8ca3f9371cf0d9783dce7d4c2",
+    "bytes": 1199459
+  },
+  {
+    "original": "drafts/chain-quality-v4/chiikawa-3-4.png",
+    "file": "assets/2a560fb6f579561a2c53.png",
+    "sha256": "2a560fb6f579561a2c53bfb54cc6185d976ecf83fc9877f2325f475cfd7477c8",
+    "bytes": 1109760
+  },
+  {
+    "original": "drafts/chain-quality-v4/chiikawa-5-6.png",
+    "file": "assets/57c99b8a62e17f4670a0.png",
+    "sha256": "57c99b8a62e17f4670a05f5e07eef3146b5235df593dcb991d3184c690d1d930",
+    "bytes": 1221889
+  },
+  {
+    "original": "drafts/chain-quality-v4/chiikawa-7.png",
+    "file": "assets/2f8a54abc1996730a4fd.png",
+    "sha256": "2f8a54abc1996730a4fde26b50433fe56f1f40b0e776082df978e9411beb1ef9",
+    "bytes": 1049152
   },
   {
     "original": "drafts/animation-v8/hachiware.png",
@@ -18,10 +36,28 @@
     "bytes": 1273362
   },
   {
-    "original": "drafts/battle-shouts-v1/hachiware.png",
-    "file": "assets/171fe7effee1533f59cd.png",
-    "sha256": "171fe7effee1533f59cdd6d414b75037ddd795de4ef5ea9cfd3f23d91ed81e13",
-    "bytes": 1449609
+    "original": "drafts/chain-quality-v4/hachiware-1-3.png",
+    "file": "assets/c844cb6fa32799cb873d.png",
+    "sha256": "c844cb6fa32799cb873dc68bce1cdcf60b9286ceee2e8c58b3dd641b833e50d6",
+    "bytes": 1701740
+  },
+  {
+    "original": "drafts/chain-quality-v4/hachiware-4-5.png",
+    "file": "assets/df4719dc10454ac56e74.png",
+    "sha256": "df4719dc10454ac56e740bee8bd0254867ed4c71e71ad44f5184e8204638e40a",
+    "bytes": 1808868
+  },
+  {
+    "original": "drafts/chain-quality-v4/hachiware-6-7.png",
+    "file": "assets/567a97054ecef8b481a2.png",
+    "sha256": "567a97054ecef8b481a2428e865e1253d98994f84176f1a93c8d7fe5d4b0330c",
+    "bytes": 1774960
+  },
+  {
+    "original": "drafts/chain-continuity-v3/hachiware.png",
+    "file": "assets/7f0b3f5638df5ef5b2f2.png",
+    "sha256": "7f0b3f5638df5ef5b2f209a07318229f6e150b5204e21805529b90a14c9efcdb",
+    "bytes": 1183444
   },
   {
     "original": "drafts/animation-v8/usagi.png",
@@ -36,16 +72,58 @@
     "bytes": 1115108
   },
   {
+    "original": "drafts/chain-quality-v4/usagi-1-2.png",
+    "file": "assets/0b22592b188f30976b94.png",
+    "sha256": "0b22592b188f30976b949fb22d95e39b0363c88afa76cb0ff50e2b0266984a38",
+    "bytes": 1167877
+  },
+  {
+    "original": "drafts/chain-quality-v4/usagi-7.png",
+    "file": "assets/f4f8fee27dc6ac4c6c4f.png",
+    "sha256": "f4f8fee27dc6ac4c6c4f3affded6d47b328981e10cedac9a1b772d7daea4bae0",
+    "bytes": 887302
+  },
+  {
+    "original": "drafts/chain-quality-v4/usagi-3-4.png",
+    "file": "assets/fbcab9b77a4a95e2bc36.png",
+    "sha256": "fbcab9b77a4a95e2bc36bbfcbbc5b2f7a5d2c9b37b65f5d63c0dd9ca967d2ce1",
+    "bytes": 1219660
+  },
+  {
+    "original": "drafts/chain-quality-v4/usagi-5-6.png",
+    "file": "assets/12766dfda640d46eafe2.png",
+    "sha256": "12766dfda640d46eafe2e2db6185b4cce7c2a6c7d1a7b0efafac6952cc67a33f",
+    "bytes": 1167413
+  },
+  {
     "original": "drafts/animation-v8/kurimanju.png",
     "file": "assets/e3e6440417b1f6a03c2d.png",
     "sha256": "e3e6440417b1f6a03c2d493b3a3e9520e1ff303fe97fa4c04342f634aaac8c13",
     "bytes": 1310512
   },
   {
-    "original": "drafts/chain-reactions-v2/kurimanju.png",
-    "file": "assets/4c6c15dcb8bd4ed3ff73.png",
-    "sha256": "4c6c15dcb8bd4ed3ff735faae1f265433ff20fed205a0689a1daaf955673c6db",
-    "bytes": 1316397
+    "original": "drafts/body-proportion-v1/kurimanju-1-4.png",
+    "file": "assets/4e2af6f10ef4dba4d359.png",
+    "sha256": "4e2af6f10ef4dba4d3599a4f397446669a95a03e1c0b6595b63adeb9a72ff6a2",
+    "bytes": 1373598
+  },
+  {
+    "original": "drafts/body-proportion-v1/kurimanju-2-3.png",
+    "file": "assets/585ad498681c8adc50d3.png",
+    "sha256": "585ad498681c8adc50d3c3da3d1459bca38a6b5352b05e28147009f5de2fa314",
+    "bytes": 1422489
+  },
+  {
+    "original": "drafts/body-proportion-v1/kurimanju-5-6.png",
+    "file": "assets/3034c8163a21fe6df518.png",
+    "sha256": "3034c8163a21fe6df5185ac5646ccfaaec49df2d0989453cdf6d47cc99870247",
+    "bytes": 1475381
+  },
+  {
+    "original": "drafts/body-proportion-v1/kurimanju-7.png",
+    "file": "assets/7d92cdef5486bb8400ca.png",
+    "sha256": "7d92cdef5486bb8400ca14445e8020e288e2ae26dc0f939353eda8ddf6b32ba2",
+    "bytes": 1072031
   },
   {
     "original": "drafts/animation-v8/momonga.png",

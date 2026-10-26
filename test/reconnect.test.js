@@ -14,7 +14,7 @@ function fixture() {
   const a = peer(), b = peer(); hello(lobby, a); hello(lobby, b);
   const token = last(a, 'welcome').token, tokenB = last(b, 'welcome').token;
   lobby.handle(a, { type: 'create', rated: true }); lobby.handle(b, { type: 'join', code: a.room.code });
-  lobby.handle(a, { type: 'ready' }); lobby.handle(b, { type: 'ready' });
+  lobby.handle(a, { type: 'ready' }); lobby.handle(b, { type: 'ready' }); lobby.handle(a, { type: 'confirmCharacter', selectionId: a.room.selectionId }); lobby.handle(b, { type: 'confirmCharacter', selectionId: b.room.selectionId });
   const room = a.room;
   const packet = (p, frame, epoch = room.epoch, input = 0) => lobby.handle(p, { type: 'input', matchId: room.matchId, epoch, frame, input });
   const ack = p => lobby.handle(p, { type: 'synced', matchId: room.matchId, epoch: room.epoch, hash: stateHash(room.state) });
@@ -53,7 +53,7 @@ test('disconnect freezes the match; token restores seat and both clients converg
 });
 test('grace expiry settles once and a late reconnect returns to the lobby', () => {
   const f = fixture(); f.lobby.disconnect(f.a); f.advance(30000); f.advance(30000);
-  assert.equal(f.lobby.rooms.size, 0); assert.equal(f.b.room, null);
+  assert.equal(f.lobby.rooms.size, 1); assert.equal(f.b.room, f.room); assert.equal(f.b.side, 0);
   assert.equal(f.lobby.profiles.get(f.a.profileId).rating, 1484);
   assert.equal(f.lobby.profiles.get(f.b.profileId).rating, 1516);
   assert.equal(f.b.messages.filter(m => m.type === 'settlement').length, 1);
@@ -63,7 +63,7 @@ test('both disconnected players recover; an incomplete acknowledgement cannot ex
   const f = fixture(); f.lobby.disconnect(f.a); f.lobby.disconnect(f.b);
   const a = peer(), b = peer(); hello(f.lobby, a, f.token); assert.ok(last(a, 'snapshot')); assert.equal(f.room.paused, true);
   hello(f.lobby, b, f.tokenB); assert.ok(last(a, 'snapshot')); f.ack(a);
-  f.advance(30000); assert.equal(f.lobby.rooms.size, 0);
+  f.advance(30000); assert.equal(f.lobby.rooms.size, 1); assert.equal(a.room, f.room);
   assert.equal(f.lobby.profiles.get(b.profileId).rating, 1484);
 });
 test('resync clears queued predictions, waits for both acknowledgements and ignores stale acknowledgements', () => {
@@ -77,7 +77,7 @@ test('resync clears queued predictions, waits for both acknowledgements and igno
   f.packet(f.a, 0, 1); f.packet(f.b, 0, 1); assert.equal(f.room.state.frame, 1);
 });
 test('explicit leave remains an immediate forfeit; both absent timeouts draw without double settlement', () => {
-  let f = fixture(); f.lobby.handle(f.a, { type: 'leave' }); assert.equal(f.lobby.rooms.size, 0);
+  let f = fixture(); f.lobby.handle(f.a, { type: 'leave' }); assert.equal(f.lobby.rooms.size, 1);
   assert.equal(f.lobby.profiles.get(f.a.profileId).rating, 1484);
   f = fixture(); f.lobby.disconnect(f.a); f.lobby.disconnect(f.b); f.advance(30000);
   assert.equal(f.lobby.profiles.get(f.a.profileId).rating, 1500); assert.equal(f.lobby.profiles.get(f.b.profileId).rating, 1500);

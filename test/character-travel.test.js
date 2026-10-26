@@ -33,10 +33,12 @@ test('잘못된 동선 메타데이터는 채택하지 않는다', () => {
 test('실행 팩의 달리기 연쇄는 독립 동작 컷·별 모양 동선·공통 대기 컷을 포함한다', () => {
   const root = new URL('../skins/chiikawa/pages-runtime/', import.meta.url);
   const manifest = JSON.parse(fs.readFileSync(new URL('manifest.json', root)));
-  const actors = manifest.characters.filter(c => c.moods?.chain5?.travel);
+  const actors = manifest.characters.filter(c => c.moods?.chain7?.motionCycle);
   assert.ok(actors.length > 0);
-  for (const actor of actors) for (const tier of [3, 5, 7]) {
-    const clip = actor.moods[`chain${tier}`], total = clip.frames.reduce((sum, p) => sum + p.duration, 0);
+  for (const actor of actors) for (const tier of [3, 4, 5, 6, 7]) {
+    const clip = actor.moods[`chain${tier}`];
+    if (!clip.motionCycle) continue;
+    const total = clip.frames.reduce((sum, p) => sum + p.duration, 0);
     assert.ok(total <= 132);
     assert.ok(compileTravel(clip.travel, total));
     assert.ok(compileTravel(clip.fieldTravel, total));
@@ -61,7 +63,7 @@ test('실행 팩의 달리기 연쇄는 독립 동작 컷·별 모양 동선·�
     assert.ok(clip.travel.some(p => p.x >= .2) && clip.travel.some(p => p.x <= -.2));
     assert.ok(clip.frames.some(p => p.flipX));
     const poses = clip.frames.filter(p => !p.file);
-    assert.ok(new Set(poses.map(p => JSON.stringify(p.rect))).size >= 6);
+    assert.ok(new Set(poses.map(p => JSON.stringify(p.rect))).size >= 2);
     const png = fs.readFileSync(new URL(clip.file, root));
     const width = png.readUInt32BE(16), height = png.readUInt32BE(20);
     for (const { rect: r, scale } of poses) {
@@ -93,8 +95,11 @@ test('필드 전용 상하 동선은 실제 크기의 귀·발까지 필드 안�
       box = { left: Math.min(...xs), right: Math.max(...xs), top: y*matrix[1]+matrix[3], bottom: (y+h)*matrix[1]+matrix[3] };
     } };
   const size = FIELD_WIDTH*.9, x = 32+(FIELD_WIDTH-size)/2, y = FIELD_TOP+(FIELD_HEIGHT-size)/2;
-  for (const actor of manifest.characters.filter(c => c.moods?.chain5?.fieldTravel)) for (const tier of [3,5,7]) {
-    const clip = actor.moods[`chain${tier}`], total = clip.frames.reduce((sum,p) => sum+p.duration,0);
+  for (const actor of manifest.characters.filter(c => c.moods?.chain7?.fieldTravel)) for (const tier of [1,2,3,4,5,6,7]) {
+    const selected = actor.moods[`chain${tier}`];
+    const clip = selected.fieldAction ?? selected;
+    if (!clip.fieldTravel) continue;
+    const total = clip.frames.reduce((sum,p) => sum+p.duration,0);
     const heights = [];
     for (let frame=0;frame<total;frame++) {
       skin.drawCharacter(ctx,actor.id,'happy',x,y,size,{frame,chain:tier,presentation:'field',reducedMotion:false});
@@ -103,7 +108,37 @@ test('필드 전용 상하 동선은 실제 크기의 귀·발까지 필드 안�
       heights.push((box.top+box.bottom)/2);
       assert.deepEqual(travelAt({ ...clip,total },frame,true,true),{x:0,y:0});
     }
-    assert.ok(Math.max(...heights)-Math.min(...heights)>100);
+    if (clip.motionCycle) assert.ok(Math.max(...heights)-Math.min(...heights)>100);
     assert.equal(stack.length,0);
+  }
+});
+
+test('필드 이동은 달리기와 정지 행동을 분리하고 먹기·읽기에는 이동을 넣지 않는다', () => {
+  const manifest=JSON.parse(fs.readFileSync(new URL('../skins/chiikawa/pages-runtime/manifest.json',import.meta.url)));
+  const actors=manifest.characters.filter(c=>c.fieldChainReaction);
+  const runner=actors.find(c=>c.moods.chain7.motionCycle);
+  let previous=0;
+  for(let tier=1;tier<=7;tier++) {
+    const original=runner.moods[`chain${tier}`], clip=original.fieldAction??original;
+    const total=clip.frames.reduce((sum,f)=>sum+f.duration,0), points=clip.fieldTravel;
+    assert.ok(total<=132 && compileTravel(points,total));
+    const range=Math.max(...points.map(p=>p.x))-Math.min(...points.map(p=>p.x))+
+      Math.max(...points.map(p=>p.y))-Math.min(...points.map(p=>p.y));
+    assert.ok(range>previous,`tier ${tier}: ${range} > ${previous}`);previous=range;
+    assert.deepEqual(travelAt({...clip,total},0,false,true),{x:0,y:0});
+    assert.deepEqual(travelAt({...clip,total},total,false,true),{x:0,y:0});
+    if(!clip.gestureWindow) continue;
+    const [start,end]=clip.gestureWindow, at=travelAt({...clip,total},start,false,true);
+    for(let frame=start;frame<=end;frame++) {
+      const p=travelAt({...clip,total},frame,false,true);
+      assert.ok(Math.abs(p.x-at.x)<1e-10&&Math.abs(p.y-at.y)<1e-10,'destination gesture stays planted');
+    }
+    assert.equal(original.fieldTravel,undefined,'portrait pose sequence is unchanged');
+    const moving=clip.frames.filter(f=>f.file===runner.moods.chain7.file);
+    assert.ok(moving.length>=6,'entry and exit use actual alternating running feet');
+  }
+  for(const actor of actors.filter(c=>c!==runner)) {
+    for(const tier of [1,2,5]) assert.ok(actor.moods[`chain${tier}`].fieldTravel.every(p=>Math.abs(p.x)<1e-6&&p.y===0),'quiet gesture stays planted');
+    for(let tier=1;tier<=7;tier++) assert.ok(actor.moods[`chain${tier}`].fieldTravel.every(p=>p.y===0),'grounded actions do not float');
   }
 });

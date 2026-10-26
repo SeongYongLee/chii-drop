@@ -98,11 +98,11 @@ test('혼자 수천 프레임을 진행해도 오류 없이 많은 쌍을 놓는
   }
 });
 
-test('보통 CPU는 4개 묶음을 완성하는 자리를 고른다', () => {
-  // 0열에 1이 세 개 쌓여 있고, 받을 방해 블록이 있어 지우는 편이 낫다.
+test('보통 CPU는 방해 예고에 연쇄 준비를 허용해도 실제 조작으로 묶음을 지운다', () => {
+  // 예고가 한 줄이어도 첫 쌍의 소거를 강제하지 않고 이후 소거까지 확인한다.
   const cells = fieldFromRows(['1.....', '1.3.4.', '1.2.4.']);
   const match = soloMatch(1, cells, { pair: [1, 2], stocks: { a: 0, b: 6, c: 0 } });
-  const { events } = playOnePiece(match, createCpu({ level: 'hard', seed: 1 }));
+  const { events } = playSolo(match, createCpu({ level: 'hard', seed: 1 }), 1500);
   const clear = events.find((e) => e.type === 'clear');
   assert.ok(clear, '지우기가 일어나지 않았다');
   assert.equal(clear.groups[0].color, 1);

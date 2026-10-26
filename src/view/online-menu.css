@@ -83,6 +83,20 @@
 .online-shell tr.me { background:#f9e6ec; }
 .online-shell #room-view { background:none; border:0; padding:4px; gap:12px; }
 .online-shell #room-title { font-size:26px; }
+.online-shell .room-header { align-items:flex-start; flex:none; }
+.online-shell .room-heading { flex:1; min-width:0; }
+.online-shell .room-invite { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.online-shell .room-code-badge { display:flex; align-items:center; gap:10px; padding:6px 12px; min-height:44px; border:2px solid #c5a86e; border-radius:12px; background:#fff0c5; color:#59452d; }
+.online-shell .room-code-badge span { font-size:12px; font-weight:700; white-space:nowrap; }
+.online-shell #room-code { font:800 24px/1.1 ui-monospace,monospace; letter-spacing:2px; white-space:nowrap; user-select:all; }
+.online-shell .room-invite button { min-height:44px; padding:6px 12px; font-size:13px; white-space:nowrap; }
+.online-shell #share-value { margin-top:8px; user-select:all; }
+.online-shell[data-narrow=true] .room-header { position:relative; display:block; }
+.online-shell[data-narrow=true] .room-meta { padding-right:90px; }
+.online-shell[data-narrow=true] .room-header>#leave { position:absolute; top:0; right:0; }
+.online-shell[data-narrow=true] .room-invite { gap:6px; }
+.online-shell[data-narrow=true] .room-code-badge { width:100%; justify-content:center; }
+.online-shell[data-narrow=true] .room-invite button { flex:1; }
 .online-shell .seats { position:relative; gap:36px; align-content:stretch; }
 .online-shell .seats::after { content:'VS'; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-8deg); padding:8px 3px; font-size:30px; font-weight:900; color:#aa8060; background:var(--paper); border-radius:50%; pointer-events:none; }
 .online-shell .seat { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:#f3f0e6; border:2px solid #c4b69d; padding:14px; }
@@ -389,6 +403,14 @@
 .online-shell[data-flat=true] #room-view > .section-head > div { max-width:calc(100% - 190px); }
 .online-shell[data-flat=true] #room-title,.online-shell[data-flat=true] #room-info { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .online-shell[data-flat=true] #room-view > .section-head .eyebrow { display:none; }
+.online-shell[data-flat=true] .room-meta { display:none; }
+.online-shell[data-flat=true] .room-header { display:flex; position:static; }
+.online-shell[data-flat=true] .room-header>#leave { position:static; }
+.online-shell[data-flat=true] .room-invite { flex-wrap:nowrap; margin:0; gap:4px; }
+.online-shell[data-flat=true] .room-code-badge { width:auto; padding:4px 6px; gap:4px; }
+.online-shell[data-flat=true] .room-code-badge span { display:none; }
+.online-shell[data-flat=true] #room-code { font-size:18px; letter-spacing:1px; }
+.online-shell[data-flat=true] .room-invite button { padding:4px 6px; font-size:11px; }
 .online-shell[data-flat=true] .seats { grid-column:1; grid-row:2; grid-template-columns:minmax(0,1fr); grid-template-rows:repeat(2,minmax(0,1fr)); gap:8px; }
 .online-shell[data-flat=true] .seat { display:grid; grid-template-columns:auto minmax(0,1fr); grid-template-rows:auto auto; align-content:center; justify-items:start; gap:0 4px; padding:2px 6px 2px 44px; }
 .online-shell[data-flat=true] .seat canvas { width:32px; max-height:32px; }
@@ -423,3 +445,263 @@
 @media (max-width:680px) {
   .online-shell[data-queued=true] .back { white-space:nowrap; padding-inline:6px; }
 }
+
+.room-entry-actions { display:flex; flex:none; gap:6px; }
+.spectator-badge { position:absolute; top:max(8px,env(safe-area-inset-top)); left:max(12px,env(safe-area-inset-left)); z-index:7; padding:6px 14px; border:2px solid var(--line); border-radius:14px; background:var(--paper); font-weight:700; }
+.online-shell[data-spectating=true] #touch-controls,
+.online-shell[data-spectating=true] .keyboard-help { display:none !important; }
+@media (max-width:600px) {
+  .room-entry-actions { flex-direction:column; }
+  .online-shell .room-entry-actions button { min-height:44px; padding:6px 10px; }
+  .online-shell[data-spectating=true][data-playing=true] #game-view { grid-template-rows:minmax(0,1fr); }
+}
+.online-shell[data-spectating=true][data-playing=true] #game-view { grid-template-rows:minmax(0,1fr); }
+
+.room-spectators { display:flex; align-items:baseline; gap:8px; min-width:0; flex:none; }
+.room-spectators h3 { flex:none; margin:0; font-size:13px; }
+#spectator-list { display:flex; flex-wrap:wrap; gap:4px 6px; list-style:none; padding:0; margin:0; min-width:0; }
+.spectator-name { display:flex; align-items:center; gap:5px; padding:3px 8px; border:1px solid var(--line); border-radius:12px; background:#f7f0df; font-size:12px; overflow-wrap:anywhere; }
+.spectator-self { font-size:10px; color:#916078; font-weight:700; }
+.spectator-connection,.spectator-empty { font-size:11px; color:var(--muted); }
+.online-shell[data-flat=true]:not([data-playing=true]) #room-view { grid-template-rows:44px minmax(0,1fr) auto 48px; }
+.online-shell[data-flat=true] .room-spectators { grid-column:1/-1; grid-row:3; align-self:center; }
+.online-shell[data-flat=true] .room-bottom { grid-row:4; }
+.online-shell[data-flat=true] .spectator-name { padding:1px 5px; font-size:10px; }
+.online-shell[data-flat=true] .room-spectators h3 { font-size:11px; }
+
+/* 대전석 · 관전석 · 내 준비 영역을 독립된 패널로 구분한다. */
+.online-shell:not([data-playing=true]) #room-view {
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(220px,28%);
+  grid-template-rows:auto minmax(0,1fr) auto auto; gap:10px;
+}
+.online-shell #room-view > .room-header { grid-column:1/-1; grid-row:1; }
+.room-arena { grid-column:1; grid-row:2; display:flex; flex-direction:column; gap:8px; min-width:0; min-height:0; }
+.room-zone-heading { display:flex; align-items:center; gap:10px; }
+.room-zone-heading h3 { font-size:15px; margin:0; }
+.room-zone-heading > span { font-size:11px; padding:3px 8px; border-radius:8px; background:#eae1d2; color:#746252; font-weight:700; }
+.online-shell .room-arena .seats { gap:24px; }
+.online-shell .room-arena .seat { border-radius:18px; padding:10px; }
+.online-shell .room-spectators {
+  grid-column:2; grid-row:2 / 4; display:flex; flex-direction:column; align-items:stretch; align-self:stretch;
+  min-width:0; min-height:0; gap:10px; padding:14px; border:2px solid #90aab3; border-radius:18px;
+  background:#eaf3f3; box-shadow:0 4px 0 #819da026; overflow:hidden;
+}
+.spectator-panel-heading { display:flex; align-items:center; gap:8px; flex:none; color:#3e626b; }
+.audience-mark { display:grid; place-items:center; width:30px; height:30px; border-radius:10px; background:#c5dfe2; color:#39646f; font-size:22px; }
+.online-shell .room-spectators h3 { margin:0; font-size:17px; font-weight:800; }
+.spectator-total { margin-left:auto; padding:4px 9px; border-radius:10px; background:#fffdf5; border:1px solid #a6bdc1; font-size:16px; color:#365d67; }
+.spectator-hint { font-size:11px; color:#627e83; flex:none; }
+.online-shell #spectator-list { display:grid; grid-template-columns:minmax(0,1fr); gap:7px; min-height:0; overflow:auto; align-content:start; }
+.online-shell .spectator-name { display:flex; align-items:center; gap:8px; min-width:0; padding:8px; border:1px solid #c0d4d7; border-radius:12px; background:#fffefa; font-size:13px; }
+.spectator-avatar { width:32px; height:32px; display:grid; place-items:center; flex:none; border-radius:50%; background:#dbeaed; color:#42636c; font-weight:800; }
+.spectator-details { display:flex; flex-direction:column; min-width:0; gap:2px; }
+.spectator-details strong { font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.spectator-details small { font-size:10px; color:#5b7b6c; }
+.spectator-details small::before { content:'●'; margin-right:4px; font-size:8px; }
+.spectator-name.is-self { border-color:#bd8299; background:#fff1f5; }
+.spectator-self { margin-left:auto; font-size:10px; flex:none; font-weight:800; color:#9d607a; }
+.spectator-name.is-offline { opacity:.65; }
+.spectator-name.is-offline small { color:#897c68; }
+.spectator-empty { padding:22px 8px; text-align:center; border:1px dashed #a6bec3; border-radius:12px; color:#637f87; font-size:12px; }
+.online-shell .room-characters { grid-column:1; grid-row:3; padding:10px 12px; border:2px solid #d3c5b1; border-radius:16px; background:#fffaf0; }
+.online-shell .room-characters .section-head { margin-bottom:5px; }
+.online-shell .room-characters h3 { font-size:14px; }
+.online-shell .room-bottom { grid-column:1/-1; grid-row:4; border:2px solid #d0c2aa; }
+.game-audience { position:absolute; z-index:7; top:max(8px,env(safe-area-inset-top)); right:max(12px,env(safe-area-inset-right)); display:flex; align-items:center; gap:5px; padding:7px 12px; border:2px solid #91adb5; border-radius:14px; background:#eaf4f1ed; color:#3d6570; font-size:13px; font-weight:700; pointer-events:none; }
+.game-audience > span { font-size:18px; }
+.online-shell[data-narrow=true]:not([data-flat=true]):not([data-playing=true]) #room-view { grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr) auto auto auto; gap:8px; }
+.online-shell[data-narrow=true]:not([data-flat=true]) .room-arena { grid-column:1; grid-row:2; gap:5px; }
+.online-shell[data-narrow=true]:not([data-flat=true]) .room-spectators { grid-column:1; grid-row:3; padding:8px 10px; gap:5px; }
+.online-shell[data-narrow=true]:not([data-flat=true]) #spectator-list { grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px; }
+.online-shell[data-narrow=true]:not([data-flat=true]) .spectator-name { padding:5px; gap:4px; }
+.online-shell[data-narrow=true]:not([data-flat=true]) .spectator-avatar { width:22px; height:22px; font-size:11px; }
+.online-shell[data-narrow=true]:not([data-flat=true]) .spectator-details strong { font-size:10px; }
+.online-shell[data-narrow=true]:not([data-flat=true]) .spectator-details small { display:none; }
+.online-shell[data-narrow=true]:not([data-flat=true]) .spectator-hint { display:none; }
+.online-shell[data-narrow=true]:not([data-flat=true]) .room-characters { grid-column:1; grid-row:4; padding:6px 8px; }
+.online-shell[data-narrow=true]:not([data-flat=true]) .room-bottom { grid-column:1; grid-row:5; }
+.online-shell[data-flat=true]:not([data-playing=true]) #room-view { grid-template-columns:minmax(0,1fr) minmax(168px,30%); grid-template-rows:44px minmax(0,1fr) auto 44px; gap:5px 8px; }
+.online-shell[data-flat=true] .room-arena { grid-column:1; grid-row:2; gap:3px; }
+.online-shell[data-flat=true] .room-zone-heading { display:none; }
+.online-shell[data-flat=true] .room-arena .seats { gap:8px; }
+.online-shell[data-flat=true] .room-arena .seat { padding:2px 6px; border-radius:12px; }
+.online-shell[data-flat=true] .room-spectators { grid-column:2; grid-row:2 / 4; padding:6px; gap:4px; border-radius:12px; }
+.online-shell[data-flat=true] .room-spectators h3 { font-size:13px; }
+.online-shell[data-flat=true] .audience-mark { width:22px; height:22px; font-size:17px; border-radius:7px; }
+.online-shell[data-flat=true] .spectator-total { padding:1px 6px; font-size:12px; }
+.online-shell[data-flat=true] .spectator-hint { display:none; }
+.online-shell[data-flat=true] #spectator-list { grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px; }
+.online-shell[data-flat=true] .spectator-name { padding:3px; gap:3px; border-radius:7px; }
+.online-shell[data-flat=true] .spectator-avatar { width:16px; height:16px; font-size:9px; }
+.online-shell[data-flat=true] .spectator-details strong { font-size:10px; }
+.online-shell[data-flat=true] .spectator-details small { display:none; }
+.online-shell[data-flat=true] .spectator-self { font-size:8px; }
+.online-shell[data-flat=true] .room-characters { grid-column:1; grid-row:3; padding:3px 6px; border-radius:10px; }
+.online-shell[data-flat=true] .room-characters .section-head { display:none; }
+.online-shell[data-flat=true] .character-options button { flex-direction:row; min-height:32px; padding:2px; gap:3px; }
+.online-shell[data-flat=true] .character-options canvas { width:24px; }
+.online-shell[data-flat=true] .room-bottom { grid-column:1/-1; grid-row:4; padding:2px 6px; }
+@media (orientation:landscape) and (max-height:500px) and (max-width:960px) { .game-audience { top:auto; bottom:max(8px,env(safe-area-inset-bottom)); right:max(10px,env(safe-area-inset-right)); } }
+
+/* 캐릭터 선택은 두 사람의 준비가 끝난 뒤 별도 화면에서 진행한다. */
+.character-select-view { flex:1; min-height:0; display:grid; grid-template-rows:auto minmax(0,1fr) auto auto; gap:12px; padding:14px; border:2px solid var(--line); border-radius:20px; background:#fffdf5ee; }
+.selection-header { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.selection-header h2 { font-size:26px; }
+.selection-header p { font-size:12px; color:var(--muted); }
+.selection-players { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; min-height:0; }
+.selection-player { min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; border:2px solid #c9b69e; border-radius:18px; background:#f6f0e4; overflow:hidden; }
+.selection-player canvas { width:min(160px,20vh); max-height:60%; object-fit:contain; }
+.selection-player h3 { font-size:18px; }
+.selection-player p { font-size:12px; color:var(--muted); }
+.selection-player.is-confirmed { border-color:#93aa7d; background:#eef3df; }
+.selection-player.is-confirmed p { color:#56703e; font-weight:800; }
+.selection-choices { padding:8px; border-radius:14px; background:#f3eadc; }
+.selection-footer { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.selection-footer .primary { min-width:180px; }
+.online-shell[data-selecting=true] .status-bar { display:none; }
+.online-shell[data-selecting=true] main { gap:0; }
+.online-shell[data-narrow=true] .selection-header h2 { font-size:21px; }
+.online-shell[data-narrow=true] .character-select-view { padding:10px; gap:8px; }
+@media (orientation:landscape) and (max-height:560px) and (max-width:1200px) {
+  :host .online-shell:not([data-playing=true]) #room-view { grid-template-columns:minmax(0,1fr) minmax(164px,30%); grid-template-rows:44px minmax(0,1fr) 44px; gap:5px 8px; }
+  :host .online-shell:not([data-playing=true]) .room-header { grid-column:1/-1; grid-row:1; display:flex; position:static; }
+  :host .online-shell:not([data-playing=true]) .room-meta { display:none; }
+  :host .online-shell:not([data-playing=true]) .room-header>#leave { position:static; }
+  :host .online-shell:not([data-playing=true]) .room-invite { flex-wrap:nowrap; margin:0; gap:4px; }
+  :host .online-shell:not([data-playing=true]) .room-code-badge { width:auto; padding:4px 6px; gap:4px; }
+  :host .online-shell:not([data-playing=true]) .room-code-badge span { display:none; }
+  :host .online-shell:not([data-playing=true]) #room-code { font-size:18px; letter-spacing:1px; }
+  :host .online-shell:not([data-playing=true]) .room-invite button { padding:4px 6px; font-size:11px; }
+  :host .online-shell:not([data-playing=true]) .room-arena { grid-column:1; grid-row:2; gap:0; }
+  :host .online-shell:not([data-playing=true]) .room-zone-heading { display:none; }
+  :host .online-shell:not([data-playing=true]) .room-arena .seats { gap:10px; }
+  :host .online-shell:not([data-playing=true]) .room-arena .seat { padding:4px; border-radius:12px; }
+  :host .online-shell:not([data-playing=true]) .seat canvas { width:52px; }
+  :host .online-shell:not([data-playing=true]) .seat h3 { font-size:12px; margin:2px; }
+  :host .online-shell:not([data-playing=true]) .seat p { font-size:10px; }
+  :host .online-shell:not([data-playing=true]) .room-spectators { grid-column:2; grid-row:2; padding:6px; gap:4px; border-radius:12px; }
+  :host .online-shell:not([data-playing=true]) .room-spectators h3 { font-size:13px; }
+  :host .online-shell:not([data-playing=true]) .audience-mark { width:22px; height:22px; font-size:16px; }
+  :host .online-shell:not([data-playing=true]) .spectator-total { padding:1px 6px; font-size:12px; }
+  :host .online-shell:not([data-playing=true]) .spectator-hint { display:none; }
+  :host .online-shell:not([data-playing=true]) #spectator-list { grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px; }
+  :host .online-shell:not([data-playing=true]) .spectator-name { padding:3px; gap:3px; }
+  :host .online-shell:not([data-playing=true]) .spectator-avatar { width:16px; height:16px; font-size:9px; }
+  :host .online-shell:not([data-playing=true]) .spectator-details strong { font-size:10px; }
+  :host .online-shell:not([data-playing=true]) .spectator-details small { display:none; }
+  :host .online-shell:not([data-playing=true]) .room-bottom { grid-column:1/-1; grid-row:3; padding:2px 6px; }
+  .character-select-view { grid-template-rows:40px minmax(0,1fr) 44px 44px; gap:5px; padding:8px; }
+  .selection-header h2 { font-size:20px; }
+  .selection-header .eyebrow,.selection-header p { display:none; }
+  .selection-player { display:grid; grid-template-columns:64px minmax(0,1fr); grid-template-rows:repeat(3,auto); align-content:center; justify-items:center; gap:0 5px; padding:4px; border-radius:12px; }
+  .selection-player canvas { grid-column:1; grid-row:1/4; width:64px; max-height:none; }
+  .selection-player .eyebrow,.selection-player h3,.selection-player p { grid-column:2; font-size:11px; }
+  .selection-choices { padding:2px; }
+  .selection-choices .character-options button { flex-direction:row; min-height:38px; padding:2px; gap:2px; font-size:11px; }
+  .selection-choices .character-options canvas { width:28px; }
+}
+.selection-player.is-self:not(.is-confirmed) { border-color:#be8296; background:#fae8ee; }
+.online-shell .room-bottom { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; }
+.online-shell .room-bottom > button { white-space:nowrap; }
+.online-shell .room-bottom > p { min-width:0; }
+.online-shell[data-narrow=true]:not([data-flat=true]) .room-bottom { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.online-shell[data-narrow=true]:not([data-flat=true]) .room-bottom > p { grid-column:1/-1; font-size:11px; }
+.online-shell[data-narrow=true]:not([data-flat=true]) .room-bottom > button { min-width:0; width:100%; font-size:12px; padding:6px; }
+.online-shell[data-narrow=true][data-spectating=true]:not([data-flat=true]) #take-seat { grid-column:1/-1; }
+.online-shell .room-arena .seat { overflow:hidden; }
+.online-shell[data-narrow=true] .room-arena .seat canvas { width:clamp(44px,11vh,92px); }
+@media (orientation:landscape) and (max-height:560px) and (max-width:1200px) {
+  :host .online-shell:not([data-playing=true]) .room-bottom { grid-template-columns:minmax(0,1fr) auto auto; }
+  :host .online-shell:not([data-playing=true]) .room-bottom > p { grid-column:auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px; }
+  :host .online-shell:not([data-playing=true]) .room-bottom > button { width:auto; min-width:90px; padding:4px 8px; }
+}
+
+/* 대전석과 관전석에 같은 패널·참가자 카드 형식을 사용한다. */
+:host .online-shell:not([data-playing=true]) #room-view { grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:auto minmax(0,1fr) auto; }
+:host .online-shell .room-arena,:host .online-shell .room-spectators { display:flex; flex-direction:column; align-items:stretch; align-self:stretch; min-height:0; padding:14px; gap:10px; border:2px solid #b9aa90; border-radius:18px; background:#fffaf0; box-shadow:0 3px 0 #8b775b20; overflow:hidden; }
+:host .online-shell .room-arena { grid-column:1; grid-row:2; }
+:host .online-shell .room-spectators { grid-column:2; grid-row:2; }
+:host .online-shell .room-zone-heading,:host .online-shell .spectator-panel-heading { display:flex; align-items:center; gap:8px; min-height:32px; flex:none; }
+:host .online-shell .room-zone-heading h3,:host .online-shell .room-spectators h3 { font-size:17px; font-weight:800; margin:0; }
+:host .online-shell .room-zone-heading .audience-mark { background:#efd3df; color:#8b586e; }
+:host .online-shell .spectator-hint { font-size:11px; min-height:16px; margin:0; }
+:host .online-shell .room-arena .seats,:host .online-shell #spectator-list { display:grid; grid-template-columns:minmax(0,1fr); grid-auto-rows:minmax(68px,auto); grid-template-rows:none; align-content:start; gap:8px; flex:1; min-height:0; overflow:auto; }
+:host .online-shell .room-arena .seats::after { display:none; }
+:host .online-shell .room-arena .seat,:host .online-shell .spectator-name { display:flex; flex-direction:row; align-items:center; justify-content:flex-start; text-align:left; gap:10px; min-width:0; min-height:68px; padding:10px; border:2px solid #d1c4b1; border-radius:13px; background:#fffefa; box-shadow:none; }
+:host .online-shell .room-arena .seat.mine,:host .online-shell .spectator-name.is-self { border-color:#bf8298; background:#fff0f4; }
+:host .online-shell .room-arena .seat.is-ready { border-color:#97ac80; background:#f0f5e4; }
+:host .online-shell .room-arena .seat canvas,:host .online-shell .spectator-avatar { width:44px; height:44px; max-height:none; flex:none; border-radius:50%; background:#e7ece5; object-fit:contain; font-size:17px; }
+:host .online-shell .participant-details,:host .online-shell .spectator-details { min-width:0; flex:1; }
+:host .online-shell .participant-details .eyebrow { font-size:10px; }
+:host .online-shell .participant-details h3,:host .online-shell .spectator-details strong { font-size:14px; font-weight:750; margin:2px 0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+:host .online-shell .participant-details p,:host .online-shell .spectator-details small { display:block; font-size:11px; color:#71806a; }
+:host .online-shell .spectator-empty { display:grid; place-items:center; min-height:68px; }
+:host .online-shell .room-bottom { grid-column:1/-1; grid-row:3; }
+@media (orientation:portrait) and (max-width:760px) {
+  :host .online-shell:not([data-playing=true]) #room-view { grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr) auto auto; }
+  :host .online-shell .room-arena { grid-column:1; grid-row:2; padding:9px; gap:6px; }
+  :host .online-shell .room-spectators { grid-column:1; grid-row:3; padding:9px; gap:6px; }
+  :host .online-shell #spectator-list { grid-template-columns:repeat(2,minmax(0,1fr)); grid-auto-rows:minmax(48px,auto); gap:5px; }
+  :host .online-shell .spectator-name { min-height:48px; padding:6px; gap:6px; }
+  :host .online-shell .spectator-avatar { width:28px; height:28px; font-size:12px; }
+  :host .online-shell .spectator-details strong { font-size:11px; }
+  :host .online-shell .spectator-details small { font-size:10px; }
+  :host .online-shell .room-bottom { grid-column:1; grid-row:4; }
+  :host .online-shell .room-zone-heading h3,:host .online-shell .room-spectators h3 { font-size:15px; }
+  :host .online-shell .spectator-hint { display:none; }
+}
+@media (orientation:landscape) and (max-height:560px) and (max-width:1200px) {
+  :host .online-shell:not([data-playing=true]) #room-view { grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:44px minmax(0,1fr) 44px; }
+  :host .online-shell .room-arena,:host .online-shell .room-spectators { padding:6px; gap:4px; }
+  :host .online-shell .room-zone-heading,:host .online-shell .spectator-panel-heading { min-height:24px; gap:5px; }
+  :host .online-shell .room-zone-heading h3,:host .online-shell .room-spectators h3 { font-size:13px; }
+  :host .online-shell .room-arena .seats,:host .online-shell #spectator-list { grid-auto-rows:minmax(38px,auto); gap:4px; }
+  :host .online-shell #spectator-list { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  :host .online-shell .room-arena .seat,:host .online-shell .spectator-name { min-height:38px; padding:4px; gap:5px; border-radius:9px; }
+  :host .online-shell .room-arena .seat canvas,:host .online-shell .spectator-avatar { width:28px; height:28px; font-size:11px; }
+  :host .online-shell .participant-details h3,:host .online-shell .spectator-details strong { font-size:11px; }
+  :host .online-shell .participant-details .eyebrow,:host .online-shell .participant-details p,:host .online-shell .spectator-details small { font-size:9px; }
+  :host .online-shell .spectator-hint { display:none; }
+}
+:host .online-shell .room-arena .seat canvas { position:static; inset:auto; transform:none; margin:0; }
+:host .online-shell:not([data-playing=true]) .room-zone-heading { display:flex; }
+:host .online-shell .room-spectators .spectator-avatar { width:44px; height:44px; }
+:host .online-shell .room-spectators .spectator-details small { display:block; }
+@media (orientation:portrait) and (max-width:760px), (orientation:landscape) and (max-height:560px) and (max-width:1200px) {
+  :host .online-shell .room-spectators .spectator-avatar { width:28px; height:28px; font-size:11px; }
+  :host .online-shell .room-spectators .spectator-details small { font-size:9px; }
+}
+
+/* 대전자는 카드 목록 대신 캐릭터 두 명과 VS 구도로 보여준다. */
+:host .online-shell .room-arena .seats { position:relative; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:minmax(0,1fr); grid-auto-rows:auto; align-content:stretch; gap:14px; overflow:hidden; }
+:host .online-shell .room-arena .seats::after { display:block; font-size:26px; padding:5px; background:#fffaf0; }
+:host .online-shell .room-arena .seat,
+:host .online-shell .room-arena .seat.mine,
+:host .online-shell .room-arena .seat.is-ready { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; min-height:0; padding:8px 4px; gap:8px; border:0; border-radius:0; background:transparent; box-shadow:none; }
+:host .online-shell .room-arena .seat canvas { width:clamp(72px,17vh,150px); height:auto; aspect-ratio:1; max-height:48%; flex:0 1 auto; background:transparent; border-radius:0; }
+:host .online-shell .room-arena .participant-details { flex:none; width:100%; }
+:host .online-shell .room-arena .participant-details .eyebrow { font-size:12px; font-weight:800; }
+:host .online-shell .room-arena .participant-details h3 { font-size:17px; margin:5px 0; }
+:host .online-shell .room-arena .participant-details p { font-size:11px; color:var(--muted); }
+:host .online-shell .room-arena .seat.mine .eyebrow { color:#a3617d; }
+:host .online-shell .room-arena .seat.is-ready .participant-details p { color:#58733d; font-weight:800; }
+@media (orientation:portrait) and (max-width:760px) {
+  :host .online-shell .room-arena .seat canvas { width:clamp(64px,13vh,108px); }
+  :host .online-shell .room-arena .participant-details h3 { font-size:14px; }
+}
+@media (orientation:landscape) and (max-height:560px) and (max-width:1200px) {
+  :host .online-shell .room-arena .seat { padding:2px; gap:2px; }
+  :host .online-shell .room-arena .seat canvas { width:48px; max-height:45%; }
+  :host .online-shell .room-arena .participant-details .eyebrow { font-size:9px; }
+  :host .online-shell .room-arena .participant-details h3 { font-size:11px; margin:2px 0; }
+  :host .online-shell .room-arena .participant-details p { font-size:9px; }
+  :host .online-shell .room-arena .seats::after { font-size:16px; }
+}
+/* 게임 프레임 높이가 낮아도 캐릭터가 flex 축소로 사라지지 않는다. */
+:host .online-shell[data-compact=true] .room-arena .seat { flex-direction:row; gap:6px; padding:4px 2px; }
+:host .online-shell[data-compact=true] .room-arena .seat canvas { width:44px; height:44px; max-height:none; flex:none; }
+:host .online-shell[data-compact=true] .room-arena .participant-details { width:auto; min-width:0; flex:1; }
+:host .online-shell[data-compact=true] .room-arena .participant-details .eyebrow { font-size:10px; }
+:host .online-shell[data-compact=true] .room-arena .participant-details h3 { font-size:12px; margin:3px 0; }
+:host .online-shell[data-compact=true] .room-arena .participant-details p { font-size:9px; }
+:host .online-shell[data-compact=true] .room-arena .seats::after { font-size:18px; padding:2px; }

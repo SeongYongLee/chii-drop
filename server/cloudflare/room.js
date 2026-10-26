@@ -3,6 +3,7 @@ import { createRooms } from '../rooms.js';
 import { createProfileStore } from '../profiles.js';
 import manifest from '../../skins/chiikawa/pages-runtime/manifest.json';
 import { PROTOCOL } from '../../src/net/rollback.js';
+import { ROOM_CAPACITY, PLAYER_CAPACITY, SPECTATOR_CAPACITY } from '../../src/net/room-capacity.js';
 import { RULES_VERSION } from '../../src/engine/rules.js';
 import { accept, checkVersion, closeUnauthenticated, parseMessage, rateLimit, readState, send, setupStorage, writeState } from './shared.js';
 
@@ -45,8 +46,9 @@ export class GameRoom extends DurableObject {
   room() { return this.lobby.rooms.values().next().value; }
   view() {
     const room = this.room();
-    return room ? { code: room.code, name: room.name, rated: room.rated, locked: !!room.password, mode: 'duel', capacity: 2,
-      phase: room.state ? 'playing' : 'waiting', players: room.peers.map(p => ({ ...this.profileCache[p.profileId], side: p.side, charId: p.charId, ready: room.ready.has(p.side) })) } : null;
+    return room ? { code: room.code, name: room.name, rated: room.rated, locked: !!room.password, mode: 'duel', capacity: PLAYER_CAPACITY, memberCapacity: ROOM_CAPACITY,
+      spectators: room.spectators.length, spectatorCapacity: SPECTATOR_CAPACITY, spectatorIds: room.spectators.map(p => p.profileId),
+      phase: room.state ? 'playing' : room.selectionId ? 'selecting' : 'waiting', selectionId: room.selectionId ?? null, players: room.peers.map(p => ({ ...this.profileCache[p.profileId], side: p.side, charId: p.charId, ready: room.ready.has(p.side), confirmed: room.confirmed?.has(p.side) ?? false })) } : null;
   }
   makePeer(ws) {
     const peer = { ws, send: msg => this.emit(peer, msg) };
@@ -58,7 +60,11 @@ export class GameRoom extends DurableObject {
     if (['profile', 'rankings', 'settlement'].includes(msg.type)) return;
     if (['checksum', 'result', 'finished'].includes(msg.type)) this.dirty = true;
     this.deliveries.push([peer.ws, msg]);
-    if (msg.type === 'ended') this.deliveries.push([peer.ws, { type: 'route', code: null }]);
+    if (msg.type === 'ended') {
+      // 방별 소켓은 로비로 이동한다. 이전 인증 객체가 같은 방 재입장을 막지 않게 정리한다.
+      this.lobby.peers.delete(peer);
+      this.deliveries.push([peer.ws, { type: 'route', code: null }]);
+    }
   }
   persist() {
     this.meter.writes++; this.revision++;
@@ -97,7 +103,7 @@ export class GameRoom extends DurableObject {
         if (this.room()?.matchId === match.id) this.room().settlement = result.result;
         delete this.pending[match.id];
         this.persist(); await this.ctx.storage.sync();
-        for (const peer of this.room()?.peers ?? []) {
+        for (const peer of [...(this.room()?.peers ?? []), ...(this.room()?.spectators ?? [])]) {
           this.deliveries.push([peer.ws, { type: 'settlement', matchId: match.id, result: result.result }]);
           this.deliveries.push([peer.ws, { type: 'profile', profile: this.profileCache[peer.profileId] }]);
           this.deliveries.push([peer.ws, { type: 'rankings', rankings: result.rankings }]);
@@ -137,20 +143,21 @@ export class GameRoom extends DurableObject {
     const room = this.room();
     let desired = Object.keys(this.pending).length ? Date.now() + 2000 : null;
     if (room) desired = Math.min(desired ?? Infinity, room.paused ? room.deadline : room.state && !room.finished ? Date.now() + 10000 : this.expires);
+    for (const p of room?.spectators ?? []) if (p.disconnected) desired = Math.min(desired ?? Infinity, p.deadline);
     const current = await this.ctx.storage.getAlarm();
     if (desired !== null && (current === null || desired < current)) await this.ctx.storage.setAlarm(desired);
     else if (desired === null && current !== null) await this.ctx.storage.deleteAlarm();
   }
-  fetch() { return accept(this.ctx, 6); }
+  fetch() { return accept(this.ctx, 10); }
   reserve(profile, options) {
     return this.enqueue(() => {
       if (this.code && this.code !== options.code) throw new Error('invalid room');
-      if (this.room()?.peers.some(p => p.profileId === profile.id)) return this.view();
+      if ([...(this.room()?.peers ?? []), ...(this.room()?.spectators ?? [])].some(p => p.profileId === profile.id)) return this.view();
       this.profileCache[profile.id] = profile;
       const peer = this.makePeer(null); peer.silent = true; this.identity = { profile };
       try {
         this.lobby.handle(peer, { type: 'hello', protocol: PROTOCOL, rulesVersion: RULES_VERSION });
-        this.lobby.handle(peer, options.type === 'create' ? options : { type: 'join', code: this.code, password: options.password });
+        this.lobby.handle(peer, options.type === 'create' ? options : { type: options.type, code: this.code, password: options.password });
       } finally { this.identity = null; }
       if (!peer.room) { this.lobby.peers.delete(peer); throw new Error('방 설정·비밀번호 또는 입장 가능 여부를 확인해 주세요.'); }
       if (options.type === 'create') {
@@ -158,6 +165,7 @@ export class GameRoom extends DurableObject {
         this.lobby.rooms.delete(peer.room.code); peer.room.code = this.code; this.lobby.rooms.set(this.code, peer.room);
       }
       peer.disconnected = true; this.lobby.peers.delete(peer);
+      if (peer.spectator) peer.deadline = Date.now() + Number(this.env.RECONNECT_GRACE_MS ?? 30000);
       this.dirty = true;
       return this.view();
     });
@@ -171,10 +179,11 @@ export class GameRoom extends DurableObject {
           try { checkVersion(msg); } catch (error) { this.deliveries.push([ws, { type: 'incompatible', reason: error.message }]); return; }
           if (meta.profileId || typeof msg.token !== 'string') throw new Error('authentication required');
           const identity = await this.env.DIRECTORY.getByName('lobby').identify(msg.token);
-          if (!this.room()?.peers.some(p => p.profileId === identity.profile.id)) {
+          const members = [...(this.room()?.peers ?? []), ...(this.room()?.spectators ?? [])];
+          if (!members.some(p => p.profileId === identity.profile.id)) {
             this.deliveries.push([ws, { type: 'route', code: null }]); return;
           }
-          if (this.room().peers.some(p => p.profileId === identity.profile.id && !p.disconnected)) {
+          if (members.some(p => p.profileId === identity.profile.id && !p.disconnected)) {
             this.deliveries.push([ws, { type: 'error', retryable: true, reason: '이전 연결을 확인하고 있습니다. 잠시 후 재접속합니다.' }]); return;
           }
           this.profileCache[identity.profile.id] = identity.profile;
@@ -185,9 +194,10 @@ export class GameRoom extends DurableObject {
           this.dirty = true;
           return;
         }
-        const peer = this.room()?.peers.find(p => p.profileId === meta.profileId && p.ws === ws && !p.disconnected);
+        const peer = [...(this.room()?.peers ?? []), ...(this.room()?.spectators ?? [])].find(p => p.profileId === meta.profileId && p.ws === ws && !p.disconnected);
         if (!peer) throw new Error('먼저 방에 접속해 주세요.');
         const wasFinished = !!this.room().finished;
+        const wasPlaying = !!this.room().state;
         this.lobby.handle(peer, msg);
         if (['input', 'inputBatch'].includes(msg.type)) {
           this.meter.inputMessages++; this.meter.inputFrames += msg.type === 'inputBatch' ? msg.inputs.length : 1;
@@ -195,14 +205,14 @@ export class GameRoom extends DurableObject {
         this.actions[peer.profileId] = Date.now();
         if (['input', 'inputBatch'].includes(msg.type)) this.volatile = true;
         else this.dirty = true;
-        if ((wasFinished && msg.type === 'returnRoom') || (!wasFinished && this.room()?.finished)) this.expires = Date.now() + 600000;
+        if ((wasPlaying && !this.room()?.state) || ['leave', 'takeSeat', 'watchInstead'].includes(msg.type) || (wasFinished && msg.type === 'returnRoom') || (!wasFinished && this.room()?.finished)) this.expires = Date.now() + 600000;
       } catch (error) { this.deliveries.push([ws, { type: 'error', reason: error.message }]); }
     });
   }
   webSocketClose(ws) {
     return this.enqueue(() => {
       const id = ws.deserializeAttachment()?.profileId;
-      const peer = this.room()?.peers.find(p => p.profileId === id && p.ws === ws);
+      const peer = [...(this.room()?.peers ?? []), ...(this.room()?.spectators ?? [])].find(p => p.profileId === id && p.ws === ws);
       if (peer && !peer.disconnected) { this.lobby.disconnect(peer); this.dirty = true; }
     });
   }
@@ -217,8 +227,12 @@ export class GameRoom extends DurableObject {
           this.lobby.disconnect(peer); peer.ws?.close(1001, 'Idle');
         }
       }
+      const wasPlaying = !!room.state;
       this.lobby.sweep();
-      if (this.room() && (!room.state || room.finished) && Date.now() >= this.expires) this.lobby.leave(room.peers[0]);
+      if (wasPlaying && this.room() && !this.room().state) this.expires = Date.now() + 600000;
+      if (this.room() && (!room.state || room.finished) && Date.now() >= this.expires) {
+        for (const p of [...room.peers, ...room.spectators]) this.lobby.leave(p);
+      }
       this.dirty = true;
     });
   }

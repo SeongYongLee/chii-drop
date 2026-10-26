@@ -1,7 +1,8 @@
 import { attachTouchControls } from '../net/touch.js';
-import { setTouchKeys } from './keyboard.js';
+import { setTouchKeys, MENU_KEYS } from './keyboard.js';
 import { createTouchLayoutEditor } from './touch-layout.js';
 import { createPauseDialog } from './pause-dialog.js';
+import { renderSetupCards, updateSetupSelection, animateSetupCards, createSetupPicker } from './setup-cards.js';
 
 export const MOBILE_INPUT = Object.freeze({ left: 1, right: 2, down: 4, cw: 8, ccw: 16,
   up: 32, confirm: 64, back: 128, pause: 256 });
@@ -35,26 +36,55 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
   const backButton = menu.querySelector?.('[data-input="128"]');
   const media = view.matchMedia('(pointer: coarse), (max-width: 760px), (max-height: 500px) and (max-width: 960px)');
   let context = {}, key = '', queued = 0, localPlayer = 0, start = null, enabled = false, itemsKey = '';
+  let setupItemsKey = '', noticeKey = '';
   const pauseDialog=createPauseDialog(view,{
     opened:()=>clearEditorInput(),
     choose:index=>{onUnlock();context.items?.[index]?.activate();sync()},
+  });
+  const setupPicker = createSetupPicker(view, {
+    opened: () => clearEditorInput(),
+    choose: (index, delta) => { onUnlock(); context.items?.[index]?.activate(delta); sync(); },
+    closed: index => nativeItems.querySelector?.(`[data-setup-field="${index}"]`)?.focus({ preventScroll: true }),
   });
   function clearEditorInput() { clear(); keyboard.held.clear(); keyboard.pressed.clear(); keyboard.rotationInputs?.clear(); }
   const editor = game.querySelectorAll ? createTouchLayoutEditor({ view, game,
     onOpen: clearEditorInput, onClose: () => { clearEditorInput(); sync(); } }) : null;
   function renderItems() {
     const items = context.items ?? [];
-    const signature = JSON.stringify([context.columns, items.map(({ label, value, disabled, selected, adjustable }) =>
-      [label, value, disabled, selected, adjustable])]);
+    const signature = JSON.stringify([context.layout, context.setup, context.columns, items.map(({ label, value, disabled, selected, adjustable, previewKey, compactLabel, sectionLabel }) =>
+      [label, value, disabled, selected, adjustable, previewKey, compactLabel, sectionLabel])]);
     if (signature === itemsKey) return;
     itemsKey = signature;
+    if (context.layout === 'match-setup') {
+      nativeItems.dataset.columns = '2'; nativeItems.dataset.grouped = 'false';
+      const contentKey = JSON.stringify([context.setup, items.map(({ selected, ...item }) => item)]);
+      if (setupItemsKey === contentKey) {
+        updateSetupSelection(nativeItems, items, view.document.activeElement?.dataset?.setupField !== undefined);
+        return;
+      }
+      setupItemsKey = contentKey;
+      renderSetupCards(view.document, nativeItems, items, context.setup, (index, delta) => {
+        onUnlock(); context.items?.[index]?.activate(delta); sync();
+      }, index => { context.items?.[index]?.focus?.(); sync(); }, setupPicker ? index => setupPicker.open(index, context.items?.[index]) : undefined);
+      return;
+    }
+    setupItemsKey = '';
     const focused = nativeItems.contains?.(view.document.activeElement) ? view.document.activeElement : null;
     const focusIndex = focused ? [...nativeItems.querySelectorAll('button')].indexOf(focused) : -1;
     const focusLabel = focused?.dataset?.itemLabel;
     nativeItems.replaceChildren(); nativeItems.hidden = !items.length;
     nativeItems.dataset.columns = String(context.columns ?? 1);
+    nativeItems.dataset.grouped = String(items.some(item => item.sectionLabel));
     items.forEach((item, index) => {
+      if (item.sectionLabel) {
+        const heading = view.document.createElement('div');
+        heading.className = 'mobile-item-heading'; heading.textContent = item.sectionLabel;
+        heading.setAttribute('role', 'heading'); heading.setAttribute('aria-level', '3');
+        nativeItems.append(heading);
+      }
       const row = view.document.createElement('div'); row.className = 'mobile-item';
+      row.dataset.adjustable = String(Boolean(item.adjustable));
+      row.dataset.compact = String(Boolean(item.compactLabel));
       const makeButton = (text, delta, ariaLabel) => {
         const button = view.document.createElement('button'); button.type = 'button';
         button.dataset.itemLabel = item.label;
@@ -63,7 +93,22 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
         button.addEventListener('click', () => { onUnlock(); context.items?.[index]?.activate(delta); sync(); });
         row.append(button); return button;
       };
-      const button = makeButton(item.value === undefined ? item.label : `${item.label} · ${item.value}`, 1);
+      const fullLabel = item.value === undefined ? item.label : `${item.label} · ${item.value}`;
+      const button = item.compactLabel ? view.document.createElement('span') : makeButton(fullLabel, 1, fullLabel);
+      if (item.compactLabel) {
+        button.className = 'mobile-stepper-value'; button.textContent = String(item.value);
+        button.setAttribute('aria-live', 'polite'); row.append(button);
+      }
+      if (item.drawPreview) {
+        button.classList.add('mobile-character-card');
+        const portrait = view.document.createElement('canvas');
+        portrait.width = portrait.height = 160;
+        portrait.className = 'mobile-character-preview'; portrait.setAttribute('aria-hidden', 'true');
+        const preview = portrait.getContext('2d');
+        if (preview) item.drawPreview(preview, 160);
+        const name = view.document.createElement('span'); name.textContent = item.label;
+        button.replaceChildren(portrait, name);
+      }
       if (item.selected) button.setAttribute('aria-current', 'true');
       if (item.adjustable) {
         makeButton('−', -1, `${item.label} 줄이기`); makeButton('+', 1, `${item.label} 늘리기`);
@@ -80,11 +125,13 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
     if (context.local) context = { ...context, player: localPlayer };
     const nextKey = `${context.enabled}:${context.mode}:${context.player}:${context.paused}`;
     if (nextKey !== key) { clear(); key = nextKey; }
-    const active = Boolean(context.enabled && media.matches && !editor?.editing);
+    const active = Boolean(context.enabled && (media.matches || context.layout === 'match-setup') && !editor?.editing);
     if (enabled !== active) { enabled = active; touch.setEnabled(enabled); }
     const modalPause=Boolean(context.enabled && context.paused && pauseDialog);
     if (menuButton) menuButton.hidden = !context.enabled || media.matches || context.mode !== 'game' || Boolean(context.paused);
-    container.hidden = !media.matches||modalPause;
+    container.hidden = (!media.matches && context.layout !== 'match-setup') || modalPause;
+    container.dataset.menuLayout = context.layout ?? '';
+    if (view.document.body) view.document.body.dataset.menuLayout = active ? (context.layout ?? '') : '';
     menu.hidden = context.mode === 'game'; game.hidden = context.mode !== 'game';
     if (container.dataset.mode !== context.mode) container.dataset.mode = context.mode;
     if (view.document.body) view.document.body.dataset.touchMode = active ? (modalPause && context.gameScreen ? 'game' : context.mode) : 'none';
@@ -94,20 +141,52 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
     confirmButton.hidden = Boolean(context.direct);
     confirmButton.textContent = context.title ? '시작' : '결정';
     if(backButton)backButton.hidden=Boolean(context.title||context.hideBack);
-    if(notice){notice.hidden=!context.notice;if(notice.textContent!==context.notice)notice.textContent=context.notice??'';}
+    if (notice) {
+      notice.hidden = !context.notice;
+      const nextNoticeKey = JSON.stringify([context.notice, context.noticeSummary]);
+      if (noticeKey !== nextNoticeKey) {
+        noticeKey = nextNoticeKey;
+        if (context.noticeSummary) {
+          const details = view.document.createElement('details');
+          const summary = view.document.createElement('summary'); summary.textContent = context.noticeSummary;
+          const text = view.document.createElement('p'); text.textContent = context.notice;
+          details.append(summary, text); notice.replaceChildren(details);
+        } else notice.textContent = context.notice ?? '';
+      }
+    }
     renderItems();
+    if (context.layout === 'match-setup') animateSetupCards(nativeItems, context.items ?? [], context.animationFrame ?? 0);
     pauseDialog?.sync(context.items??[],modalPause);
     const text = context.label ?? (context.enabled ? '메뉴 선택' : '불러오는 중…');
+    label.hidden = !text;
     if (label.textContent !== text) label.textContent = text;
     playerButton.hidden = !context.local;
     const playerText = `${localPlayer + 1}P 조작 · 전환`;
     if (playerButton.textContent !== playerText) playerButton.textContent = playerText;
   }
+  view.addEventListener('keydown', event => {
+    if (setupPicker?.isOpen || context.layout !== 'match-setup' || !['Enter', 'Space'].includes(event.code)) return;
+    if (event.target === backButton) {
+      event.preventDefault(); event.stopImmediatePropagation();
+      onUnlock(); queued |= MOBILE_INPUT.back;
+      return;
+    }
+    const selected = nativeItems.querySelector?.('select[aria-current="true"]');
+    if (!selected || selected.disabled) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    selected.focus({ preventScroll: true });
+    try { if (setupPicker) setupPicker.open(Number(selected.dataset.setupField), context.items?.[Number(selected.dataset.setupField)]); else selected.showPicker?.(); } catch { /* 지원하지 않는 환경에서도 선택 항목의 포커스는 유지한다. */ }
+  }, true);
   menuButton?.addEventListener?.('click', () => { onUnlock(); clearEditorInput(); onPause?.(); sync(); });
   for (const type of ['keydown', 'keyup']) menuButton?.addEventListener?.(type, event => event.stopPropagation());
   playerButton.addEventListener('click', () => { localPlayer = 1 - localPlayer; clear(); sync(); });
   // 포커스된 터치 버튼의 Enter가 전역 키보드 입력으로 한 번 더 들어가지 않게 한다.
-  for (const event of ['keydown', 'keyup']) container.addEventListener(event, (e) => e.stopPropagation());
+  for (const event of ['keydown', 'keyup']) container.addEventListener(event, (e) => {
+    if (context.layout === 'match-setup' && e.target?.tagName === 'SELECT' && (e.code === 'Enter' || e.code === 'Space')) { e.stopPropagation(); return; }
+    if (context.layout === 'match-setup' && Object.values(MENU_KEYS).some(codes => codes.includes(e.code))) {
+      e.preventDefault(); // select 자체의 값 변경·버튼 클릭과 게임의 프레임 입력이 중복되지 않게 한다.
+    } else e.stopPropagation();
+  });
   container.addEventListener('pointerdown', () => onUnlock());
   container.addEventListener('click', () => onUnlock());
   for (const type of ['contextmenu', 'selectstart', 'dragstart']) canvas.addEventListener(type, (event) => event.preventDefault());

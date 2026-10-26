@@ -1,2 +1,6 @@
-// 임시 공개 범위. 구현과 저장 기록은 유지하고 메뉴·직접 진입을 함께 제한한다.
-export const MODES = Object.freeze({ story: false, multiplayer: false, online: false });
+// 공개 메뉴는 로컬 대전까지 제공한다. 스토리·온라인 대전은 준비 중이다.
+export function modesForURL() {
+  return Object.freeze({ story: false, multiplayer: true, online: false });
+}
+
+export const MODES = modesForURL(globalThis.location?.href);

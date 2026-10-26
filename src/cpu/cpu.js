@@ -4,7 +4,7 @@ import { nextPairs, warningCount } from '../engine/player.js';
 import { createRng, randomInt } from '../engine/rng.js';
 import { COLS, SPAWN_HEIGHT, UNIT } from '../engine/rules.js';
 import { evaluatePlacements } from './evaluate.js';
-import { createBuildSearch, advanceBuildSearch, buildSearchResults } from './planner.js';
+import { canAbsorb, createBuildSearch, advanceBuildSearch, buildSearchResults } from './planner.js';
 
 const CPU_LEVELS = [
   { id: 'beginner', label: '입문' },
@@ -22,11 +22,11 @@ const LEVEL_PARAMS = {
   beginner: { thinkDelay: 12, dropDelayFrames: 208, mistakePercent: 40, mistakePool: 8, targetChain: 2, depth: 1, beamWidth: 2, buildWeight: 8 },
   easy: { thinkDelay: 10, dropDelayFrames: 156, mistakePercent: 40, mistakePool: 14, targetChain: 2, depth: 1, beamWidth: 3, buildWeight: 14 },
   normal: { thinkDelay: 8, dropDelayFrames: 108, mistakePercent: 45, mistakePool: 14, targetChain: 3, depth: 1, beamWidth: 4, buildWeight: 25 },
-  hard: { thinkDelay: 7, dropDelayFrames: 100, mistakePercent: 42, mistakePool: 14, targetChain: 3, depth: 1, beamWidth: 5, buildWeight: 26 },
-  expert: { thinkDelay: 5, dropDelayFrames: 84, mistakePercent: 35, mistakePool: 12, targetChain: 4, depth: 2, beamWidth: 7, buildWeight: 30, watchOpponent: true },
-  master: { thinkDelay: 3, dropDelayFrames: 60, mistakePercent: 25, mistakePool: 10, targetChain: 5, depth: 2, beamWidth: 9, buildWeight: 34, watchOpponent: true },
+  hard: { thinkDelay: 7, dropDelayFrames: 100, mistakePercent: 42, mistakePool: 14, targetChain: 3, depth: 1, beamWidth: 5, buildWeight: 26, recoverUnderPressure: true, recoveryHeadroom: 2 },
+  expert: { thinkDelay: 5, dropDelayFrames: 84, mistakePercent: 35, mistakePool: 12, targetChain: 4, depth: 2, beamWidth: 7, buildWeight: 30, watchOpponent: true, recoverUnderPressure: true },
+  master: { thinkDelay: 3, dropDelayFrames: 60, mistakePercent: 25, mistakePool: 10, targetChain: 5, depth: 2, beamWidth: 9, buildWeight: 34, watchOpponent: true, recoverUnderPressure: true },
   // 달인은 기존 최상위 성능을 유지하며 이동·회전 직후 대기 없이 내린다.
-  grandmaster: { thinkDelay: 0, dropDelayFrames: 0, mistakePercent: 0, mistakePool: 1, targetChain: 6, depth: 2, beamWidth: 12, buildWeight: 45, watchOpponent: true, attackCrowdedOpponent: true },
+  grandmaster: { thinkDelay: 0, dropDelayFrames: 0, mistakePercent: 0, mistakePool: 1, targetChain: 7, depth: 2, beamWidth: 12, buildWeight: 45, watchOpponent: true, attackCrowdedOpponent: true, recoverUnderPressure: true, recoverCrowdedField: true },
 };
 
 const MAX_STALL = 3;
@@ -86,6 +86,18 @@ function plan(cpu, player, table, ranked = rankFeverPlacements(player, table), i
   let { rng } = cpu;
   let choice = safe[0] ?? ranked[0];
 
+  // 모든 난이도에서 최상위 동점 배치는 CPU 자체 난수로 나눈다.
+  // 피버의 목표 연쇄·다음 연쇄 우선순위도 함께 보존한다.
+  if (choice) {
+    const tied = safe.filter(option => option.value === choice.value && (!player.fever
+      || (option.chains === choice.chains && option.nextChains === choice.nextChains)));
+    if (tied.length > 1) {
+      const pick = randomInt(rng, tied.length);
+      rng = pick.state;
+      choice = tied[pick.value];
+    }
+  }
+
   const mistake = rollPercent(rng, params.mistakePercent);
   rng = mistake.rng;
   if (mistake.hit && safe.length > 0) {
@@ -95,7 +107,10 @@ function plan(cpu, player, table, ranked = rankFeverPlacements(player, table), i
     const mustClear = incoming >= COLS && safe.every(option => option.chains > 0);
     const alternatives = params.mistakePool > safe.length
       ? evaluatePlacements(player.board.cells, player.piece, warningCount(player))
-        .filter(option => !option.lethal && (!mustClear || option.chains > 0) && !known.has(`${option.x}:${option.orient}`)) : [];
+        .filter(option => !option.lethal && (!mustClear || option.chains > 0)
+          && (!params.recoverUnderPressure || incoming < COLS || option.chains > 0
+            || canAbsorb(option.field, incoming, params.recoveryHeadroom))
+          && !known.has(`${option.x}:${option.orient}`)) : [];
     const candidates = [...safe, ...alternatives];
     const pick = randomInt(rng, Math.min(params.mistakePool, candidates.length));
     rng = pick.state;

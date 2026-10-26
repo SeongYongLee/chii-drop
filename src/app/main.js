@@ -13,8 +13,9 @@ import { captureUiScreen, createUiTransition, reducedUiMotion } from '../view/ui
 import { SKIN_DIR, STORY_DIR, loadSkin } from '../view/skins/index.js';
 import { skinImageFiles } from '../view/skins/image-skin.js';
 import { drawFestivalBackground } from '../view/festival.js';
+import { applyPageBackdrop } from '../view/battle-backgrounds.js';
 
-import { createCpuLevelMenu, createCharacterSelect, createMainMenu, createSinglePlayerMenu, createMultiplayerMenu, createTitleScene } from './menu-scenes.js';
+import { createMatchSetup, createMainMenu, createSinglePlayerMenu, createMultiplayerMenu, createTitleScene } from './menu-scenes.js';
 import { SCREEN_HEIGHT, SCREEN_WIDTH, screenHeight, setupScreen } from './screen.js';
 import { loadRecords, loadSettings } from './storage.js';
 import { MODES } from './modes.js';
@@ -53,13 +54,8 @@ const app = {
     app.scene = scene;
     app.mobile?.clear();
     app.mobile?.sync();
-    const scenery = scene.backgroundScene?.() ?? (scene.touchGame?.() ? 'game' : scene.touchTitle ? 'title' : 'menu');
-    const background = app.skin?.backgroundUrl?.(scenery);
-    ctx.pageBackdrop = Boolean(background);
-    if (document.body?.style) {
-      document.body.dataset.pageBackdrop = String(Boolean(background));
-      document.body.style.setProperty('--page-backdrop', background ? `url(${JSON.stringify(background)})` : 'none');
-    }
+    const scenery = scene.backgroundScene?.(app.skin) ?? (scene.touchGame?.() ? 'game' : scene.touchTitle ? 'title' : 'menu');
+    applyPageBackdrop(ctx, app.skin, scenery);
     app.updateMusic();
   },
   musicScene() {
@@ -79,8 +75,7 @@ const app = {
     app.singlePlayerMenu ??= createSinglePlayerMenu();
     app.setScene(app.singlePlayerMenu);
   },
-  goToCharacterSelect(options) { app.setScene(createCharacterSelect(options)); },
-  goToCpuLevelMenu(options) { app.setScene(createCpuLevelMenu(options)); },
+  goToMatchSetup(options) { app.setScene(createMatchSetup(options)); },
   goToMultiplayer() {
     if (!MODES.multiplayer) return;
     app.multiplayerMenu ??= createMultiplayerMenu();
@@ -96,7 +91,7 @@ const app = {
 };
 
 app.openOnline = async () => {
-  if (!MODES.multiplayer) return;
+  if (!MODES.multiplayer || !MODES.online) return;
   app.openOnline = createOnlineView(app, canvas);
   return app.openOnline();
 };
@@ -117,12 +112,16 @@ app.mobile = attachMobileControls({ view: window, canvas, container: document.ge
   getContext: () => ({ enabled: Boolean(app.scene) && !app.onlineActive,
     mode: app.scene?.touchMode?.() ?? 'menu', player: app.scene?.touchPlayer?.() ?? null,
     gameScreen: app.scene?.touchGame?.() ?? false,
+    layout: app.scene?.touchLayout,
+    animationFrame: app.animationFrame,
+    setup: app.scene?.touchSetup,
     paused: app.scene?.touchPaused?.() ?? false,
     hideBack: app.scene?.touchHideBack?.() ?? false,
     backPlayer: app.scene?.touchBackPlayer?.() ?? null,
     local: app.scene?.touchLocal?.() ?? false,
     label: app.scene?.touchLabel?.(app),
     notice: app.scene?.touchNotice?.(app),
+    noticeSummary: app.scene?.touchNoticeSummary?.(app),
     items: app.scene?.touchItems?.(app), direct: typeof app.scene?.touchDirect === 'function'
       ? app.scene.touchDirect() : app.scene?.touchDirect === true,
     title: app.scene?.touchTitle === true, columns: app.scene?.touchColumns ?? 1,
@@ -190,6 +189,8 @@ function tick(now) {
     clearPressed(app.keyboard);
     accumulator -= FRAME_MS;
   }
+  applyPageBackdrop(ctx, app.skin, app.scene.backgroundScene?.(app.skin)
+    ?? (app.scene.touchGame?.() ? 'game' : app.scene.touchTitle ? 'title' : 'menu'));
   app.scene.draw(ctx, app);
   uiTransition.draw(ctx, SCREEN_WIDTH, screenHeight(ctx));
   requestAnimationFrame(tick);
@@ -198,4 +199,4 @@ function tick(now) {
 if (app.scene) requestAnimationFrame(tick);
 
 // 로컬과 Pages가 같은 공개 연결 설정을 사용한다.
-void loadOnlineConfig().then(info => { app.onlineAvailable = MODES.multiplayer && info.enabled; if (['#online', '#play', '#new-room', '#leaderboard', '#controls'].includes(window.location?.hash) && MODES.multiplayer && (MODES.online || info.enabled)) void app.openOnline(); });
+void loadOnlineConfig().then(info => { app.onlineAvailable = MODES.multiplayer && MODES.online && info.enabled; if (['#online', '#play', '#new-room', '#leaderboard', '#controls'].includes(window.location?.hash) && MODES.multiplayer && MODES.online && info.enabled) void app.openOnline(); });

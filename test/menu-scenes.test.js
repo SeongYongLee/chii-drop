@@ -1,7 +1,7 @@
 import { MOCK_SKIN, MOCK_SCRIPT } from './fixtures/presentation.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createMainMenu, createSinglePlayerMenu, createMultiplayerMenu, createCpuLevelMenu, createCharacterSelect } from '../src/app/menu-scenes.js';
+import { createMainMenu, createSinglePlayerMenu, createMultiplayerMenu, createMatchSetup } from '../src/app/menu-scenes.js';
 import { DEFAULT_SETTINGS } from '../src/app/storage.js';
 import { createKeyboard } from '../src/input/keyboard.js';
 
@@ -27,54 +27,19 @@ function harness() {
   return { app, press, labels, figures, wait };
 }
 
-test('모바일의 큰 항목 버튼과 화면 터치로 메뉴·캐릭터 선택·일시정지까지 이동한다', () => {
-  const h = harness();
-  h.app.main.touchItems(h.app)[0].activate();
-  h.app.scene.touchItems(h.app).find((item) => item.label === '연습').activate();
-  const selection = h.app.scene;
-  selection.touchItems(h.app)[1].activate();
-  assert.ok(selection.touchLabel(h.app).includes('참가자 2'));
-  h.press('Enter'); h.wait(36);
-  assert.equal(h.app.scene.touchMode(), 'game');
-  h.press('Escape');
-  assert.equal(h.app.scene.touchMode(), 'menu');
-  assert.ok(h.app.scene.touchLabel().includes('일시정지'));
-  h.app.scene.tap(h.app, { x: 480, y: 221 });
-  assert.equal(h.app.scene.touchMode(), 'game');
-});
-
-test('공개 메뉴에서 스토리·멀티플레이를 잠그고 CPU·연습은 유지한다', () => {
-  const h = harness();
-  const main = h.app.main.touchItems(h.app);
-  assert.deepEqual(main.slice(0, 2).map(item => item.label), ['싱글플레이', '멀티플레이 · 준비 중']);
-  assert.equal(main[1].disabled, true);
-  main[1].activate(); assert.equal(h.app.scene, h.app.main);
-  h.app.onlineAvailable = true;
-  assert.ok(h.app.multi.touchItems(h.app).every(item => item.disabled), '서버 연결 설정이 켜져도 공개 제한을 우회하지 않는다');
-  main[0].activate();
-  const items = h.app.single.touchItems(h.app);
-  assert.equal(items[0].disabled, true);
-  assert.equal(items[0].label, '스토리 · 준비 중');
-  assert.ok(items.slice(1).every(item => !item.disabled));
-  items[0].activate(); assert.equal(h.app.scene, h.app.single);
-  items[1].activate(); assert.ok(h.labels().includes('CPU 대전 · 난이도 선택'));
-  h.press('Escape'); assert.equal(h.app.scene, h.app.single);
-  items[2].activate(); assert.ok(h.labels().includes('캐릭터 선택'));
-  h.press('Escape'); assert.equal(h.app.scene, h.app.single);
-});
-
 test('설정에서 목소리 미리듣기는 제거하고 목소리·착지 위치 설정은 유지한다', () => {
   const h = harness();
-  h.press('ArrowDown'); h.press('Enter');
+  h.app.main.touchItems(h.app).find(item => item.label === '설정').activate();
   assert.ok(h.labels().includes('설정'));
   assert.ok(!h.labels().some(label => label.includes('미리듣기') || label.includes('스킨')));
   assert.ok(h.labels().some(label => label.includes('목소리')));
   assert.ok(h.labels().some(label => label.includes('착지 위치 표시') && label.includes('켬')));
 });
 
+
 test('음량 조절에서 전체·효과음·음악·목소리를 독립적으로 바꾸고 설정으로 돌아간다', () => {
   const h = harness();
-  h.press('ArrowDown'); h.press('Enter');
+  h.app.main.touchItems(h.app).find(item => item.label === '설정').activate();
   const settings = h.app.scene;
   settings.touchItems(h.app).find(item => item.label === '음량 조절').activate();
   const menu = h.app.scene, items = menu.touchItems(h.app);
@@ -92,219 +57,135 @@ test('음량 조절에서 전체·효과음·음악·목소리를 독립적으�
   assert.equal(h.app.scene, settings);
 });
 
-test('결과에서 난이도만 변경할 때 현재 난이도를 표시하고 같은 캐릭터로 바로 시작한다',()=>{
-  const h=harness(),characters=MOCK_SKIN.characters.slice(1,3);let cancelled=0;
-  const menu=createCpuLevelMenu({characters,cpuLevel:'hard',onBack:()=>cancelled++});
-  h.app.scene=menu;
-  assert.equal(menu.touchItems(h.app).find(item=>item.selected).label,'보통');
-  h.press('Escape');assert.equal(cancelled,1);
-  menu.touchItems(h.app).find(item=>item.label==='쉬움').activate();
-  assert.equal(h.app.scene.touchGame(),true);
-  h.figures.length=0;h.labels();
-  assert.deepEqual([...new Set(h.figures.map(figure=>figure.id))].sort(),characters.map(character=>character.id).sort());
-});
 
-test('CPU 난이도·캐릭터 선택과 로컬·연습 선택의 취소 경로를 유지한다', () => {
+test('싱글플레이 CPU 관전은 양쪽 설정을 선택하고 조작 패드 없이 관전·일시정지·설정 복귀한다', () => {
   const h = harness();
-  h.press('Enter');
-  h.press('Enter');
-  assert.ok(h.labels().includes('CPU 대전 · 난이도 선택'));
-  for (const label of ['입문','아주 쉬움','쉬움','보통','어려움','아주 어려움','달인']) assert.ok(h.labels().includes(label));
-  assert.equal(h.app.scene.touchColumns, 2);
-  const difficulty = h.app.scene;
-  assert.deepEqual(difficulty.touchItems(h.app).map(item => item.label), ['입문','아주 쉬움','쉬움','보통','어려움','아주 어려움','달인']);
-  difficulty.touchItems(h.app).at(-1).activate();
-  assert.ok(h.labels().includes('캐릭터 선택'));
-  h.press('Escape');
-  h.press('Enter');
-  assert.ok(h.labels().includes('캐릭터 선택'));
-  h.press('Escape');
-  assert.ok(h.labels().includes('CPU 대전 · 난이도 선택'));
-  h.press('Escape');
-  assert.equal(h.app.scene, h.app.single);
-  h.press('ArrowDown'); h.press('Enter');
-  h.press('Escape'); assert.equal(h.app.scene, h.app.single);
-  h.press('Escape');
-  h.app.setScene(createCharacterSelect({ mode: 'versus' }));
-  h.press('KeyF');
-  assert.equal(h.app.scene, h.app.multi);
+  h.app.single.touchItems(h.app).find(item => item.label === 'CPU 관전').activate();
+  const setup = h.app.scene;
+  let items = setup.touchItems(h.app);
+  assert.deepEqual(items.map(item => item.label), ['CPU 1 캐릭터', 'CPU 2 캐릭터', 'CPU 1 난이도', 'CPU 2 난이도', '관전 시작']);
+  assert.ok(items.slice(0, 4).every(item => item.adjustable));
+  items[2].activate(1);
+  items[3].activate(-1);
+  items[0].activate(1);
+  items = setup.touchItems(h.app);
+  assert.equal(items[2].value, '어려움');
+  assert.equal(items[3].value, '쉬움');
+  items[4].activate();
+  const game = h.app.scene;
+  assert.equal(game.touchMode(), 'menu');
+  assert.ok(game.touchLabel().includes('CPU 관전'));
+  assert.deepEqual(game.touchItems(h.app).map(item => item.label), ['일시정지']);
+  h.wait(200);
+  game.touchItems(h.app)[0].activate();
+  assert.equal(game.touchPaused(), true);
+  assert.deepEqual(game.touchItems(h.app).map(item => item.label), ['계속 관전', '다시 시작', '관전 설정으로']);
+  game.touchItems(h.app)[2].activate();
+  assert.equal(h.app.scene, setup);
+  assert.equal(setup.touchItems(h.app)[2].value, '어려움');
 });
 
 
-test('캐릭터 여덟 명이 화면 안의 4×2 카드에 들어가고 아래 키로 다음 줄을 고른다', () => {
-  const h = harness();
-  h.app.skin.characters = Array.from({ length: 8 }, (_, i) => ({ id: `guest${i}`, name: `참가자 ${i}` }));
-  h.press('Enter'); h.press('Enter'); h.press('Enter');
-  h.figures.length = 0; h.labels();
-  const cards = h.figures.filter((figure) => figure.size === 98);
-  assert.equal(cards.length, 8);
-  assert.equal(new Set(cards.map((figure) => figure.y)).size, 2);
-  for (const figure of cards) {
-    assert.ok(figure.x >= 0 && figure.x + figure.size <= 960);
-    assert.ok(figure.y >= 0 && figure.y + figure.size <= 465);
-  }
-  h.press('ArrowDown'); h.figures.length = 0; h.labels();
-  assert.equal(h.figures.find((figure) => figure.size === 180).id, 'guest4');
-  h.press('ArrowUp'); h.figures.length = 0; h.labels();
-  assert.equal(h.figures.find((figure) => figure.size === 180).id, 'guest0');
-});
-
-
-test('세로 캐릭터 선택은 두 열을 따라 이동하며 회전하면 네 열 기준으로 바뀐다', () => {
+test('세로 관전 키보드는 선수 카드 순서로 선택하고 각 CPU 설정과 시작·뒤로를 처리한다', () => {
   const h = harness(); h.app.portraitScreen = true;
-  h.app.skin.characters = Array.from({ length: 8 }, (_, i) => ({ id: `guest${i}`, name: `참가자 ${i}` }));
-  h.app.single.touchItems(h.app).find(item => item.label === '연습').activate();
-  const selected = () => h.app.scene.touchItems(h.app).findIndex(item => item.selected);
+  h.app.single.touchItems(h.app).find(item => item.label === 'CPU 관전').activate();
+  const menu = h.app.scene, items = () => menu.touchItems(h.app);
+  const selected = () => items().findIndex(item => item.selected);
+  assert.equal(selected(), 0);
+  h.press('ArrowRight'); assert.equal(items()[0].value, MOCK_SKIN.characters[1].name);
   h.press('ArrowDown'); assert.equal(selected(), 2);
-  h.press('ArrowRight'); assert.equal(selected(), 3);
-  h.press('ArrowRight'); assert.equal(selected(), 2); // 같은 줄 안에서 순환
-  h.press('ArrowUp'); assert.equal(selected(), 0);
-  h.press('ArrowUp'); assert.equal(selected(), 6);
-  h.app.portraitScreen = false;
-  h.press('ArrowUp'); assert.equal(selected(), 2);
-  h.app.portraitScreen = true;
+  h.press('ArrowLeft'); assert.equal(items()[2].value, '쉬움');
+  h.press('ArrowDown'); assert.equal(selected(), 1);
+  h.press('ArrowRight'); assert.equal(items()[1].value, MOCK_SKIN.characters[2].name);
+  h.press('ArrowDown'); assert.equal(selected(), 3);
+  h.press('ArrowRight'); assert.equal(items()[3].value, '어려움');
   h.press('ArrowDown'); assert.equal(selected(), 4);
+  h.press('ArrowUp'); assert.equal(selected(), 3);
+  items()[4].focus(); assert.equal(selected(), 4);
+  h.press('Enter'); assert.notEqual(h.app.scene, menu);
+  assert.ok(h.app.scene.touchLabel().includes('CPU 관전'));
+  h.app.setScene(menu); h.press('Escape'); assert.equal(h.app.scene, h.app.single);
 });
 
-test('세로 CPU 상대 선택의 마지막 랜덤 행에서도 방향키가 유효한 항목을 고른다', () => {
-  const h = harness(); h.app.portraitScreen = true;
-  h.app.skin.characters = Array.from({ length: 4 }, (_, i) => ({ id: `guest${i}`, name: `참가자 ${i}` }));
-  h.press('Enter'); h.press('Enter'); h.press('Enter');
-  h.press('Enter'); h.wait(36);
-  const items = () => h.app.scene.touchItems(h.app);
-  assert.equal(items().find(item => item.selected).label, '랜덤');
-  h.press('ArrowRight'); assert.equal(items().find(item => item.selected).label, '랜덤');
-  h.press('ArrowUp'); assert.equal(items().findIndex(item => item.selected), 2);
-  h.press('ArrowDown'); assert.equal(items().find(item => item.selected).label, '랜덤');
-});
-
-test('1P 결정 연출을 0.6초 보여준 뒤 CPU 상대를 선택한다', () => {
+for (const mode of ['cpu', 'solo', 'versus', 'watch']) test(`${mode}: 공통 선수 카드에서 설정하고 중간 메뉴 없이 시작한다`, () => {
   const h = harness();
-  h.press('Enter'); h.press('Enter'); h.press('Enter');
-  const selection = h.app.scene;
-  h.press('Enter');
-  assert.equal(h.app.scene, selection);
-  assert.ok(h.labels().includes('결정!'));
-  assert.ok(selection.touchItems(h.app).every(item => item.disabled));
-  selection.touchItems(h.app)[1].activate();
-  selection.tap(h.app, { x: 220, y: 150 });
-  h.press('ArrowRight'); h.press('Escape'); h.wait(33);
-  assert.equal(h.app.scene, selection);
-  assert.ok(h.labels().includes('결정!'));
-  assert.ok(selection.touchLabel(h.app).includes('결정 완료'));
-  h.wait(1);
-  assert.ok(h.labels().includes('CPU 상대 선택'));
-  assert.equal(h.app.scene.touchItems(h.app).at(-1).label, '랜덤');
-  h.press('Enter'); h.wait(36);
-  assert.ok(h.labels().includes('준비'));
-  assert.deepEqual(h.app.lastUi.stamps, []); // 결정 도장을 전환 때 다시 재생하지 않는다.
-  assert.equal(h.figures.filter(figure => figure.size === 180).at(-1).id, MOCK_SKIN.characters[0].id);
+  const setup = createMatchSetup({ mode }); h.app.scene = setup;
+  assert.equal(setup.touchLayout, 'match-setup');
+  const items = setup.touchItems(h.app), metadata = setup.touchSetup;
+  assert.equal(metadata.players.length, mode === 'solo' ? 1 : 2);
+  assert.equal(items.filter(item => item.label.includes('난이도')).length, mode === 'watch' ? 2 : mode === 'cpu' ? 1 : 0);
+  assert.ok(metadata.players.every(player => typeof items[player.characterIndex].drawPreview === 'function'));
+  items[0].activate(1);
+  if (mode !== 'solo') items[1].activate(1);
+  items[metadata.startIndex].activate();
+  assert.notEqual(h.app.scene, setup);
+  assert.equal(h.app.scene.touchGame(), true);
+  if (mode === 'watch') assert.ok(h.app.scene.touchLabel().includes('CPU 관전'));
+  else assert.ok(h.labels().includes('준비'));
 });
 
-test('로컬 대전의 결정 도장은 플레이어별로 표시되고 취소하면 사라진다', () => {
+test('실제 진입 경로는 싱글·멀티 모두 공통 설정으로 연결하고 온라인은 잠근다', () => {
   const h = harness();
-  h.app.setScene(createCharacterSelect({ mode: 'versus' }));
-  const selection = h.app.scene;
-  h.press('KeyG');
-  assert.equal(h.app.scene, selection);
-  assert.equal(h.labels().filter((s) => s === '결정!').length, 1);
-  h.press('KeyF');
-  assert.ok(!h.labels().includes('결정!'));
-  h.press('Period');
-  assert.equal(h.labels().filter((s) => s === '결정!').length, 1);
-  h.press('KeyG');
-  assert.equal(h.app.scene, selection);
-  assert.equal(h.labels().filter(s => s === '결정!').length, 2);
-  h.press('KeyF'); h.wait(34);
-  assert.equal(h.app.scene, selection);
-  h.wait(1);
-  assert.ok(h.labels().includes('준비'));
-  assert.deepEqual(h.app.lastUi.stamps, []);
-});
-
-
-test('주요 여덟 명만 표시하되 준비 중 네 명과 스토리 전용 인물은 선택하거나 CPU로 고르지 않는다', () => {
-  const h = harness();
-  const selected=Array.from({length:8},(_,i)=>({id:'guest'+i,name:'참가자 '+i,selectionVisible:true,selectable:i<3||i===4,voiceAvailable:i===4?false:undefined}));
-  const hidden=Array.from({length:26},(_,i)=>({id:'story'+i,name:'스토리 '+i,selectionVisible:false,selectable:false}));
-  const roster=[hidden[0],...selected.slice(0,3),...hidden.slice(1),...selected.slice(3)];
-  h.app.skin.characterRoster = roster;
-  h.app.skin.characters = roster.filter(character=>character.selectable);
-  h.press('Enter'); h.press('Enter'); h.press('Enter');
-  const selection=h.app.scene;
-  const labels = h.labels();
-  assert.equal(labels.filter(label=>label==='준비 중').length,4);
-  const cards=h.figures.filter(figure=>figure.size===98);
-  assert.deepEqual(cards.map(figure=>figure.id),selected.map(character=>character.id));
-  assert.deepEqual(h.app.scene.touchItems(h.app).map(item=>item.label),selected.map(character=>character.selectable?character.name:'준비 중'));
-  assert.equal(h.app.scene.touchItems(h.app).filter(item=>item.disabled).length,4);
-  assert.ok(cards.filter(figure=>!selected.find(c=>c.id===figure.id).selectable).every(figure=>figure.motion.silhouette));
-  h.press('ArrowDown'); // 두 번째 줄 첫 캐릭터도 선택 가능하다.
-  h.figures.length=0; h.labels();
-  assert.equal(h.figures.find(figure=>figure.size===180).id,'guest4');
-  assert.equal(h.labels().filter(label=>label==='보이스 없음').length,0);
-  h.app.scene.tap(h.app,{x:62+3*145+30,y:127+157+30});
-  assert.ok(h.app.scene.touchLabel(h.app).includes('참가자 4'));
-  h.press('ArrowRight'); h.press('Enter');
-  assert.equal(h.app.scene,selection);
-  assert.ok(!h.labels().includes('결정!'));
-  h.press('ArrowLeft'); h.press('Enter'); h.wait(36);
-  assert.deepEqual(h.app.scene.touchItems(h.app).map(item=>item.label), [...selected.filter(c=>c.selectable).map(c=>c.name), '랜덤']);
-  h.press('Enter'); h.wait(36);
-  h.figures.length=0; assert.ok(h.labels().includes('준비'));
-  assert.ok(h.figures.some(figure=>figure.id==='guest4'));
-  assert.ok(h.figures.every(figure=>roster.filter(character=>character.selectable).some(character=>character.id===figure.id)));
-});
-
-
-test('CPU를 직접 선택하고 취소하면 1P 선택을 보존한다', () => {
-  const h = harness();
-  h.press('Enter'); h.press('Enter'); h.press('Enter');
-  const selection = h.app.scene;
-  h.press('ArrowRight'); h.press('Enter'); h.wait(36);
-  h.press('Escape');
-  assert.equal(h.app.scene,selection);
-  assert.ok(selection.touchLabel(h.app).includes(MOCK_SKIN.characters[1].name));
-  h.press('Enter'); h.wait(36);
-  h.app.scene.touchItems(h.app).find(item=>item.label===MOCK_SKIN.characters[0].name).activate();
-  h.press('Enter'); h.wait(36);
-  h.figures.length=0; h.labels();
-  assert.deepEqual(h.figures.map(figure=>figure.id), [MOCK_SKIN.characters[1].id,MOCK_SKIN.characters[0].id]);
-});
-
-test('CPU 랜덤은 활성 캐릭터 모두에서 고르고 1P·준비 중·숨김 캐릭터를 제외한다', t => {
-  const random = t.mock.method(crypto,'getRandomValues', array => { array[0]=0; return array; });
-  const opponents = [];
-  for (let sample=0; sample<3; sample++) {
-    random.mock.mockImplementation(array => { array[0]=sample; return array; });
-    const h=harness();
-    const roster=Array.from({length:6},(_,i)=>({id:`actor${i}`,name:`캐릭터 ${i}`,selectable:i<5,selectionVisible:i!==4}));
-    h.app.skin.characterRoster=roster;
-    h.press('Enter'); h.press('Enter'); h.press('Enter'); h.press('Enter'); h.wait(36);
-    h.press('Enter'); h.wait(36);
-    h.figures.length=0; h.labels();
-    opponents.push(h.figures.at(-1).id);
+  h.app.main.touchItems(h.app).find(item => item.label === '멀티플레이').activate();
+  const multi = h.app.scene;
+  h.app.onlineAvailable = true;
+  assert.equal(multi.touchItems(h.app)[1].disabled, true);
+  multi.touchItems(h.app)[0].activate();
+  assert.equal(h.app.scene.touchSetup.title, '로컬 대전');
+  h.press('Escape'); assert.equal(h.app.scene, h.app.multi);
+  for (const title of ['CPU 대전', 'CPU 관전', '연습']) {
+    h.app.single.touchItems(h.app).find(item => item.label === title).activate();
+    assert.equal(h.app.scene.touchSetup.title, title);
+    h.press('Escape'); assert.equal(h.app.scene, h.app.single);
   }
-  assert.deepEqual(opponents,['actor1','actor2','actor3']);
+  assert.equal(h.app.single.touchItems(h.app)[0].disabled, true);
 });
 
+test('설정을 다시 열면 선택한 두 캐릭터·난이도가 그대로이며 취소할 수 있다', () => {
+  const h = harness(), characters = MOCK_SKIN.characters.slice(1, 3); let cancelled = 0;
+  const setup = createMatchSetup({ mode: 'cpu', characters, cpuLevel: 'expert', onBack: () => cancelled++ });
+  h.app.scene = setup;
+  assert.deepEqual(setup.touchItems(h.app).slice(0, 3).map(item => item.value), [characters[0].name, characters[1].name, '어려움']);
+  h.press('Escape'); assert.equal(cancelled, 1);
+  setup.touchItems(h.app)[2].activate(-1);
+  setup.touchItems(h.app)[3].activate();
+  h.figures.length = 0; h.labels();
+  assert.deepEqual(h.figures.map(figure => figure.id), characters.map(character => character.id));
+});
 
-test('PC CPU 상대도 1P와 같은 카드 크기·위치·확대 미리보기·결정 도장을 쓴다', () => {
-  const h=harness();
-  h.press('Enter'); h.press('Enter'); h.press('Enter');
-  h.figures.length=0; h.labels();
-  const playerCards=h.figures.filter(figure=>figure.size===98).map(({x,y,size})=>({x,y,size}));
-  h.press('Enter'); h.wait(36);
-  const cpu=h.app.scene;
-  h.figures.length=0; const labels=h.labels();
-  assert.ok(labels.includes('CPU 상대 선택'));
-  assert.deepEqual(h.figures.filter(figure=>figure.size===98).map(({x,y,size})=>({x,y,size})),playerCards);
-  assert.ok(labels.includes('?'));
-  cpu.touchItems(h.app)[1].activate();
-  h.figures.length=0; h.labels();
-  assert.equal(h.figures.find(figure=>figure.size===180).id,MOCK_SKIN.characters[1].id);
-  h.press('Enter'); h.wait(35);
-  assert.equal(h.app.scene,cpu);
-  assert.ok(h.labels().includes('결정!'));
-  h.wait(1); assert.notEqual(h.app.scene,cpu);
+test('공통 설정은 준비 중 인물을 표시하되 선택·랜덤에서는 제외하고 숨김 인물은 감춘다', t => {
+  t.mock.method(crypto, 'getRandomValues', array => { array[0] = 0; return array; });
+  const h = harness();
+  h.app.skin.characterRoster = [...MOCK_SKIN.characters, { id: 'locked', name: '준비 중', selectable: false },
+    { id: 'hidden', name: '숨김', selectionVisible: false }];
+  const setup = createMatchSetup({ mode: 'cpu' }); h.app.scene = setup;
+  assert.deepEqual(setup.touchItems(h.app)[0].choiceLabels.slice(0, 3), MOCK_SKIN.characters.map(character => character.name));
+  assert.match(setup.touchItems(h.app)[0].choiceLabels[3], /준비 중/);
+  assert.deepEqual(setup.touchItems(h.app)[0].choiceDisabled, [false, false, false, true]);
+  setup.touchItems(h.app)[0].activate(3);
+  assert.equal(setup.touchItems(h.app)[0].value, MOCK_SKIN.characters[0].name);
+  assert.equal(setup.touchItems(h.app)[1].value, '랜덤');
+  setup.touchItems(h.app)[3].activate(); h.figures.length = 0; h.labels();
+  assert.deepEqual(h.figures.map(figure => figure.id), MOCK_SKIN.characters.slice(0, 2).map(character => character.id));
+});
+
+test('캐릭터가 없어도 설정을 그릴 수 있고 시작은 막는다', () => {
+  const h = harness(); h.app.skin.characters = [];
+  for (const mode of ['solo', 'cpu', 'versus', 'watch']) {
+    const setup = createMatchSetup({ mode }); h.app.scene = setup;
+    assert.equal(setup.touchItems(h.app).at(-1).disabled, true);
+    setup.touchItems(h.app).at(-1).activate(); assert.equal(h.app.scene, setup);
+    h.labels();
+  }
+});
+
+test('가로 선수 카드도 같은 캐릭터·난이도 항목과 좌우 변경 버튼을 사용한다', () => {
+  const h = harness(), setup = createMatchSetup({ mode: 'cpu', characters: MOCK_SKIN.characters.slice(0, 2) });
+  h.app.scene = setup; h.figures.length = 0; h.labels();
+  assert.equal(h.figures.length, 2);
+  assert.equal(h.figures[0].size, h.figures[1].size);
+  setup.tap(h.app, { x: 420, y: 230 });
+  assert.equal(setup.touchItems(h.app)[0].value, MOCK_SKIN.characters[1].name);
+  setup.tap(h.app, { x: 530, y: 390 });
+  assert.equal(setup.touchItems(h.app)[2].value, '쉬움');
 });

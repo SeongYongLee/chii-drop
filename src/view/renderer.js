@@ -356,7 +356,8 @@ function drawNext(ctx, skin, effect, solo = false) {
   if (anim.frame < NEXT_WAIT && anim.outgoing) {
     drawPair(ctx, skin, anim.outgoing, side.next1.x, side.next1.y - 7 * anim.frame, !solo);
   }
-  if (!anim.waiting) drawPair(ctx, skin, anim.pairs[1], NEXT_START.x + dir2 * moving, anim.y2, !solo);
+  // 나가는 쌍이 빠진 뒤에 새 쌍을 표시한다. 대기 1~8프레임에 세 쌍이 겹치지 않게 한다.
+  if (!anim.waiting && anim.frame >= NEXT_WAIT) drawPair(ctx, skin, anim.pairs[1], NEXT_START.x + dir2 * moving, anim.y2, !solo);
   drawPair(ctx, skin, anim.pairs[0], side.next2.x + dir1 * 2 * moving, anim.y1, !solo);
   ctx.restore();
 }
@@ -514,7 +515,8 @@ function drawPortraitNext(ctx, skin, effects) {
       const pair=(value,x,y)=>{ctx.save();ctx.translate(x,y);ctx.scale(2,2);drawPair(ctx,skin,value,0,0,false);ctx.restore()};
       if(anim.frame<NEXT_WAIT&&anim.outgoing)pair(anim.outgoing,first,180-14*anim.frame);
       pair(anim.pairs[0],first+direction*64*(1-progress),180+2*(anim.y1-side.next1.y));
-      if (!anim.waiting) pair(anim.pairs[1],first+direction*64*(2-progress),212+2*(anim.y2-side.next2.y));
+      // 나가는 쌍이 빠진 뒤 새 쌍을 클립 바깥에서 들인다. 세 쌍이 한꺼번에 보이지 않게 한다.
+      if (!anim.waiting && anim.frame >= NEXT_WAIT) pair(anim.pairs[1],first+direction*(192-128*progress),212+2*(anim.y2-side.next2.y));
     }
     ctx.restore();
   });

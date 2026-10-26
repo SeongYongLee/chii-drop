@@ -20,7 +20,7 @@ export function createLobbyPresentation(skin, characters, root = document, shell
   return {
     tick(now, { playing, inRoom, charId }) {
       if (playing || document.hidden || now - last < 1000 / 24) return;
-      const seats = [...root.querySelectorAll('.seat canvas')];
+      const seats = [...root.querySelectorAll('.seat canvas, .selection-player canvas')];
       const key = `${inRoom}:${charId}:${seats.map(c => c.dataset.charId).join(',')}`;
       if (reducedMotion.matches && key === previous && seats.every(c => rendered.has(c))) return;
       last = now; previous = key;

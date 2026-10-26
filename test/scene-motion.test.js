@@ -152,27 +152,25 @@ test('승리·패배는 각 필드 안에 표시하고 공용 메뉴는 필드 �
   }
 });
 
-test('CPU 결과에서 현재 난이도로 캐릭터를 바꾸거나 현재 캐릭터로 난이도를 바꿀 수 있다',t=>{
+test('CPU 결과의 통합 설정은 캐릭터와 난이도를 함께 보존하고 취소하면 결과로 돌아간다',t=>{
   const h=harness(t),characters=MOCK_SKIN.characters.slice(0,2),picked=[];
   h.app.records.cpu={normal:{win:0,lose:0}};
   h.app.mobile={visible:true};
-  h.app.goToCharacterSelect=options=>picked.push(['character',options]);
-  h.app.goToCpuLevelMenu=options=>picked.push(['difficulty',options]);
+  h.app.goToMatchSetup=options=>picked.push(['setup',options]);
   const scene=createGameScene({mode:'cpu',cpuLevel:'normal',characters});
   h.app.setScene=next=>assert.equal(next,scene);
   h.app.keyboard.held.add('ArrowDown');
   for(let frame=0;frame<10000&&!scene.touchItems(h.app).length;frame++)scene.update(h.app);
-  assert.deepEqual(scene.touchItems(h.app).map(item=>item.label),['다시하기','메인메뉴','캐릭터 선택','난이도 선택']);
+  assert.deepEqual(scene.touchItems(h.app).map(item=>item.label),['다시하기','메인메뉴','대전 설정']);
   assert.equal(scene.touchColumns,2);
   for(let frame=0;frame<40;frame++)scene.update(h.app);
   scene.touchItems(h.app)[2].activate();
   assert.equal(picked[0][1].cpuLevel,'normal');picked[0][1].onBack();
-  scene.touchItems(h.app)[3].activate();
-  assert.equal(picked[1][1].characters,characters);picked[1][1].onBack();
-  h.app.keyboard.pressed=new Set(['ArrowDown']);scene.update(h.app);
+  assert.equal(picked[0][1].characters,characters);
+  h.app.keyboard.pressed=new Set(['ArrowDown']);scene.update(h.app);scene.update(h.app);
   assert.equal(scene.touchItems(h.app).findIndex(item=>item.selected),2);
   h.app.keyboard.pressed=new Set(['Enter']);scene.update(h.app);
-  assert.equal(picked.at(-1)[0],'character');
+  assert.equal(picked.at(-1)[0],'setup');
 });
 
 test('대전 메뉴 버튼을 열면 낙하가 멈추고 계속하기로 같은 경기를 재개한다', t => {

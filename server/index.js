@@ -116,7 +116,8 @@ export function createOnlineServer({ origins = [], profiles = createProfileStore
           ws.close(1008, 'Version mismatch'); return;
         }
         lobby.handle(peer, message);
-        if (message.type !== 'ping') lastAction = Date.now();
+        // 관전자는 프레임 입력을 보내지 않는다. 정상 heartbeat를 유휴 종료로 취급하지 않는다.
+        if (message.type !== 'ping' || peer.spectator) lastAction = Date.now();
       } catch { ws.close(1008, 'Invalid protocol'); }
     });
     ws.on('pong', () => { alive = true; });
