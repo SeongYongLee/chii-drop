@@ -33,7 +33,7 @@ function harness(t) {
   globalThis.window = { AudioContext: Context };
   t.after(() => { globalThis.Audio = previousAudio; globalThis.window = previousWindow; });
   const skin = { music: { scenes: { menu: { file: 'a.mp3', gain: .2 }, battle: { file: 'b.mp3', gain: .4 } } } };
-  return { sfx: createSfx(), skin, routes, edges, elements };
+  return { sfx: createSfx(), skin, routes, edges, elements, Context };
 }
 
 test('volume 설정을 무시하는 Safari에서도 재생 전 음량 경로를 만들고 0은 확실히 무음이다', async t => {
@@ -76,4 +76,30 @@ test('장면 변경과 캐시 복귀에도 음악 요소를 한 번만 연결하
   configureMusic(sfx, skin, { enabled: false, scene: 'menu' });
   assert.equal(sfx.musicAudio.muted, true);
   assert.equal(sfx.musicAudio.paused, true);
+});
+
+test('음악·효과음·목소리는 동일한 최종 압축 출력을 공유하되 개별 음량은 독립적이다', async t => {
+  const { sfx, skin, Context, edges } = harness(t);
+  let compressor;
+  Context.prototype.createDynamicsCompressor = function () {
+    compressor = { threshold: {}, knee: {}, ratio: {}, attack: {}, release: {},
+      connect(target) { edges.push([this, target]); return target; } };
+    return compressor;
+  };
+  // 입력 출력의 간선을 기록해 음악만 최종 압축을 우회하는 재발을 막는다.
+  Context.prototype.createGain = function () {
+    return { gain: { value: 0 }, connect(target) { edges.push([this, target]); return target; } };
+  };
+  configureMusic(sfx, skin, { scene: 'menu', volume: .5 });
+  await unlockSfx(sfx);
+  assert.equal(sfx.outputNode, compressor);
+  for (const bus of [sfx.master, sfx.voiceMaster, sfx.musicGain]) {
+    assert.ok(edges.some(edge => edge[0] === bus && edge[1] === compressor));
+    assert.ok(!edges.some(edge => edge[0] === bus && edge[1] === sfx.context.destination));
+  }
+  assert.ok(edges.some(edge => edge[0] === compressor && edge[1] === sfx.context.destination));
+  configureMusic(sfx, skin, { scene: 'menu', volume: 0 });
+  assert.equal(sfx.musicGain.gain.value, 0);
+  assert.equal(sfx.voiceMaster.gain.value, .6);
+  assert.equal(sfx.master.gain.value, .75);
 });

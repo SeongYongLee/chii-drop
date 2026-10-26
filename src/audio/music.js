@@ -46,8 +46,8 @@ function syncMusicGain(sfx) {
   sfx.musicRoutes ??= new WeakMap();
   if (!sfx.musicGain) {
     sfx.musicGain = sfx.context.createGain();
-    // 전체·음악 음량은 이미 곱했다. 효과음 출력에 연결해 다시 곱하지 않는다.
-    sfx.musicGain.connect(sfx.context.destination);
+    // 개별 조절을 유지하며 효과음·목소리와 같은 최종 출력 처리를 거친다.
+    sfx.musicGain.connect(sfx.outputNode ?? sfx.context.destination);
   }
   if (!sfx.musicRoutes.has(audio)) {
     const source = sfx.context.createMediaElementSource(audio);

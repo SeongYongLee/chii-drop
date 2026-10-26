@@ -37,12 +37,13 @@ function prepareSfx(sfx) {
     limiter.ratio.value = 4;
     limiter.attack.value = .003;
     limiter.release.value = .12;
-    sfx.master.connect(limiter).connect(sfx.context.destination);
-    sfx.voiceMaster.connect(limiter);
+    sfx.outputNode = limiter;
+    limiter.connect(sfx.context.destination);
   } else {
-    sfx.master.connect(sfx.context.destination);
-    sfx.voiceMaster.connect(sfx.context.destination);
+    sfx.outputNode = sfx.context.destination;
   }
+  sfx.master.connect(sfx.outputNode);
+  sfx.voiceMaster.connect(sfx.outputNode);
   syncMusicGain(sfx);
   return Promise.all([preloadRecordedSfx(sfx), preloadCharacterVoices(sfx)]);
 }
