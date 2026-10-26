@@ -5,6 +5,7 @@ import { SET_WINS } from '../engine/rules.js';
 import { KEYMAPS, MENU_KEYS, readInput, wasPressed } from '../input/keyboard.js';
 import { createEffects, setMood, tickCharacters, tickEffect } from '../view/effects.js';
 import { drawBanner, drawGame } from '../view/renderer.js';
+import { drawRoundIntro } from '../view/round-intro.js';
 import { drawStoryForm } from '../view/story-art.js';
 import { drawFieldResults, drawResultActions, resultMenuLayout } from '../view/field-results.js';
 import { drawPauseMenu } from '../view/pause-menu.js';
@@ -302,7 +303,7 @@ function drawGameScene(ctx, app, scene) {
   if (scene.paused) {
     if(!app.mobile?.visible && !app.mobile?.pauseDialogOpen)drawPauseMenu(ctx, pauseItems(scene), scene.pauseIndex);
   } else if (session.phase === 'ready') {
-    drawBanner(ctx, session.readyTimer > GO_FRAMES ? '준비' : '시작!');
+    drawRoundIntro(ctx, session.readyTimer, { playerCount: session.match.players.length });
   } else if (session.phase === 'result') {
     drawFieldResults(ctx, { skin: app.skin, match: session.match, characters: scene.options.characters,
       tally: session.mode === 'solo' || session.mode === 'story' ? null : scene.tally,

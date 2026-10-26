@@ -1,6 +1,6 @@
 import { playRecordedSfx, preloadRecordedSfx } from './foley-bank.js';
 import { preloadCharacterVoices } from './character-voice.js';
-import { unlockMusic } from './music.js';
+import { unlockMusic, syncMusicGain } from './music.js';
 import { playSoftContact } from './soft-contact.js';
 import { playArrivalImpact } from './arrival-impact.js';
 
@@ -15,7 +15,7 @@ function createSfx({ recorded = false } = {}) {
 
 function updateMixGains(sfx) {
   // 효과음과 목소리는 독립된 출력으로 보내고 전체 음량은 둘 모두에 적용한다.
-  if (sfx.master) sfx.master.gain.value = sfx.volume * (sfx.effectsVolume ?? 1) * 1.15;
+  if (sfx.master) sfx.master.gain.value = sfx.volume * (sfx.effectsVolume ?? 1) * 1.25;
   if (sfx.voiceMaster) sfx.voiceMaster.gain.value = sfx.volume * (sfx.voiceVolume ?? 1);
 }
 
@@ -43,14 +43,15 @@ function prepareSfx(sfx) {
     sfx.master.connect(sfx.context.destination);
     sfx.voiceMaster.connect(sfx.context.destination);
   }
+  syncMusicGain(sfx);
   return Promise.all([preloadRecordedSfx(sfx), preloadCharacterVoices(sfx)]);
 }
 
 // 사용자 입력에서는 디코딩 대신 준비된 오디오 장치만 시작한다.
 function unlockSfx(sfx) {
-  unlockMusic(sfx);
   if (!sfx.context) void prepareSfx(sfx);
   const resumed = ['suspended', 'interrupted'].includes(sfx.context?.state) ? sfx.context.resume() : Promise.resolve();
+  unlockMusic(sfx);
   if (sfx.context && !sfx.audioWarmed) {
     sfx.audioWarmed = true;
     const source = sfx.context.createBufferSource();

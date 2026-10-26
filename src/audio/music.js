@@ -27,9 +27,35 @@ function configureMusic(sfx, skin, { enabled = true, volume = .6, scene = sfx.mu
       sfx.musicAudio = sfx.musicCache.get(track.file);
     }
   }
-  if (sfx.musicAudio) sfx.musicAudio.volume = Math.min(1, Math.max(0, volume * (track?.gain ?? .15)));
+  sfx.musicVolume = Math.min(1, Math.max(0, volume * (track?.gain ?? .15)));
+  syncMusicGain(sfx);
   if (!enabled) sfx.musicAudio?.pause();
   else if (sfx.musicUnlocked && !globalThis.document?.hidden) startMusic(sfx);
+}
+
+function syncMusicGain(sfx) {
+  const audio = sfx.musicAudio;
+  if (!audio) return;
+  const volume = sfx.musicVolume ?? 0;
+  // Safari 모바일에서도 0은 Audio.volume 지원 여부와 관계없이 무음이다.
+  audio.muted = !sfx.musicEnabled || volume === 0;
+  if (!sfx.context?.createMediaElementSource) {
+    audio.volume = volume;
+    return;
+  }
+  sfx.musicRoutes ??= new WeakMap();
+  if (!sfx.musicGain) {
+    sfx.musicGain = sfx.context.createGain();
+    // 전체·음악 음량은 이미 곱했다. 효과음 출력에 연결해 다시 곱하지 않는다.
+    sfx.musicGain.connect(sfx.context.destination);
+  }
+  if (!sfx.musicRoutes.has(audio)) {
+    const source = sfx.context.createMediaElementSource(audio);
+    source.connect(sfx.musicGain);
+    sfx.musicRoutes.set(audio, source);
+  }
+  sfx.musicGain.gain.value = volume;
+  audio.volume = 1;
 }
 
 function startMusic(sfx) {
@@ -40,6 +66,7 @@ function startMusic(sfx) {
 
 function unlockMusic(sfx) {
   sfx.musicUnlocked = true;
+  syncMusicGain(sfx);
   if (!globalThis.document?.hidden) startMusic(sfx);
 }
 
@@ -48,7 +75,7 @@ function syncMusicVisibility(sfx) {
   else if (sfx.musicUnlocked) startMusic(sfx);
 }
 
-export { configureMusic, unlockMusic, syncMusicVisibility };
+export { configureMusic, unlockMusic, syncMusicVisibility, syncMusicGain };
 
 // Presentation-only randomness; never consumes a match or CPU generator. Repeats are allowed.
 function musicRandom() { return globalThis.crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296; }

@@ -32,7 +32,7 @@ test('전체·효과음·목소리 음량은 별도로 적용되고 효과음 0�
   const sfx = createSfx();
   setSfxOptions(sfx, { enabled: true, volume: .6, effectsVolume: .5, voiceVolume: .8 });
   await prepareSfx(sfx);
-  assert.ok(Math.abs(sfx.master.gain.value - .345) < 1e-10);
+  assert.ok(Math.abs(sfx.master.gain.value - .375) < 1e-10);
   assert.equal(sfx.voiceMaster.gain.value, .48);
   setSfxOptions(sfx, { enabled: true, volume: .6, effectsVolume: 0, voiceVolume: .8 });
   assert.equal(sfx.master.gain.value, 0);
@@ -43,7 +43,7 @@ test('전체·효과음·목소리 음량은 별도로 적용되고 효과음 0�
   assert.ok(edges.some(([from, to]) => from.gain?.value === 1.4 && to === sfx.voiceMaster));
   playSfx(sfx, 'attackImpact');
   setSfxOptions(sfx, { enabled: true, volume: .6, effectsVolume: 1, voiceVolume: 0 });
-  assert.ok(Math.abs(sfx.master.gain.value - .69) < 1e-10);
+  assert.ok(Math.abs(sfx.master.gain.value - .75) < 1e-10);
   assert.equal(sfx.voiceMaster.gain.value, 0);
   setSfxOptions(sfx, { enabled: true, volume: 0 });
   assert.equal(sfx.master.gain.value, 0);
