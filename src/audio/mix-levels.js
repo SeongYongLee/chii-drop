@@ -1,9 +1,9 @@
 function mixLevels(settings = {}) {
   const level = (key, fallback) => Number.isFinite(settings[key])
-    ? Math.min(10, Math.max(0, settings[key])) / 10 : fallback;
-  // 곡별 보정을 유지하고 배경음 기준 출력을 초기 대비 3.375배로 맞춘다.
-  return { master: level('volume', .6), effects: level('effectsVolume', 1),
-    music: level('musicVolume', 1) * 3.375, voice: level('voiceVolume', 1) };
+    ? Math.min(10, Math.max(0, settings[key])) / 5 : fallback;
+  // 5가 기준 출력이다. 음악은 직전 기준보다 20% 높이고 목소리는 10% 낮춘다.
+  return { master: level('volume', 1), effects: level('effectsVolume', 1),
+    music: level('musicVolume', 1) * 4.05, voice: level('voiceVolume', 1) * .9 };
 }
 
 export { mixLevels };

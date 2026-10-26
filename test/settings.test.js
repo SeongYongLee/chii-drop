@@ -2,6 +2,23 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadRecords, loadSettings, saveSettings, saveRecords } from '../src/app/storage.js';
 
+test('새 기본 음량은 모두 5이며 이전 설정은 한 번만 절반 눈금으로 변환한다', t => {
+  const previous = globalThis.window;
+  let raw = null;
+  globalThis.window = { localStorage: { getItem: () => raw, setItem: (_, value) => { raw = value; } } };
+  t.after(() => { globalThis.window = previous; });
+  const keys = ['volume', 'effectsVolume', 'musicVolume', 'voiceVolume'];
+  assert.deepEqual(keys.map(key => loadSettings()[key]), [5, 5, 5, 5]);
+  raw = JSON.stringify({ volume: 10, effectsVolume: 7, musicVolume: 0, voiceVolume: 10, ghost: false });
+  const migrated = loadSettings();
+  assert.deepEqual(keys.map(key => migrated[key]), [5, 3.5, 0, 5]);
+  assert.equal(migrated.ghost, false);
+  assert.equal(migrated.audioScaleVersion, 2);
+  assert.deepEqual(loadSettings(), migrated, '재접속 때 다시 절반으로 줄이지 않는다');
+  saveSettings({ ...migrated, effectsVolume: 9 });
+  assert.equal(loadSettings().effectsVolume, 9, '새 눈금에서 5 초과 조절도 유지한다');
+});
+
 test('이전 스킨 선택값만 제거하고 음량·음악·경기 기록은 유지한다', (t) => {
   const previous = globalThis.window;
   const values = new Map([
@@ -12,7 +29,7 @@ test('이전 스킨 선택값만 제거하고 음량·음악·경기 기록은 �
   t.after(() => { globalThis.window = previous; });
   const settings = loadSettings();
   assert.equal('skin' in settings, false);
-  assert.equal(settings.volume, 3); assert.equal(settings.music, false); assert.equal(settings.ghost, true);
+  assert.equal(settings.volume, 1.5); assert.equal(settings.music, false); assert.equal(settings.ghost, true);
   assert.equal('skin' in JSON.parse(values.get('chii-drop:settings')), false);
   saveSettings({ ...settings, skin: 'old-selection' });
   assert.equal('skin' in JSON.parse(values.get('chii-drop:settings')), false);

@@ -78,12 +78,12 @@ test('음량 조절에서 전체·효과음·음악·목소리를 독립적으�
   const settings = h.app.scene;
   settings.touchItems(h.app).find(item => item.label === '음량 조절').activate();
   const menu = h.app.scene, items = menu.touchItems(h.app);
-  assert.deepEqual(items.map(item => [item.label, item.value]), [['전체', 6], ['효과음', 10], ['배경음악', 10], ['목소리', 10]]);
+  assert.deepEqual(items.map(item => [item.label, item.value]), [['전체', 5], ['효과음', 5], ['배경음악', 5], ['목소리', 5]]);
   items[1].activate(-1);
-  assert.equal(h.app.settings.effectsVolume, 9);
-  assert.equal(h.app.settings.musicVolume, 10);
-  assert.equal(h.app.settings.voiceVolume, 10);
-  assert.equal(h.app.settings.volume, 6);
+  assert.equal(h.app.settings.effectsVolume, 4);
+  assert.equal(h.app.settings.musicVolume, 5);
+  assert.equal(h.app.settings.voiceVolume, 5);
+  assert.equal(h.app.settings.volume, 5);
   for (let i = 0; i < 15; i++) items[2].activate(-1);
   assert.equal(h.app.settings.musicVolume, 0);
   for (let i = 0; i < 15; i++) items[2].activate(1);

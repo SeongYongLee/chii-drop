@@ -471,10 +471,10 @@ function createSettingsMenu() {
           label: '음량 조절',
           select: (a) => a.setScene(createListMenu({
             title: '음량 조절',
-            notice: () => '전체 음량은 모든 소리에 적용됩니다. · 0은 무음',
+            notice: () => '5는 기본 크기 · 0은 무음 · 전체 음량은 모든 소리에 적용됩니다.',
             items: (a) => [
-              ['전체', 'volume', 6], ['효과음', 'effectsVolume', 10],
-              ['배경음악', 'musicVolume', 10], ['목소리', 'voiceVolume', 10],
+              ['전체', 'volume', 5], ['효과음', 'effectsVolume', 5],
+              ['배경음악', 'musicVolume', 5], ['목소리', 'voiceVolume', 5],
             ].map(([label, key, fallback]) => ({
               label, value: a.settings[key] ?? fallback,
               change: (app, delta) => update(app, { [key]: Math.min(10, Math.max(0, (app.settings[key] ?? fallback) + delta)) }),
