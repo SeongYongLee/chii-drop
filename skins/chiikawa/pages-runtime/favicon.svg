@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>치와치와</title>
+  <path d="M14 18C6 5 20 1 23 13Q32 10 42 13C46 1 59 6 51 19C67 34 60 58 33 59C6 60-3 35 14 18Z" fill="#fffdfb" stroke="#302c2b" stroke-width="2.8" stroke-linejoin="round"/>
+  <g fill="#f8a6bc"><ellipse cx="14" cy="40" rx="8" ry="5.5"/><ellipse cx="50" cy="40" rx="8" ry="5.5"/></g>
+  <g fill="#302c2b"><ellipse cx="22" cy="32" rx="4" ry="5"/><ellipse cx="43" cy="32" rx="4" ry="5"/></g>
+  <g fill="white"><ellipse cx="22" cy="30.5" rx="1.8" ry="1.4"/><ellipse cx="43" cy="30.5" rx="1.8" ry="1.4"/></g>
+  <g fill="none" stroke="#302c2b" stroke-linecap="round"><path d="M18 23l6-1M41 22l6 1M27 41q3 5 6 0q3 5 6 0" stroke-width="2.3"/><path d="m11 39-2 3m7-3-2 3m34-3-2 3m7-3-2 3" stroke-width="1.5"/></g>
+</svg>

@@ -1,4 +1,5 @@
 {
-  "enabled": false,
-  "serverUrl": null
+  "enabled": true,
+  "serverUrl": "https://chii-drop-online.typing-stacker-relay.workers.dev",
+  "identityScope": "cloudflare-v1"
 }

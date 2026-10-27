@@ -1,6 +1,6 @@
-// 공개 메뉴는 로컬 대전까지 제공한다. 스토리·온라인 대전은 준비 중이다.
+// 온라인 연결은 online-config.json으로 관리하며 스토리는 준비 중이다.
 export function modesForURL() {
-  return Object.freeze({ story: false, multiplayer: true, online: false });
+  return Object.freeze({ story: false, multiplayer: true, online: true });
 }
 
 export const MODES = modesForURL(globalThis.location?.href);

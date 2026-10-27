@@ -15,7 +15,7 @@ import { PROTOCOL } from '../src/net/rollback.js';
 import { RULES_VERSION } from '../src/engine/rules.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.webp': 'image/webp', '.json': 'application/json', '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.md': 'text/plain; charset=utf-8' };
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.webp': 'image/webp', '.json': 'application/json', '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.md': 'text/plain; charset=utf-8' };
 
 export function createOnlineServer({ origins = [], profiles = createProfileStore(), serveStatic = true, cloudflareURL } = {}) {
   if (!serveStatic && !origins.length) throw new Error('운영 서버의 허용 origin이 필요합니다.');
@@ -57,7 +57,7 @@ export function createOnlineServer({ origins = [], profiles = createProfileStore
               files.some((file) => `/skins/${voiceSkin}/${file}` === requested)));
         } catch { /* 스킨이나 배정표가 없으면 제공하지 않는다. */ }
       }
-      const publicRuntime = /^\/skins\/chiikawa\/pages-runtime\/(manifest\.json|characters\.json|assets\/[a-f0-9]{20}\.(png|webp|wav|mp3))$/.test(requested);
+      const publicRuntime = /^\/skins\/chiikawa\/pages-runtime\/(manifest\.json|characters\.json|favicon\.svg|assets\/[a-f0-9]{20}\.(png|webp|wav|mp3))$/.test(requested);
       if (!localPreview && !runtimeVoice && !publicRuntime && requested !== '/skins/chiikawa/story.json' && !/^\/(asset-worker\.js|online\.html|index\.html|style\.css|online\.css|src\/[\w/-]+\.(js|css)|skins\/[\w-]+\/(manifest\.json|characters\.json|[\w/-]+\.(png|webp))|sounds\/[\w/.-]+\.wav)$/.test(requested)) throw new Error('not public');
       const file = await realpath(resolve(root, '.' + requested));
       if (!file.startsWith(root + sep)) throw new Error('outside root');

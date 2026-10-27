@@ -51,7 +51,7 @@ test('스프라이트 로딩 전에는 안내만 표시하고 첫 타이틀부�
     assert.equal(frames.length, 1);
     frames.shift()(performance.now());
     assert.ok(texts.includes('테스트 게임'));
-    assert.equal(document.title, '테스트 게임 — 시작 검증');
+    assert.equal(document.title, '테스트 게임');
     assert.equal(images.length, 1);
     assert.ok(requests.some(url => url.endsWith('characters.json')));
     assert.ok(!requests.some(url => url.endsWith('story.json')));

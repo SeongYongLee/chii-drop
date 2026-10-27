@@ -124,12 +124,18 @@ for (const mode of ['cpu', 'solo', 'versus', 'watch']) test(`${mode}: 공통 선
   else assert.ok(h.labels().includes('준비'));
 });
 
-test('실제 진입 경로는 싱글·멀티 모두 공통 설정으로 연결하고 온라인은 잠근다', () => {
+test('실제 진입 경로는 공통 설정과 온라인 연결 설정을 따르고 스토리는 잠근다', () => {
   const h = harness();
   h.app.main.touchItems(h.app).find(item => item.label === '멀티플레이').activate();
   const multi = h.app.scene;
-  h.app.onlineAvailable = true;
+  h.app.onlineAvailable = false;
   assert.equal(multi.touchItems(h.app)[1].disabled, true);
+  h.app.onlineAvailable = true;
+  assert.equal(multi.touchItems(h.app)[1].disabled, false);
+  let opened = 0;
+  h.app.openOnline = () => { opened++; };
+  multi.touchItems(h.app)[1].activate();
+  assert.equal(opened, 1);
   multi.touchItems(h.app)[0].activate();
   assert.equal(h.app.scene.touchSetup.title, '로컬 대전');
   h.press('Escape'); assert.equal(h.app.scene, h.app.multi);

@@ -17,7 +17,7 @@ export async function checkBuild() {
   const manifest = JSON.parse(await readFile(`${RUNTIME}/manifest.json`, 'utf8'));
   parseOnlineConfig(JSON.parse(await readFile('online-config.json', 'utf8')), 'https://pages.example/game/');
   const expected = ['index.html','style.css','online.html','online.css','README.md','asset-worker.js','online-config.json', STORY,
-    `${RUNTIME}/manifest.json`,`${RUNTIME}/characters.json`,
+    `${RUNTIME}/manifest.json`,`${RUNTIME}/characters.json`,`${RUNTIME}/favicon.svg`,
     ...[...runtimePaths(manifest)].map(path => `${RUNTIME}/${path}`),
     ...(await walk('src')).filter(path => !/\.md$/i.test(path))];
   const hash = bytes => createHash('sha256').update(bytes).digest('hex');

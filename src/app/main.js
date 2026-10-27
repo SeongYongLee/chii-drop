@@ -156,8 +156,7 @@ const [skin, script] = await Promise.all([
 ]);
 if (skin && script) {
   app.skin = skin;
-  if (skin.branding?.title) document.title = [skin.branding.title,
-    [skin.branding.subtitle, skin.branding.tagline].filter(Boolean).join(' - ')].filter(Boolean).join(' — ');
+  if (skin.branding?.title) document.title = skin.branding.title;
   app.storyScript = script;
   app.applySettings();
   try { await prepareSfx(app.sfx); } catch { /* 소리 장치를 준비할 수 없어도 게임은 시작한다. */ }
