@@ -243,7 +243,7 @@ function selectionCharacters(skin) {
 }
 
 // 캐릭터·CPU 난이도는 모든 모드에서 같은 선수 카드로 설정한다.
-function createMatchSetup({ mode = 'cpu', characters: initialCharacters, cpuLevel = 'hard', cpuLevels, onBack } = {}) {
+function createMatchSetup({ mode = 'cpu', characters: initialCharacters, cpuLevel, cpuLevels, onBack } = {}) {
   const labels = mode === 'watch' ? ['CPU 1', 'CPU 2'] : mode === 'cpu' ? ['1P', 'CPU'] : mode === 'versus' ? ['1P', '2P'] : ['1P'];
   const title = { cpu: 'CPU 대전', watch: 'CPU 관전', versus: '로컬 대전', solo: '연습' }[mode];
   const players = labels.map((label, side) => ({ label, characterIndex: side,
@@ -251,7 +251,7 @@ function createMatchSetup({ mode = 'cpu', characters: initialCharacters, cpuLeve
   const startIndex = labels.length + players.filter(player => player.levelIndex !== undefined).length;
   const setup = { title, players, startIndex, startLabel: mode === 'watch' ? '관전 시작' : mode === 'solo' ? '연습 시작' : '대전 시작' };
   const indices = labels.map((_, side) => side);
-  const levels = labels.map((_, side) => Math.max(0, CPU_LEVELS.findIndex(level => level.id === (cpuLevels?.[side] ?? cpuLevel))));
+  const levels = labels.map((_, side) => Math.max(0, CPU_LEVELS.findIndex(level => level.id === (cpuLevels?.[side] ?? cpuLevel ?? (mode === 'cpu' ? 'beginner' : 'hard')))));
   const available = app => selectionCharacters(app.skin).filter(character => character.selectable !== false);
   const choices = (app, side) => selectionCharacters(app.skin).concat(mode === 'cpu' && side === 1 ? [{ id: 'random-opponent', name: '랜덤', random: true }] : []);
   let initialized = false;

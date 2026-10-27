@@ -187,5 +187,12 @@ test('가로 선수 카드도 같은 캐릭터·난이도 항목과 좌우 변�
   setup.tap(h.app, { x: 420, y: 230 });
   assert.equal(setup.touchItems(h.app)[0].value, MOCK_SKIN.characters[1].name);
   setup.tap(h.app, { x: 530, y: 390 });
-  assert.equal(setup.touchItems(h.app)[2].value, '쉬움');
+  assert.equal(setup.touchItems(h.app)[2].value, '달인');
+});
+
+test('CPU 대전의 기본은 입문이며 관전 기본과 명시한 기존 난이도는 보존한다', () => {
+  const h = harness();
+  assert.equal(createMatchSetup({ mode: 'cpu' }).touchItems(h.app)[2].value, '입문');
+  assert.equal(createMatchSetup({ mode: 'watch' }).touchItems(h.app)[2].value, '보통');
+  assert.equal(createMatchSetup({ mode: 'cpu', cpuLevel: 'expert' }).touchItems(h.app)[2].value, '어려움');
 });

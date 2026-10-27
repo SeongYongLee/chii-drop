@@ -125,3 +125,23 @@ test('펼친 선택 목록은 준비 중 항목을 표시하고 키보드 이동
   list.children[2].events.click();
   assert.equal(picker.isOpen, false); assert.deepEqual(chosen, [[1,2]]); assert.deepEqual(closed, [1]);
 });
+
+test('게임 선택창을 쓰면 네이티브 select를 만들지 않아 Safari의 이중 목록을 방지한다', async () => {
+  const { createMatchSetup } = await import('../src/app/menu-scenes.js');
+  class Element {
+    children = []; dataset = {}; attributes = {}; events = {};
+    constructor(tag) { this.tag = tag; }
+    append(...children) { this.children.push(...children); }
+    replaceChildren() { this.children = []; }
+    setAttribute(name, value) { this.attributes[name] = value; }
+    addEventListener(name, callback) { this.events[name] = callback; }
+    getContext() { return { fillText() {} }; }
+  }
+  const doc = { createElement: tag => new Element(tag) }, root = new Element('div');
+  const app = { skin: MOCK_SKIN }, setup = createMatchSetup({ mode: 'cpu' }), opened = [];
+  renderSetupCards(doc, root, setup.touchItems(app), setup.touchSetup, () => {}, () => {}, index => opened.push(index));
+  const fields = root.children.flatMap(card => card.children).filter(child => child.dataset.setupChoice);
+  assert.equal(fields.length, 3); assert.ok(fields.every(field => field.tag === 'button'));
+  assert.ok(root.children.flatMap(card => card.children).every(child => child.tag !== 'select'));
+  fields[2].events.click(); assert.deepEqual(opened, [2]);
+});

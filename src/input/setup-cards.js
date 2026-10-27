@@ -39,22 +39,25 @@ function renderSetupCards(document, container, items, setup, activate, focus = (
       if (!item) continue;
       const isCharacter = index === player.characterIndex;
       if (!isCharacter) card.append(make('span', 'setup-field-label', '난이도'));
-      const select = make('select', isCharacter ? 'setup-character-select' : 'setup-level-select');
+      const select = make(openPicker ? 'button' : 'select', isCharacter ? 'setup-character-select' : 'setup-level-select');
       select.setAttribute('aria-label', item.label);
       select.setAttribute('aria-describedby', hint.id);
       select.dataset.setupField = String(index);
       select.addEventListener('focus', () => focus(index));
-      if (openPicker) {
-        select.addEventListener('pointerdown', event => { event.preventDefault(); focus(index); openPicker(index); });
-        select.addEventListener('click', event => { event.preventDefault(); openPicker(index); });
-      }
       select.disabled = Boolean(item.disabled);
-      (item.choiceLabels ?? [item.value]).forEach((name, optionIndex) => {
-        const option = make('option', '', name);
-        option.value = String(optionIndex); option.disabled = Boolean(item.choiceDisabled?.[optionIndex]); select.append(option);
-      });
-      select.value = String(item.choiceIndex ?? 0);
-      select.addEventListener('change', () => activate(index, Number(select.value) - (item.choiceIndex ?? 0)));
+      if (openPicker) {
+        select.type = 'button'; select.textContent = item.value;
+        select.setAttribute('aria-label', `${item.label} · ${item.value}`);
+        select.dataset.setupChoice = 'true'; select.setAttribute('aria-haspopup', 'dialog');
+        select.addEventListener('click', () => openPicker(index));
+      } else {
+        (item.choiceLabels ?? [item.value]).forEach((name, optionIndex) => {
+          const option = make('option', '', name);
+          option.value = String(optionIndex); option.disabled = Boolean(item.choiceDisabled?.[optionIndex]); select.append(option);
+        });
+        select.value = String(item.choiceIndex ?? 0);
+        select.addEventListener('change', () => activate(index, Number(select.value) - (item.choiceIndex ?? 0)));
+      }
       card.append(select);
     }
     container.append(card);

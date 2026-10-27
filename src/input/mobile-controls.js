@@ -171,7 +171,7 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
       onUnlock(); queued |= MOBILE_INPUT.back;
       return;
     }
-    const selected = nativeItems.querySelector?.('select[aria-current="true"]');
+    const selected = nativeItems.querySelector?.('[data-setup-choice][aria-current="true"], select[aria-current="true"]');
     if (!selected || selected.disabled) return;
     event.preventDefault(); event.stopImmediatePropagation();
     selected.focus({ preventScroll: true });
