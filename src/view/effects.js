@@ -312,9 +312,10 @@ function findRankedCell(cells, column, rank) {
   return -1;
 }
 
-function tickNext(effect, player, table) {
+function tickNext(effect, player, table, advance = true) {
   if (effect.lastNextIndex !== player.nextIndex) {
     effect.lastNextIndex = player.nextIndex;
+    effect.nextFresh = !advance;
     effect.next = {
       frame: 0,
       waiting: player.frame === 0,
@@ -331,7 +332,8 @@ function tickNext(effect, player, table) {
   // 준비 카운트다운은 엔진 프레임 0에 머문다. 첫 쌍을 NEXT에서 미리 내보내지 않는다.
   // 첫 출현의 추가 대기 4프레임도 마친 뒤 NEXT 이동을 시작한다.
   if (anim) anim.waiting = player.frame === 0 || (player.phase === 'next' && anim.frame === 0 && player.phaseTimer > NEXT_WAIT);
-  if (anim?.waiting) return;
+  if (!advance || anim?.waiting) return;
+  if (effect.nextFresh) { effect.nextFresh = false; return; }
   if (!anim || NEXT_PAUSE_PHASES.has(player.phase) || anim.frame >= NEXT_WAIT + 16) {
     return;
   }
@@ -407,7 +409,7 @@ function tickScore(effect, player) {
 }
 
 // 매 프레임 한 번 호출한다. opponentSide는 혼자하기면 null.
-function tickEffect(effect, player, { table, opponentSide, opponent = null }) {
+function observeEffect(effect, player, { table, opponentSide, opponent = null }, animateTogether = false) {
   effect.arrivalSounds = [];
   tickSituation(effect, player, opponent);
   handleEvents(effect, player, opponentSide);
@@ -416,10 +418,10 @@ function tickEffect(effect, player, { table, opponentSide, opponent = null }) {
     effect.formula = null;
   }
   trackShadows(effect, player);
-  tickNext(effect, player, table);
+  tickNext(effect, player, table, animateTogether);
   tickQuake(effect, player);
   tickPop(effect, player);
-  tickScore(effect, player);
+  if (animateTogether) tickScore(effect, player);
 
   // 공격 예고와 같은 프레임에 상쇄 결과를 반영한다. 구슬 연출은 독립적으로 계속한다.
   const visibleOffset = player.events.some(event => event.type === 'offset' && event.visibleAmount > 0);
@@ -431,10 +433,22 @@ function tickEffect(effect, player, { table, opponentSide, opponent = null }) {
       type: difference > 0 ? 'warning' : 'offset', amount: Math.abs(difference), total: warning,
     };
     effect.warning = { value: warning, icons: decomposeWarning(warning), frame: 0 };
-  } else if (effect.warning.frame < WARNING_SPREAD_FRAMES) {
+    effect.warningFresh = !animateTogether;
+  } else if (animateTogether && effect.warning.frame < WARNING_SPREAD_FRAMES) {
     effect.warning.frame += 1;
   }
 
+}
+
+// 통신 도착 횟수 대신 화면의 고정 프레임마다 한 번씩 진행한다.
+function animateEffect(effect, player, table, animateTogether = false) {
+  if (!animateTogether) {
+    effect.arrivalSounds = [];
+    tickNext(effect, player, table);
+    tickScore(effect, player);
+    if (effect.warningFresh) effect.warningFresh = false;
+    else if (effect.warning.frame < WARNING_SPREAD_FRAMES) effect.warning.frame++;
+  }
   effect.particles = effect.particles
     .map((p) => {
       const age = p.age + 1;
@@ -498,11 +512,27 @@ function tickEffect(effect, player, { table, opponentSide, opponent = null }) {
   }
 }
 
-// 온라인의 확정된 프레임에도 양쪽 필드를 함께 전달한다.
+// 싱글 모드의 기존 순서와 타이밍은 그대로 유지한다.
+function tickEffect(effect, player, options) {
+  observeEffect(effect, player, options, true);
+  animateEffect(effect, player, options.table, true);
+}
+
+// 온라인에서는 확정된 사건 수신과 표시 시계를 분리한다.
+function observeMatchEffects(effects, match) {
+  match.players.forEach((player, side) => observeEffect(effects[side], player, {
+    table: match.table, opponentSide: 1 - side, opponent: match.players[1 - side],
+  }));
+}
+function animateMatchEffects(effects, match) {
+  match.players.forEach((player, side) => animateEffect(effects[side], player, match.table));
+}
+
+// 확정 프레임과 표시 프레임이 일치하는 기존 호출용.
 function tickMatchEffects(effects, match) {
   match.players.forEach((player, side) => tickEffect(effects[side], player, {
     table: match.table, opponentSide: 1 - side, opponent: match.players[1 - side],
   }));
 }
 
-export { createEffects, orbArrival, orbPosition, setMood, tickCharacters, tickEffect, tickMatchEffects };
+export { createEffects, orbArrival, orbPosition, setMood, tickCharacters, tickEffect, tickMatchEffects, observeMatchEffects, animateMatchEffects };

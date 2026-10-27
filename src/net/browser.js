@@ -4,7 +4,7 @@ import { attachKeyboard, createKeyboard, readInput, KEYMAPS, clearPressed } from
 import { loadKeyBindings } from '../input/key-settings.js';
 import { setupScreen } from '../app/screen.js';
 import { loadSettings } from '../app/storage.js';
-import { createEffects, tickCharacters, tickMatchEffects } from '../view/effects.js';
+import { createEffects, tickCharacters, observeMatchEffects, animateMatchEffects } from '../view/effects.js';
 import { drawBanner, drawGame } from '../view/renderer.js';
 import { chooseBattleScenery, applyPageBackdrop } from '../view/battle-backgrounds.js';
 import { drawFieldResults } from '../view/field-results.js';
@@ -345,8 +345,8 @@ function confirmed(states) {
       state.players.forEach((p, i) => playCharacterVoice(sfx, (participants[i]?.charId ?? skin.characters[i % skin.characters.length].id),
         i === state.winner ? 'win' : 'lose', { channel: i }));
     }
-    tickMatchEffects(effects, state);
-    state.players.forEach((player, i) => playBoardSounds(sfx, soundPlayers?.[i], player, i, effects[i].warningChange, effects[i].arrivalSounds));
+    observeMatchEffects(effects, state);
+    state.players.forEach((player, i) => playBoardSounds(sfx, soundPlayers?.[i], player, i, effects[i].warningChange, []));
     soundPlayers = state.players;
     for (const [i, p] of state.players.entries()) for (const event of p.events) {
       if (event.type === 'lock') continue;
@@ -612,7 +612,13 @@ function tick(now) {
   if (game && !spectating) game.setLatency(rtt);
   while (accumulator >= 1000 / 60) {
     if (verifiedWinner !== null) resultFrame += 1;
-    if (game) tickCharacters(effects);
+    if (game && !paused) {
+      tickCharacters(effects);
+      animateMatchEffects(effects, game.confirmedState);
+      effects.forEach((effect, channel) => {
+        for (const event of effect.arrivalSounds) playSfx(sfx, event.type, { ...event, channel });
+      });
+    }
     if (active && game.canAdvance) {
       if (spectating) {
         const packet = game.advance(); if (packet) confirmed(packet.confirmed);
