@@ -2,7 +2,7 @@ import { createMatch, stepMatch } from '../engine/match.js';
 
 export const PROTOCOL = 13;
 export const MAX_PREDICTION = 8;
-export const MAX_NETWORK_PREDICTION = 30;
+export const MAX_NETWORK_PREDICTION = 45;
 export const MAX_AHEAD = 120;
 
 export function validInput(value) {
@@ -28,6 +28,7 @@ export class RollbackMatch {
     this.received = [0, 0];
     this.rollbacks = 0;
     this.predictionLimit = MAX_PREDICTION;
+    this.pendingReconciliation = false;
   }
 
   // 입력 자체를 늦추지 않고 왕복 지연과 묶음 전송·흔들림에 필요한 여유를 둔다.
@@ -38,10 +39,20 @@ export class RollbackMatch {
       Math.min(MAX_NETWORK_PREDICTION, Math.max(16, Math.ceil(milliseconds * 60 / 1000) + 6)));
   }
 
+  // 서버 ping으로 보이지 않는 상대 기기·전송 지연에도 멈추기 전에 여유를 확보한다.
+  // 실시간 조작은 유지하되 입력 없이 계속 진행하는 범위는 750ms로 제한한다.
+  reservePrediction() {
+    const lead = this.state.frame - this.confirmedState.frame;
+    if (lead >= this.predictionLimit - 3) {
+      this.predictionLimit = Math.min(MAX_NETWORK_PREDICTION, Math.max(this.predictionLimit, lead + 6));
+    }
+  }
+
   restore(state, hash) {
     if (!Number.isInteger(state?.frame) || state.frame < 0 || stateHash(state) !== hash) throw new Error('invalid snapshot');
     this.state = structuredClone(state); this.confirmedState = structuredClone(state);
     this.inputs = [new Map(), new Map()]; this.received = [state.frame, state.frame];
+    this.pendingReconciliation = false;
   }
 
   get canAdvance() {
@@ -52,7 +63,7 @@ export class RollbackMatch {
     return this.receiveBatch(side, frame, [input]);
   }
 
-  receiveBatch(side, frame, inputs) {
+  receiveBatch(side, frame, inputs, { deferReplay = false } = {}) {
     if (![0, 1].includes(side) || !Number.isInteger(frame) || !Array.isArray(inputs)
       || !inputs.length || inputs.length > MAX_AHEAD || !Array.from(inputs).every(validInput)) throw new Error('invalid input');
     if (frame !== this.received[side] || frame + inputs.length - 1 > this.state.frame + MAX_AHEAD) throw new Error('invalid sequence');
@@ -67,16 +78,21 @@ export class RollbackMatch {
       this.confirmedState = stepMatch(this.confirmedState, this.inputs.map((map) => map.get(f)));
       confirmed.push(this.confirmedState);
     }
-    // 묶음 전체를 받은 뒤 한 번만 되감는다. 예측은 최대 30프레임으로 제한한다.
-    if (needsReplay) {
-      const previous = stateHash(this.state);
-      this.state = structuredClone(this.confirmedState);
-      while (this.state.frame < target) this.predict();
-      if (stateHash(this.state) !== previous) this.rollbacks++;
-    }
+    this.pendingReconciliation ||= needsReplay;
+    if (!deferReplay) this.reconcile();
     const floor = this.confirmedState.frame - 1;
     for (const map of this.inputs) for (const key of map.keys()) if (key < floor) map.delete(key);
     return confirmed;
+  }
+
+  // 밀린 패킷이 한꺼번에 도착해도 화면을 그리기 전에 한 번만 보정한다.
+  reconcile() {
+    if (!this.pendingReconciliation) return;
+    const target = this.state.frame, previous = stateHash(this.state);
+    this.state = structuredClone(this.confirmedState);
+    while (this.state.frame < target) this.predict();
+    if (stateHash(this.state) !== previous) this.rollbacks++;
+    this.pendingReconciliation = false;
   }
 
   predict() {
@@ -86,6 +102,7 @@ export class RollbackMatch {
   }
 
   advance(input) {
+    this.reconcile();
     if (!this.canAdvance) return null;
     const frame = this.state.frame;
     const confirmed = this.receive(this.side, frame, input);

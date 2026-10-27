@@ -1,3 +1,5 @@
+import { AUTOMATIC_MATCHMAKING } from './features.js';
+
 // 온라인 화면은 메인 게임 문서 안에 한 번만 만든다.
 export const onlineTemplate = `
   <a class="skip-link" href="#main">본문으로 건너뛰기</a>
@@ -26,8 +28,8 @@ export const onlineTemplate = `
         <a id="tab-rankings" href="#leaderboard"><span aria-hidden="true">♜</span> 랭킹</a>
       </nav>
       <section id="panel-play" class="lobby-panel" aria-labelledby="play-title">
-        <div class="page-heading"><div><span class="eyebrow">PLAY TOGETHER</span><h2 id="play-title">함께하면 더 즐거운 한 판</h2><p class="hint">바로 상대를 찾거나, 마음에 드는 방에 들어가 보세요.</p></div></div>
-        <section class="matchmaking" aria-labelledby="match-title">
+        <div class="page-heading"><div><span class="eyebrow">PLAY TOGETHER</span><h2 id="play-title">함께하면 더 즐거운 한 판</h2><p class="hint">방을 만들거나, 마음에 드는 방에 들어가 보세요.</p></div></div>
+        <section class="matchmaking" aria-labelledby="match-title" ${AUTOMATIC_MATCHMAKING ? '' : 'hidden'}>
           <div class="match-copy"><span class="pill">온라인 로비</span><h3 id="match-title">같이 한 판 할까요?</h3><p>방에 참가하거나, 바로 상대를 찾아보세요.</p></div>
           <div class="match-actions"><label class="sr-only" for="queue-mode">자동 매칭 종류</label><select id="queue-mode" name="queue-mode"><option value="rated">랭크전 · 레이트 변경</option><option value="casual">친선전 · 레이트 유지</option></select><button id="matchmake" class="primary" disabled>상대 찾기 <span aria-hidden="true">→</span></button><button id="cancel-match" hidden>매칭 취소</button><p id="queue-status" hidden>상대를 찾고 있어요…</p></div>
           <div class="match-art" aria-hidden="true"><canvas id="lobby-mascots" width="384" height="160"></canvas></div>

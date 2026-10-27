@@ -148,9 +148,9 @@ test('220ms relay delay with jitter keeps 60fps prediction moving and converges 
 
 test('latency allowance stays bounded and malformed batches cannot partly mutate rollback state', () => {
   const game = new RollbackMatch(9, 0);
-  game.setLatency(10000); assert.equal(game.predictionLimit, 30);
-  game.setLatency(0); assert.equal(game.predictionLimit, 30);
-  for (let i = 0; i < 30; i++) assert.ok(game.advance(0));
+  game.setLatency(10000); assert.equal(game.predictionLimit, 45);
+  game.setLatency(0); assert.equal(game.predictionLimit, 45);
+  for (let i = 0; i < 45; i++) assert.ok(game.advance(0));
   assert.equal(game.advance(0), null);
   const hash = stateHash(game.state);
   assert.throws(() => game.receiveBatch(1, 0, [0, 32]));
@@ -172,5 +172,61 @@ test('matching predictions need no replay and a changed batch replays only its r
   assert.equal(replayed, 2);
   let expected = createMatch({ seed: 44 });
   for (let frame = 0; frame < 8; frame++) expected = stepMatch(expected, [0, frame < 3 ? 0 : 2]);
+  assert.equal(stateHash(game.state), stateHash(expected));
+});
+
+test('a single 600ms delivery stall expands bounded headroom before stopping and preserves the match', t => {
+  function simulate(reserve) {
+    const games = [0, 1].map(side => new RollbackMatch(333, side));
+    games.forEach(game => game.setLatency(80));
+    const batchers = games.map(() => createInputBatcher()), queues = [[], []], streaks = [0, 0];
+    let maxWait = 0, waiting = 0;
+    for (let tick = 0; tick < 2400; tick++) games.forEach((game, side) => {
+      const queue = queues[side];
+      while (queue.length && queue[0].at <= tick) {
+        const packet = queue.shift(); game.receiveBatch(1 - side, packet.frame, packet.inputs, { deferReplay: true });
+      }
+      game.reconcile();
+      if (game.state.frame >= 600) return;
+      if (reserve) game.reservePrediction();
+      const packet = game.advance(input(game.state.frame, side));
+      streaks[side] = packet ? 0 : streaks[side] + 1;
+      if (!packet) waiting++;
+      maxWait = Math.max(maxWait, streaks[side]);
+      let batch = packet ? batchers[side].push(packet.frame, packet.input) : null;
+      if (!game.canAdvance || game.state.frame === 600) batch ??= batchers[side].flush();
+      if (batch) queues[1 - side].push({ ...batch, at: tick >= 240 && tick < 276 ? 282 : tick + 6 });
+    });
+    let expected = createMatch({ seed: 333 });
+    for (let frame = 0; frame < 600; frame++) expected = stepMatch(expected, [input(frame, 0), input(frame, 1)]);
+    games.forEach(game => {
+      assert.equal(game.confirmedState.frame, 600);
+      assert.equal(stateHash(game.state), stateHash(expected));
+      assert.ok(game.predictionLimit <= 45);
+    });
+    return { maxWait, waiting };
+  }
+  const previous = simulate(false), improved = simulate(true);
+  t.diagnostic(JSON.stringify({ previous, improved }));
+  assert.ok(previous.maxWait >= 15, 'previous window reproduces a visible waiting banner');
+  assert.equal(improved.waiting, 0, 'the short outage is absorbed without stalling simulation');
+});
+
+test('a backlog of multiple packets reconciles once before the next display without losing confirmed frames', () => {
+  const game = new RollbackMatch(44, 0); game.setLatency(0);
+  for (let frame = 0; frame < 16; frame++) game.advance(0);
+  let replayed = 0;
+  const predict = game.predict.bind(game);
+  game.predict = () => { replayed++; predict(); };
+  const remote = [1, 1, 0, 2, 0, 2, 0, 1, 0];
+  const confirmed = [];
+  for (let frame = 0; frame < 9; frame += 3) confirmed.push(...game.receiveBatch(1, frame, remote.slice(frame, frame + 3), { deferReplay: true }));
+  assert.equal(replayed, 0);
+  assert.deepEqual(confirmed.map(state => state.frame), [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  game.reconcile();
+  assert.equal(replayed, 7);
+  game.reconcile(); assert.equal(replayed, 7);
+  let expected = createMatch({ seed: 44 });
+  for (let frame = 0; frame < 16; frame++) expected = stepMatch(expected, [0, remote[frame] ?? 0]);
   assert.equal(stateHash(game.state), stateHash(expected));
 });

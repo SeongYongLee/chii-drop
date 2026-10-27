@@ -1,4 +1,5 @@
 import { loadOnlineConfig, onlineTokenKey } from './config.js';
+import { AUTOMATIC_MATCHMAKING } from './features.js';
 import { showOnlineControls } from '../app/controls-guide.js';
 import { attachKeyboard, createKeyboard, readInput, KEYMAPS, clearPressed } from '../input/keyboard.js';
 import { loadKeyBindings } from '../input/key-settings.js';
@@ -184,17 +185,18 @@ function buttons() {
   shell.dataset.inRoom = String(!!room);
   shell.dataset.matchActive = String(active);
   shell.dataset.spectating = String(spectating);
-  const searching = connected && queued && !room;
+  const searching = AUTOMATIC_MATCHMAKING && connected && queued && !room;
   shell.dataset.queued = String(searching);
   $('queue-banner').hidden = !searching;
   syncBattleControls();
   for (const id of ['create', 'join', 'matchmake', 'rename']) $(id).disabled = !free;
+  $('matchmake').disabled = !AUTOMATIC_MATCHMAKING || !free;
   $('refresh').disabled = !connected;
   $('password-join').disabled = !free;
   for (const id of ['create', 'join', 'password-join']) $(id).setAttribute('aria-busy', String(submitting));
-  $('queue-mode').disabled = !free;
-  $('cancel-match').hidden = !queued;
-  $('queue-status').hidden = !queued;
+  $('queue-mode').disabled = !AUTOMATIC_MATCHMAKING || !free;
+  $('cancel-match').hidden = !AUTOMATIC_MATCHMAKING || !queued;
+  $('queue-status').hidden = !AUTOMATIC_MATCHMAKING || !queued;
   $('lobby-view').hidden = !!room;
   const choosing = room?.phase === 'selecting';
   shell.dataset.selecting = String(choosing);
@@ -405,7 +407,7 @@ function connect() {
         if (msg.token) { playerToken = msg.token; try { localStorage.setItem(TOKEN_KEY, msg.token); } catch {} }
         reconnectAttempt = 0; $('reconnect-help').hidden = true;
         if (room || game) { room = null; resetGame(); }
-        connected = true; renderProfile(msg.profile); status('방에 참가하거나 자동 매칭으로 상대를 찾아보세요.'); buttons();
+        connected = true; renderProfile(msg.profile); status(AUTOMATIC_MATCHMAKING ? '방에 참가하거나 자동 매칭으로 상대를 찾아보세요.' : '방을 만들거나 열린 방에 참가해 함께 대전하세요.'); buttons();
       }
       if (msg.type === 'profile') renderProfile(msg.profile);
       if (msg.type === 'rankings') renderRankings(msg.rankings);
@@ -415,7 +417,14 @@ function connect() {
         submitting = false; queued = false; side = msg.side; spectating = msg.role === 'spectator'; $('password-dialog').close(); $('code-dialog').close(); root.querySelector('.profile-edit').open = false; resetGame(); showPlay(); status(spectating ? '관전으로 입장했습니다. 경기를 기다려 주세요.' : '방에 참가했습니다. 상대와 함께 준비해 주세요.');
       }
       if (msg.type === 'room') renderRoom(msg.room);
-      if (msg.type === 'queued') { queued = msg.active; buttons(); renderRooms(); status(queued ? '상대를 찾고 있습니다. 매칭은 언제든 취소할 수 있습니다.' : '매칭 대기를 취소했습니다.'); send({ type: 'list' }); }
+      if (msg.type === 'queued') {
+        if (!AUTOMATIC_MATCHMAKING && msg.active) {
+          queued = false; send({ type: 'cancelQueue' }); buttons(); renderRooms(); return;
+        }
+        queued = msg.active; buttons(); renderRooms();
+        status(queued ? '상대를 찾고 있습니다. 매칭은 언제든 취소할 수 있습니다.' : AUTOMATIC_MATCHMAKING ? '매칭 대기를 취소했습니다.' : '방을 만들거나 열린 방에 참가해 함께 대전하세요.');
+        send({ type: 'list' });
+      }
       if (msg.type === 'matched') status('상대를 찾았습니다! 양쪽 모두 준비하면 캐릭터를 선택합니다.');
       if (msg.type === 'start' || msg.type === 'snapshot' || msg.type === 'spectatorSnapshot') {
         inputBatcher.reset();
@@ -463,10 +472,10 @@ function connect() {
         active = true; paused = false; pauseUntil = 0; accumulator = 0; clearControls(); buttons();
         status('재접속 완료 · 서버 상태를 맞추고 경기를 이어갑니다.');
       }
-      if (msg.type === 'input' && (msg.epoch ?? 0) === epoch && active && msg.matchId === matchId) confirmed(game.receive(msg.side, msg.frame, msg.input));
+      if (msg.type === 'input' && (msg.epoch ?? 0) === epoch && active && msg.matchId === matchId) confirmed(game.receiveBatch(msg.side, msg.frame, [msg.input], { deferReplay: true }));
       if (msg.type === 'inputBatch' && msg.epoch === epoch && active && msg.matchId === matchId) {
         if (!validInputBatch(msg)) throw new Error('invalid input batch');
-        confirmed(game.receiveBatch(msg.side, msg.frame, msg.inputs));
+        confirmed(game.receiveBatch(msg.side, msg.frame, msg.inputs, { deferReplay: true }));
       }
       if ((msg.type === 'checksum' || msg.type === 'result') && (msg.epoch ?? 0) === epoch && msg.matchId === matchId) { checks.set(msg.frame, msg); verify(); }
       if (msg.type === 'settlement') {
@@ -549,7 +558,7 @@ $('field-zoom').onclick = () => {
 };
 $('reconnect').onclick = () => { if (connected) return; clearTimeout(reconnectTimer); reconnectTimer = null; ws?.close(); connect(); };
 $('refresh').onclick = () => send({ type: 'list' });
-$('matchmake').onclick = () => send({ type: 'queue', rated: $('queue-mode').value === 'rated' });
+$('matchmake').onclick = () => { if (AUTOMATIC_MATCHMAKING) send({ type: 'queue', rated: $('queue-mode').value === 'rated' }); };
 $('cancel-match').onclick = $('queue-banner-cancel').onclick = () => send({ type: 'cancelQueue' });
 async function explainControls(force = false) {
   if (guiding) return;
@@ -609,8 +618,9 @@ function tick(now) {
     skin.drawCharacter(preview, button.dataset.charId, 'idle', 8, 8, 176, { frame: Math.floor(now * .06), instance: `online-choice-${button.dataset.charId}`, presentation: 'selection' });
   }
   accumulator = Math.min(accumulator + now - last, 1000 / 60 * 5); last = now;
-  if (game && !spectating) game.setLatency(rtt);
+  if (game && !spectating) { game.setLatency(rtt); game.reconcile(); }
   while (accumulator >= 1000 / 60) {
+    if (game && !spectating && active) game.reservePrediction();
     if (verifiedWinner !== null) resultFrame += 1;
     if (game && !paused) {
       tickCharacters(effects);

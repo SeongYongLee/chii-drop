@@ -1,4 +1,5 @@
 import { MODES } from '../app/modes.js';
+import { AUTOMATIC_MATCHMAKING } from './features.js';
 import { onlineTemplate } from './template.js';
 
 // DOM 화면을 게임 문서에 붙인다. 스타일은 메뉴·게임판과 서로 섞이지 않는다.
@@ -13,7 +14,7 @@ export function createOnlineView(app, canvas) {
     root.append(link);
   }
   const shell = document.createElement('div'); shell.className = 'online-shell';
-  Object.assign(shell.dataset, { inRoom: 'false', playing: 'false', connected: 'false' });
+  Object.assign(shell.dataset, { inRoom: 'false', playing: 'false', connected: 'false', matchmaking: String(AUTOMATIC_MATCHMAKING) });
   shell.innerHTML = onlineTemplate; root.append(shell); document.body.append(host);
   // viewport 수치 대신 실제 프레임을 측정해 확대·창 크기 변경도 같은 기준을 쓴다.
   function fitLobby() {

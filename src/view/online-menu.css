@@ -705,3 +705,10 @@
 :host .online-shell[data-compact=true] .room-arena .participant-details h3 { font-size:12px; margin:3px 0; }
 :host .online-shell[data-compact=true] .room-arena .participant-details p { font-size:9px; }
 :host .online-shell[data-compact=true] .room-arena .seats::after { font-size:18px; padding:2px; }
+
+/* 자동 매칭을 닫은 로비는 방 목록에 남는 높이를 모두 사용한다. */
+:host .online-shell[data-matchmaking=false] #panel-play:not([hidden]) { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr); gap:0; }
+:host .online-shell[data-matchmaking=false] .rooms-card { grid-column:1; grid-row:1; }
+:host .online-shell[data-matchmaking=false][data-short=true][data-compact=true][data-in-room=false] #lobby-view { grid-template-columns:minmax(0,1fr); grid-template-rows:44px minmax(0,1fr); }
+:host .online-shell[data-matchmaking=false][data-short=true][data-compact=true] #panel-play:not([hidden]) { grid-column:1; grid-row:2; }
+:host .online-shell[data-matchmaking=false][data-short=true][data-compact=true] .lobby-tabs { grid-column:1; grid-row:1; }
