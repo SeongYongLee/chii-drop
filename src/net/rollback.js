@@ -2,6 +2,7 @@ import { createMatch, stepMatch } from '../engine/match.js';
 
 export const PROTOCOL = 13;
 export const MAX_PREDICTION = 8;
+export const MAX_NETWORK_PREDICTION = 30;
 export const MAX_AHEAD = 120;
 
 export function validInput(value) {
@@ -26,6 +27,15 @@ export class RollbackMatch {
     this.inputs = [new Map(), new Map()];
     this.received = [0, 0];
     this.rollbacks = 0;
+    this.predictionLimit = MAX_PREDICTION;
+  }
+
+  // 입력 자체를 늦추지 않고 왕복 지연과 묶음 전송·흔들림에 필요한 여유를 둔다.
+  // 경기 도중 한도를 줄이면 반복적으로 멈추므로 증가만 허용한다.
+  setLatency(milliseconds) {
+    if (!Number.isFinite(milliseconds) || milliseconds < 0) return;
+    this.predictionLimit = Math.max(this.predictionLimit,
+      Math.min(MAX_NETWORK_PREDICTION, Math.max(16, Math.ceil(milliseconds * 60 / 1000) + 6)));
   }
 
   restore(state, hash) {
@@ -35,23 +45,30 @@ export class RollbackMatch {
   }
 
   get canAdvance() {
-    return this.state.frame < this.confirmedState.frame + MAX_PREDICTION;
+    return this.state.frame < this.confirmedState.frame + this.predictionLimit;
   }
 
   receive(side, frame, input) {
-    if (![0, 1].includes(side) || !Number.isInteger(frame) || !validInput(input)) throw new Error('invalid input');
-    if (frame !== this.received[side] || frame > this.state.frame + MAX_AHEAD) throw new Error('invalid sequence');
-    this.inputs[side].set(frame, input);
-    this.received[side]++;
+    return this.receiveBatch(side, frame, [input]);
+  }
+
+  receiveBatch(side, frame, inputs) {
+    if (![0, 1].includes(side) || !Number.isInteger(frame) || !Array.isArray(inputs)
+      || !inputs.length || inputs.length > MAX_AHEAD || !Array.from(inputs).every(validInput)) throw new Error('invalid input');
+    if (frame !== this.received[side] || frame + inputs.length - 1 > this.state.frame + MAX_AHEAD) throw new Error('invalid sequence');
     const target = this.state.frame;
+    const predictedInput = this.inputs[side].get(this.received[side] - 1) ?? 0;
+    const needsReplay = inputs.some((input, i) => frame + i < target && input !== predictedInput);
+    for (const [i, input] of inputs.entries()) this.inputs[side].set(frame + i, input);
+    this.received[side] += inputs.length;
     const confirmed = [];
     while (this.inputs.every((map) => map.has(this.confirmedState.frame))) {
       const f = this.confirmedState.frame;
       this.confirmedState = stepMatch(this.confirmedState, this.inputs.map((map) => map.get(f)));
       confirmed.push(this.confirmedState);
     }
-    // 확정 지점에서 예측 구간만 다시 계산한다. 최대 8프레임으로 비용을 제한한다.
-    if (frame < target) {
+    // 묶음 전체를 받은 뒤 한 번만 되감는다. 예측은 최대 30프레임으로 제한한다.
+    if (needsReplay) {
       const previous = stateHash(this.state);
       this.state = structuredClone(this.confirmedState);
       while (this.state.frame < target) this.predict();

@@ -112,3 +112,65 @@ test('reconnection discards unsent old-epoch batches and resumes with a fresh se
   send(peers[1], 1);
   assert.equal(room.state.frame, 2);
 });
+
+test('220ms relay delay with jitter keeps 60fps prediction moving and converges after batching', () => {
+  function simulate(adaptive) {
+    const games = [0, 1].map(side => new RollbackMatch(871, side));
+    if (adaptive) games.forEach(game => game.setLatency(220));
+    const batchers = games.map(() => createInputBatcher()), queues = [[], []];
+    let waiting = 0;
+    for (let tick = 0; tick < 2400; tick++) {
+      games.forEach((game, side) => {
+        const queue = queues[side];
+        while (queue.length && queue[0].at <= tick) {
+          const packet = queue.shift(); game.receiveBatch(1 - side, packet.frame, packet.inputs);
+        }
+        if (game.state.frame >= 600) return;
+        const packet = game.advance(input(game.state.frame, side));
+        let batch = packet ? batchers[side].push(packet.frame, packet.input) : null;
+        if (!game.canAdvance || game.state.frame === 600) batch ??= batchers[side].flush();
+        if (batch) queues[1 - side].push({ ...batch, at: tick + 13 + tick % 4 });
+        if (!packet && tick > 60) waiting++;
+      });
+    }
+    let expected = createMatch({ seed: 871 });
+    for (let frame = 0; frame < 600; frame++) expected = stepMatch(expected, [input(frame, 0), input(frame, 1)]);
+    games.forEach(game => {
+      assert.equal(game.confirmedState.frame, 600);
+      assert.equal(stateHash(game.state), stateHash(expected));
+    });
+    return waiting;
+  }
+  const fixed = simulate(false), adaptive = simulate(true);
+  assert.ok(fixed > 100, `baseline waiting ticks: ${fixed}`);
+  assert.ok(adaptive < fixed * .1, `waiting ticks ${fixed} -> ${adaptive}`);
+});
+
+test('latency allowance stays bounded and malformed batches cannot partly mutate rollback state', () => {
+  const game = new RollbackMatch(9, 0);
+  game.setLatency(10000); assert.equal(game.predictionLimit, 30);
+  game.setLatency(0); assert.equal(game.predictionLimit, 30);
+  for (let i = 0; i < 30; i++) assert.ok(game.advance(0));
+  assert.equal(game.advance(0), null);
+  const hash = stateHash(game.state);
+  assert.throws(() => game.receiveBatch(1, 0, [0, 32]));
+  assert.equal(game.received[1], 0); assert.equal(stateHash(game.state), hash);
+  game.receiveBatch(1, 0, [0, 0, 0]);
+  assert.equal(game.confirmedState.frame, 3);
+  assert.ok(game.canAdvance);
+});
+
+test('matching predictions need no replay and a changed batch replays only its remaining prediction once', () => {
+  const game = new RollbackMatch(44, 0);
+  for (let frame = 0; frame < 8; frame++) game.advance(0);
+  let replayed = 0;
+  const predict = game.predict.bind(game);
+  game.predict = () => { replayed++; predict(); };
+  game.receiveBatch(1, 0, [0, 0, 0]);
+  assert.equal(replayed, 0);
+  game.receiveBatch(1, 3, [2, 2, 2]);
+  assert.equal(replayed, 2);
+  let expected = createMatch({ seed: 44 });
+  for (let frame = 0; frame < 8; frame++) expected = stepMatch(expected, [0, frame < 3 ? 0 : 2]);
+  assert.equal(stateHash(game.state), stateHash(expected));
+});

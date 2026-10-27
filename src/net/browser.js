@@ -34,6 +34,7 @@ let ws, profile, room, side, queued = false, connected = false, game, matchId, p
 let battleScenery;
 let spectating = false, matchFinished = false, passwordAction = 'join';
 let effects = createEffects(2), active = false, rtt = 0, verifiedWinner = null, error = null;
+let inputWaitingSince = null;
 const inputBatcher = createInputBatcher();
 let routedRoom = null, automaticHeartbeat = false, heartbeatSent = 0;
 const ctx = setupScreen($('screen'));
@@ -422,6 +423,8 @@ function connect() {
         mobileViewport.dismissKeyboard();
         matchId = msg.matchId; participants = msg.players;
         game = spectating ? new SpectatorMatch(msg.state, msg.hash) : new RollbackMatch(msg.seed ?? 1, side);
+        if (!spectating) game.setLatency(rtt);
+        inputWaitingSince = null;
         matchFinished = !!msg.finished;
         epoch = msg.epoch ?? 0;
         if (msg.type === 'snapshot') game.restore(msg.state, msg.hash);
@@ -463,7 +466,7 @@ function connect() {
       if (msg.type === 'input' && (msg.epoch ?? 0) === epoch && active && msg.matchId === matchId) confirmed(game.receive(msg.side, msg.frame, msg.input));
       if (msg.type === 'inputBatch' && msg.epoch === epoch && active && msg.matchId === matchId) {
         if (!validInputBatch(msg)) throw new Error('invalid input batch');
-        for (let i = 0; i < msg.inputs.length; i++) confirmed(game.receive(msg.side, msg.frame + i, msg.inputs[i]));
+        confirmed(game.receiveBatch(msg.side, msg.frame, msg.inputs));
       }
       if ((msg.type === 'checksum' || msg.type === 'result') && (msg.epoch ?? 0) === epoch && msg.matchId === matchId) { checks.set(msg.frame, msg); verify(); }
       if (msg.type === 'settlement') {
@@ -606,6 +609,7 @@ function tick(now) {
     skin.drawCharacter(preview, button.dataset.charId, 'idle', 8, 8, 176, { frame: Math.floor(now * .06), instance: `online-choice-${button.dataset.charId}`, presentation: 'selection' });
   }
   accumulator = Math.min(accumulator + now - last, 1000 / 60 * 5); last = now;
+  if (game && !spectating) game.setLatency(rtt);
   while (accumulator >= 1000 / 60) {
     if (verifiedWinner !== null) resultFrame += 1;
     if (game) tickCharacters(effects);
@@ -623,6 +627,12 @@ function tick(now) {
     }
     clearPressed(keyboard); accumulator -= 1000 / 60;
   }
+  if (game && !spectating && active && !game.canAdvance) {
+    // 멈춘 상태에서는 다음 프레임이 생기지 않으므로 남은 묶음을 즉시 보낸다.
+    const batch = inputBatcher.flush();
+    if (batch) send({ ...batch, matchId, epoch });
+    inputWaitingSince ??= now;
+  } else inputWaitingSince = null;
   if (game) {
     applyPageBackdrop(ctx, skin, battleScenery ? `game:${battleScenery}` : 'game');
     drawGame(ctx, { skin, scenery: battleScenery, match: game.state, effects, characters: participants.map((p, i) => ({ id: (participants[i]?.charId ?? skin.characters[i % skin.characters.length].id), name: p.name })), showGhost: true, result: verifiedWinner !== null });
@@ -634,7 +644,7 @@ function tick(now) {
         id: participant.charId ?? skin.characters[index % skin.characters.length].id, name: participant.name,
       })),
     });
-    else if (!spectating && active && !game.canAdvance) drawBanner(ctx, '상대 입력 대기', '연결이 회복되면 이어집니다');
+    else if (!spectating && active && inputWaitingSince !== null && now - inputWaitingSince >= 250) drawBanner(ctx, '상대 입력 대기', '연결이 회복되면 이어집니다');
     if (spectating && matchFinished && !game.canAdvance && active) { active = false; buttons(); }
     $('metrics').textContent = `확정 ${game.confirmedState.frame} · 검증 ${lastVerified} · 서버 왕복 ${rtt}ms · 예측 ${game.state.frame - game.confirmedState.frame}프레임 · 보정 ${game.rollbacks}회`;
   }
