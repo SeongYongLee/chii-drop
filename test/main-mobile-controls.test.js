@@ -8,8 +8,9 @@ class Button extends EventTarget {
   setAttribute() {}
   setPointerCapture() {}
 }
-function harness({ menuButton, backNavigationButton, onPause, onBack } = {}) {
+function harness({ menuButton, backNavigationButton, onPause, onBack, fanNotice } = {}) {
   const doc = new EventTarget(), view = new EventTarget(), media = new EventTarget();
+  doc.getElementById = id => id === 'fan-notice' ? fanNotice : null;
   media.matches = true; view.matchMedia = () => media; view.document = doc; doc.defaultView = view;
   const buttons = Object.values(M).map((bit) => new Button(bit));
   const parts = Object.fromEntries(['menu', 'game', 'label', 'player', 'items', 'confirm'].map((name) => [name, new EventTarget()]));
@@ -122,4 +123,18 @@ test('PC에서도 공통 메뉴를 표시하지만 입력 안내는 키보드 �
   assert.equal(h.controller.visible, false);
   h.context({ enabled: true, mode: 'game', gameScreen: true });
   assert.equal(h.controller.menuVisible, false);
+});
+
+
+test('공통 권리 안내는 온라인 메뉴에서 유지하고 경기 중에는 숨긴다', () => {
+  const notice = { hidden: true, textContent: '' };
+  const h = harness({ fanNotice: notice });
+  h.context({ enabled: false, mode: 'menu', layout: 'list-menu', onlineActive: true,
+    onlineMenu: true, fanNotice: '팬게임 안내', versionLabel: 'v1' });
+  assert.equal(notice.hidden, false);
+  assert.equal(notice.textContent, '팬게임 안내\nv1');
+  h.context({ enabled: false, mode: 'menu', layout: 'list-menu', onlineActive: true, onlineMenu: false });
+  assert.equal(notice.hidden, true);
+  h.context({ enabled: true, mode: 'menu', layout: 'list-menu', onlineActive: false });
+  assert.equal(notice.hidden, false);
 });

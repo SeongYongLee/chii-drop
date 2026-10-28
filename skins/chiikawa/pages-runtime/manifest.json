@@ -3218,6 +3218,297 @@
             }
           ],
           "anatomyReviewed": "two-arms-2026-10-27"
+        },
+        "walk": {
+          "file": "assets/6b40a5ba62ae7218401d.png",
+          "loop": true,
+          "poster": 0,
+          "frames": [
+            {
+              "rect": {
+                "x": 71,
+                "y": 43,
+                "width": 230,
+                "height": 254
+              },
+              "scale": 0.9032620320855616,
+              "offsetX": 0.6428571428571388,
+              "offsetY": -3.490153956319375,
+              "duration": 8
+            },
+            {
+              "rect": {
+                "x": 367,
+                "y": 51,
+                "width": 225,
+                "height": 246
+              },
+              "scale": 0.8945454545454545,
+              "offsetX": 0.5,
+              "offsetY": -3.369047619047625,
+              "duration": 8
+            },
+            {
+              "rect": {
+                "x": 650,
+                "y": 52,
+                "width": 223,
+                "height": 248
+              },
+              "scale": 0.9105314009661837,
+              "offsetX": 0.5,
+              "offsetY": -3.3176691729323355,
+              "duration": 8
+            },
+            {
+              "rect": {
+                "x": 928,
+                "y": 54,
+                "width": 225,
+                "height": 245
+              },
+              "scale": 0.890909090909091,
+              "offsetX": 0.5,
+              "offsetY": -3.369047619047625,
+              "duration": 8
+            },
+            {
+              "rect": {
+                "x": 1209,
+                "y": 55,
+                "width": 227,
+                "height": 243
+              },
+              "scale": 0.875260663507109,
+              "offsetX": 0.5,
+              "offsetY": -3.4204260651629124,
+              "duration": 8
+            },
+            {
+              "rect": {
+                "x": 1492,
+                "y": 55,
+                "width": 222,
+                "height": 244
+              },
+              "scale": 0.9001941747572815,
+              "offsetX": 0.5,
+              "offsetY": -3.2919799498746922,
+              "duration": 8
+            }
+          ]
+        },
+        "menuRest1": {
+          "file": "assets/2a560fb6f579561a2c53.png",
+          "loop": false,
+          "poster": 3,
+          "frames": [
+            {
+              "rect": {
+                "x": 63,
+                "y": 69,
+                "width": 276,
+                "height": 303
+              },
+              "scale": 0.8925581395348838,
+              "offsetX": 0.5,
+              "offsetY": -4.627819548872196,
+              "duration": 20,
+              "file": "assets/db80c26607d8f0a6cfd8.png"
+            },
+            {
+              "rect": {
+                "x": 370,
+                "y": 674,
+                "width": 219,
+                "height": 237
+              },
+              "scale": 0.8961194029850746,
+              "offsetX": 0.5,
+              "offsetY": -3.1635338345864668,
+              "duration": 24
+            },
+            {
+              "rect": {
+                "x": 674,
+                "y": 674,
+                "width": 223,
+                "height": 237
+              },
+              "scale": 0.8786341463414635,
+              "offsetX": 0.5,
+              "offsetY": -3.2662907268170436,
+              "duration": 36
+            },
+            {
+              "rect": {
+                "x": 994,
+                "y": 675,
+                "width": 222,
+                "height": 236
+              },
+              "scale": 0.8792156862745097,
+              "offsetX": 0.5,
+              "offsetY": -3.2406015037594003,
+              "duration": 48
+            },
+            {
+              "rect": {
+                "x": 57,
+                "y": 949,
+                "width": 220,
+                "height": 239
+              },
+              "scale": 0.8992079207920792,
+              "offsetX": 0.5,
+              "offsetY": -3.189223057644112,
+              "duration": 48
+            },
+            {
+              "rect": {
+                "x": 371,
+                "y": 951,
+                "width": 221,
+                "height": 238
+              },
+              "scale": 0.8910344827586206,
+              "offsetX": 0.5,
+              "offsetY": -3.214912280701756,
+              "duration": 28
+            },
+            {
+              "rect": {
+                "x": 676,
+                "y": 952,
+                "width": 223,
+                "height": 237
+              },
+              "scale": 0.8786341463414635,
+              "offsetX": 0.5,
+              "offsetY": -3.2662907268170436,
+              "duration": 20
+            },
+            {
+              "rect": {
+                "x": 63,
+                "y": 69,
+                "width": 276,
+                "height": 303
+              },
+              "scale": 0.8925581395348838,
+              "offsetX": 0.5,
+              "offsetY": -4.627819548872196,
+              "duration": 16,
+              "file": "assets/db80c26607d8f0a6cfd8.png"
+            }
+          ],
+          "label": "공책 살펴보기"
+        },
+        "menuRest2": {
+          "file": "assets/6c83422f609a28a753e3.png",
+          "loop": false,
+          "poster": 3,
+          "frames": [
+            {
+              "rect": {
+                "x": 63,
+                "y": 69,
+                "width": 276,
+                "height": 303
+              },
+              "scale": 0.8925581395348838,
+              "offsetX": 0.5,
+              "offsetY": -4.627819548872196,
+              "duration": 20,
+              "file": "assets/db80c26607d8f0a6cfd8.png"
+            },
+            {
+              "rect": {
+                "x": 370,
+                "y": 669,
+                "width": 235,
+                "height": 249
+              },
+              "scale": 0.8761111111111111,
+              "offsetX": 0.5,
+              "offsetY": -3.548872180451127,
+              "duration": 24
+            },
+            {
+              "rect": {
+                "x": 671,
+                "y": 669,
+                "width": 234,
+                "height": 250
+              },
+              "scale": 0.8796296296296297,
+              "offsetX": 0.5,
+              "offsetY": -3.548872180451127,
+              "duration": 36
+            },
+            {
+              "rect": {
+                "x": 975,
+                "y": 665,
+                "width": 233,
+                "height": 251
+              },
+              "scale": 0.8831481481481481,
+              "offsetX": 1,
+              "offsetY": -3.548872180451127,
+              "duration": 48
+            },
+            {
+              "rect": {
+                "x": 58,
+                "y": 953,
+                "width": 235,
+                "height": 252
+              },
+              "scale": 0.8866666666666666,
+              "offsetX": 0.3571428571428612,
+              "offsetY": -3.548872180451127,
+              "duration": 48
+            },
+            {
+              "rect": {
+                "x": 370,
+                "y": 961,
+                "width": 236,
+                "height": 245
+              },
+              "scale": 0.862037037037037,
+              "offsetX": 1,
+              "offsetY": -3.548872180451127,
+              "duration": 28
+            },
+            {
+              "rect": {
+                "x": 672,
+                "y": 961,
+                "width": 233,
+                "height": 246
+              },
+              "scale": 0.8655555555555555,
+              "offsetX": 0.5,
+              "offsetY": -3.548872180451127,
+              "duration": 20
+            },
+            {
+              "rect": {
+                "x": 63,
+                "y": 69,
+                "width": 276,
+                "height": 303
+              },
+              "scale": 0.8925581395348838,
+              "offsetX": 0.5,
+              "offsetY": -4.627819548872196,
+              "duration": 16,
+              "file": "assets/db80c26607d8f0a6cfd8.png"
+            }
+          ],
+          "label": "앞발 꼼지락"
         }
       },
       "selectable": true,
@@ -6450,6 +6741,297 @@
               "y": 0
             }
           ]
+        },
+        "walk": {
+          "file": "assets/6b40a5ba62ae7218401d.png",
+          "loop": true,
+          "poster": 0,
+          "frames": [
+            {
+              "rect": {
+                "x": 68,
+                "y": 316,
+                "width": 235,
+                "height": 261
+              },
+              "scale": 0.8859633027522936,
+              "offsetX": 0,
+              "offsetY": -3.7516087516087566,
+              "duration": 8
+            },
+            {
+              "rect": {
+                "x": 366,
+                "y": 321,
+                "width": 232,
+                "height": 254
+              },
+              "scale": 0.8622018348623853,
+              "offsetX": 0.5,
+              "offsetY": -3.7516087516087566,
+              "duration": 8
+            },
+            {
+              "rect": {
+                "x": 649,
+                "y": 322,
+                "width": 231,
+                "height": 257
+              },
+              "scale": 0.8723853211009175,
+              "offsetX": 0.5,
+              "offsetY": -3.7516087516087566,
+              "duration": 8
+            },
+            {
+              "rect": {
+                "x": 929,
+                "y": 322,
+                "width": 230,
+                "height": 257
+              },
+              "scale": 0.8723853211009175,
+              "offsetX": 0,
+              "offsetY": -3.7516087516087566,
+              "duration": 8
+            },
+            {
+              "rect": {
+                "x": 1208,
+                "y": 322,
+                "width": 232,
+                "height": 255
+              },
+              "scale": 0.8655963302752293,
+              "offsetX": 0,
+              "offsetY": -3.7516087516087566,
+              "duration": 8
+            },
+            {
+              "rect": {
+                "x": 1491,
+                "y": 324,
+                "width": 228,
+                "height": 253
+              },
+              "scale": 0.8588073394495412,
+              "offsetX": 0.5,
+              "offsetY": -3.7516087516087566,
+              "duration": 8
+            }
+          ]
+        },
+        "menuRest1": {
+          "file": "assets/df4719dc10454ac56e74.png",
+          "loop": false,
+          "poster": 3,
+          "frames": [
+            {
+              "rect": {
+                "x": 68,
+                "y": 34,
+                "width": 271,
+                "height": 320
+              },
+              "scale": 0.9322834645669291,
+              "offsetX": 1,
+              "offsetY": -4.7014157014156694,
+              "duration": 20,
+              "file": "assets/88967ae0dd9b7b8f472f.png"
+            },
+            {
+              "rect": {
+                "x": 453,
+                "y": 520,
+                "width": 237,
+                "height": 247
+              },
+              "scale": 0.8541121495327102,
+              "offsetX": 0.5,
+              "offsetY": -3.646074646074652,
+              "duration": 24
+            },
+            {
+              "rect": {
+                "x": 842,
+                "y": 520,
+                "width": 237,
+                "height": 247
+              },
+              "scale": 0.8541121495327102,
+              "offsetX": 0.5,
+              "offsetY": -3.646074646074652,
+              "duration": 36
+            },
+            {
+              "rect": {
+                "x": 1209,
+                "y": 519,
+                "width": 236,
+                "height": 248
+              },
+              "scale": 0.8575700934579439,
+              "offsetX": 0.5,
+              "offsetY": -3.646074646074652,
+              "duration": 48
+            },
+            {
+              "rect": {
+                "x": 88,
+                "y": 771,
+                "width": 240,
+                "height": 249
+              },
+              "scale": 0.8610280373831776,
+              "offsetX": 0.5,
+              "offsetY": -3.646074646074652,
+              "duration": 48
+            },
+            {
+              "rect": {
+                "x": 454,
+                "y": 771,
+                "width": 240,
+                "height": 249
+              },
+              "scale": 0.8610280373831776,
+              "offsetX": 0,
+              "offsetY": -3.646074646074652,
+              "duration": 28
+            },
+            {
+              "rect": {
+                "x": 840,
+                "y": 773,
+                "width": 241,
+                "height": 246
+              },
+              "scale": 0.8506542056074766,
+              "offsetX": 0.5,
+              "offsetY": -3.646074646074652,
+              "duration": 20
+            },
+            {
+              "rect": {
+                "x": 68,
+                "y": 34,
+                "width": 271,
+                "height": 320
+              },
+              "scale": 0.9322834645669291,
+              "offsetX": 1,
+              "offsetY": -4.7014157014156694,
+              "duration": 16,
+              "file": "assets/88967ae0dd9b7b8f472f.png"
+            }
+          ],
+          "label": "책 읽기"
+        },
+        "menuRest2": {
+          "file": "assets/df4719dc10454ac56e74.png",
+          "loop": false,
+          "poster": 3,
+          "frames": [
+            {
+              "rect": {
+                "x": 68,
+                "y": 34,
+                "width": 271,
+                "height": 320
+              },
+              "scale": 0.9322834645669291,
+              "offsetX": 1,
+              "offsetY": -4.7014157014156694,
+              "duration": 20,
+              "file": "assets/88967ae0dd9b7b8f472f.png"
+            },
+            {
+              "rect": {
+                "x": 454,
+                "y": 10,
+                "width": 232,
+                "height": 242
+              },
+              "scale": 0.836822429906542,
+              "offsetX": 0.5,
+              "offsetY": -3.646074646074652,
+              "duration": 24
+            },
+            {
+              "rect": {
+                "x": 846,
+                "y": 10,
+                "width": 230,
+                "height": 241
+              },
+              "scale": 0.8333644859813084,
+              "offsetX": 1,
+              "offsetY": -3.646074646074652,
+              "duration": 36
+            },
+            {
+              "rect": {
+                "x": 1210,
+                "y": 9,
+                "width": 235,
+                "height": 244
+              },
+              "scale": 0.8437383177570092,
+              "offsetX": 0.5,
+              "offsetY": -3.646074646074652,
+              "duration": 48
+            },
+            {
+              "rect": {
+                "x": 90,
+                "y": 262,
+                "width": 236,
+                "height": 247
+              },
+              "scale": 0.8541121495327102,
+              "offsetX": 0.5,
+              "offsetY": -3.646074646074652,
+              "duration": 48
+            },
+            {
+              "rect": {
+                "x": 452,
+                "y": 262,
+                "width": 237,
+                "height": 247
+              },
+              "scale": 0.8541121495327102,
+              "offsetX": 0.6428571428571104,
+              "offsetY": -3.646074646074652,
+              "duration": 28
+            },
+            {
+              "rect": {
+                "x": 848,
+                "y": 262,
+                "width": 238,
+                "height": 249
+              },
+              "scale": 0.8610280373831776,
+              "offsetX": 0.5,
+              "offsetY": -3.646074646074652,
+              "duration": 20
+            },
+            {
+              "rect": {
+                "x": 68,
+                "y": 34,
+                "width": 271,
+                "height": 320
+              },
+              "scale": 0.9322834645669291,
+              "offsetX": 1,
+              "offsetY": -4.7014157014156694,
+              "duration": 16,
+              "file": "assets/88967ae0dd9b7b8f472f.png"
+            }
+          ],
+          "label": "과자 살펴보기"
         }
       },
       "selectable": true,
@@ -10522,6 +11104,273 @@
             ],
             "label": "달려가서 멈춘 뒤 몸 돌리기"
           }
+        },
+        "walk": {
+          "file": "assets/6b40a5ba62ae7218401d.png",
+          "loop": true,
+          "poster": 0,
+          "frames": [
+            {
+              "rect": {
+                "x": 379,
+                "y": 587,
+                "width": 207,
+                "height": 276
+              },
+              "scale": 0.8413225446428572,
+              "offsetX": 0.3571428571428328,
+              "offsetY": -4.404881769641463,
+              "duration": 8
+            },
+            {
+              "rect": {
+                "x": 660,
+                "y": 588,
+                "width": 206,
+                "height": 280
+              },
+              "scale": 0.853515625,
+              "offsetX": 0.5,
+              "offsetY": -4.404881769641463,
+              "duration": 8
+            },
+            {
+              "rect": {
+                "x": 1226,
+                "y": 588,
+                "width": 204,
+                "height": 278
+              },
+              "scale": 0.8474190848214286,
+              "offsetX": 0.7857142857142208,
+              "offsetY": -4.404881769641463,
+              "duration": 8
+            },
+            {
+              "rect": {
+                "x": 1507,
+                "y": 587,
+                "width": 206,
+                "height": 281
+              },
+              "scale": 0.8565638950892858,
+              "offsetX": 1,
+              "offsetY": -4.404881769641463,
+              "duration": 8
+            }
+          ]
+        },
+        "menuRest1": {
+          "file": "assets/fbcab9b77a4a95e2bc36.png",
+          "loop": false,
+          "poster": 3,
+          "frames": [
+            {
+              "rect": {
+                "x": 90,
+                "y": 19,
+                "width": 224,
+                "height": 340
+              },
+              "scale": 0.9613095238095238,
+              "offsetX": 0,
+              "offsetY": -4.905263157894751,
+              "duration": 20,
+              "file": "assets/da317143da61ebbdf4c5.png"
+            },
+            {
+              "rect": {
+                "x": 366,
+                "y": 17,
+                "width": 207,
+                "height": 290
+              },
+              "scale": 0.8761753318584069,
+              "offsetX": 0.5,
+              "offsetY": -4.4620682140133,
+              "duration": 24
+            },
+            {
+              "rect": {
+                "x": 669,
+                "y": 17,
+                "width": 209,
+                "height": 291
+              },
+              "scale": 0.8791966261061945,
+              "offsetX": 0.5,
+              "offsetY": -4.4620682140133,
+              "duration": 36
+            },
+            {
+              "rect": {
+                "x": 981,
+                "y": 16,
+                "width": 204,
+                "height": 292
+              },
+              "scale": 0.8822179203539822,
+              "offsetX": 0.14285714285711038,
+              "offsetY": -4.4620682140133,
+              "duration": 48
+            },
+            {
+              "rect": {
+                "x": 363,
+                "y": 327,
+                "width": 213,
+                "height": 294
+              },
+              "scale": 0.8882605088495574,
+              "offsetX": 0.5,
+              "offsetY": -4.4620682140133,
+              "duration": 48
+            },
+            {
+              "rect": {
+                "x": 56,
+                "y": 329,
+                "width": 208,
+                "height": 291
+              },
+              "scale": 0.8791966261061945,
+              "offsetX": 0.5,
+              "offsetY": -4.4620682140133,
+              "duration": 28
+            },
+            {
+              "rect": {
+                "x": 669,
+                "y": 328,
+                "width": 211,
+                "height": 293
+              },
+              "scale": 0.8852392146017698,
+              "offsetX": 0.5,
+              "offsetY": -4.4620682140133,
+              "duration": 20
+            },
+            {
+              "rect": {
+                "x": 90,
+                "y": 19,
+                "width": 224,
+                "height": 340
+              },
+              "scale": 0.9613095238095238,
+              "offsetX": 0,
+              "offsetY": -4.905263157894751,
+              "duration": 16,
+              "file": "assets/da317143da61ebbdf4c5.png"
+            }
+          ],
+          "label": "팔짱 끼고 둘러보기"
+        },
+        "menuRest2": {
+          "file": "assets/fbcab9b77a4a95e2bc36.png",
+          "loop": false,
+          "poster": 3,
+          "frames": [
+            {
+              "rect": {
+                "x": 90,
+                "y": 19,
+                "width": 224,
+                "height": 340
+              },
+              "scale": 0.9613095238095238,
+              "offsetX": 0,
+              "offsetY": -4.905263157894751,
+              "duration": 20,
+              "file": "assets/da317143da61ebbdf4c5.png"
+            },
+            {
+              "rect": {
+                "x": 379,
+                "y": 649,
+                "width": 208,
+                "height": 286
+              },
+              "scale": 0.8640901548672565,
+              "offsetX": -3.142857142857167,
+              "offsetY": -4.4620682140133,
+              "duration": 24
+            },
+            {
+              "rect": {
+                "x": 689,
+                "y": 649,
+                "width": 214,
+                "height": 286
+              },
+              "scale": 0.8640901548672565,
+              "offsetX": -6.214285714285666,
+              "offsetY": -4.4620682140133,
+              "duration": 36
+            },
+            {
+              "rect": {
+                "x": 984,
+                "y": 648,
+                "width": 216,
+                "height": 287
+              },
+              "scale": 0.8671114491150441,
+              "offsetX": -9.5,
+              "offsetY": -4.4620682140133,
+              "duration": 48
+            },
+            {
+              "rect": {
+                "x": 71,
+                "y": 954,
+                "width": 200,
+                "height": 285
+              },
+              "scale": 0.8610688606194689,
+              "offsetX": 0.7142857142857224,
+              "offsetY": -4.4620682140133,
+              "duration": 48
+            },
+            {
+              "rect": {
+                "x": 370,
+                "y": 955,
+                "width": 215,
+                "height": 285
+              },
+              "scale": 0.8610688606194689,
+              "offsetX": -8.571428571428555,
+              "offsetY": -4.4620682140133,
+              "duration": 28
+            },
+            {
+              "rect": {
+                "x": 667,
+                "y": 954,
+                "width": 211,
+                "height": 286
+              },
+              "scale": 0.8640901548672565,
+              "offsetX": 0.7142857142856656,
+              "offsetY": -4.4620682140133,
+              "duration": 20
+            },
+            {
+              "rect": {
+                "x": 90,
+                "y": 19,
+                "width": 224,
+                "height": 340
+              },
+              "scale": 0.9613095238095238,
+              "offsetX": 0,
+              "offsetY": -4.905263157894751,
+              "duration": 16,
+              "file": "assets/da317143da61ebbdf4c5.png"
+            }
+          ],
+          "label": "몸 돌려 둘러보기"
         }
       },
       "selectable": true,
@@ -10564,7 +11413,10 @@
         "scale": 1.110602593440122,
         "baseline": 0.9804761904761905
       },
-      "fieldChainReaction": true
+      "fieldChainReaction": true,
+      "menuCompanion": {
+        "dash": true
+      }
     },
     {
       "id": "kurimanju",
@@ -44962,44 +45814,6 @@
           ]
         },
         {
-          "fill": "#c9cbca",
-          "stroke": "#858a8a",
-          "width": 1.6,
-          "path": [
-            [
-              "M",
-              12,
-              85
-            ],
-            [
-              "Q",
-              50,
-              99,
-              88,
-              85
-            ],
-            [
-              "Q",
-              84,
-              99,
-              50,
-              98
-            ],
-            [
-              "Q",
-              16,
-              99,
-              12,
-              85
-            ],
-            [
-              "Z"
-            ]
-          ],
-          "outside": true,
-          "hideLinks": 4
-        },
-        {
           "fill": "#79503b",
           "stroke": null,
           "width": 2,
@@ -45904,6 +46718,213 @@
           "y": 0.01,
           "width": 0.28,
           "height": 0.61
+        }
+      }
+    ]
+  },
+  "titleParts": {
+    "lettering": {
+      "file": "assets/9007d3f6f168b8ffb3ec.png",
+      "rect": {
+        "x": 24,
+        "y": 249,
+        "width": 1732,
+        "height": 450
+      }
+    },
+    "chiikawa": {
+      "file": "assets/7d810c571996523b86e7.png",
+      "rect": {
+        "x": 183,
+        "y": 139,
+        "width": 878,
+        "height": 997
+      }
+    },
+    "hachiware": {
+      "file": "assets/9f89911c14975b0a8f7c.png",
+      "rect": {
+        "x": 134,
+        "y": 89,
+        "width": 976,
+        "height": 1106
+      }
+    },
+    "usagi": {
+      "file": "assets/065aa444cd17457a13db.png",
+      "rect": {
+        "x": 165,
+        "y": 72,
+        "width": 802,
+        "height": 1260
+      }
+    },
+    "chiikawa-air": {
+      "file": "assets/01987b53244392185b0a.png",
+      "rect": {
+        "x": 196,
+        "y": 161,
+        "width": 834,
+        "height": 937
+      }
+    },
+    "chiikawa-land": {
+      "file": "assets/65a6176ed0ab3db1e858.png",
+      "rect": {
+        "x": 189,
+        "y": 183,
+        "width": 859,
+        "height": 936
+      }
+    },
+    "chiikawa-recover": {
+      "file": "assets/b0c6eae05fd633f92b2f.png",
+      "rect": {
+        "x": 205,
+        "y": 162,
+        "width": 829,
+        "height": 950
+      }
+    },
+    "hachiware-air": {
+      "file": "assets/0dc4ca99742f4ae7ad97.png",
+      "rect": {
+        "x": 144,
+        "y": 87,
+        "width": 963,
+        "height": 1060
+      }
+    },
+    "hachiware-land": {
+      "file": "assets/b4d3e81c0d069341a92b.png",
+      "rect": {
+        "x": 141,
+        "y": 125,
+        "width": 956,
+        "height": 1037
+      }
+    },
+    "hachiware-recover": {
+      "file": "assets/27b5fe32e211a1fcf5c8.png",
+      "rect": {
+        "x": 148,
+        "y": 130,
+        "width": 944,
+        "height": 1046
+      }
+    },
+    "usagi-air": {
+      "file": "assets/c21ad2b7ead8165dfb4b.png",
+      "rect": {
+        "x": 182,
+        "y": 89,
+        "width": 763,
+        "height": 1177
+      }
+    },
+    "usagi-land": {
+      "file": "assets/2779a7b5581cb00076b5.png",
+      "rect": {
+        "x": 170,
+        "y": 80,
+        "width": 787,
+        "height": 1230
+      }
+    },
+    "usagi-recover": {
+      "file": "assets/b7dacb34d541df0940d9.png",
+      "rect": {
+        "x": 181,
+        "y": 99,
+        "width": 766,
+        "height": 1216
+      }
+    },
+    "chiikawa-settle": {
+      "file": "assets/ceb908d78d7a1d6adc39.png",
+      "rect": {
+        "x": 204,
+        "y": 202,
+        "width": 810,
+        "height": 920
+      }
+    },
+    "hachiware-settle": {
+      "file": "assets/5725d1e9abf189ea983b.png",
+      "rect": {
+        "x": 160,
+        "y": 168,
+        "width": 895,
+        "height": 998
+      }
+    },
+    "usagi-settle": {
+      "file": "assets/6256ece46364fa00d4ef.png",
+      "rect": {
+        "x": 177,
+        "y": 96,
+        "width": 775,
+        "height": 1213
+      }
+    }
+  },
+  "titleEntrance": {
+    "lettering": {
+      "part": "lettering",
+      "box": {
+        "x": 0.018,
+        "y": 0.49,
+        "width": 0.964,
+        "height": 0.5
+      }
+    },
+    "actors": [
+      {
+        "part": "chiikawa",
+        "charId": "chiikawa",
+        "box": {
+          "x": 0.11,
+          "y": 0.15,
+          "width": 0.28,
+          "height": 0.64
+        },
+        "poses": {
+          "air": "chiikawa-air",
+          "land": "chiikawa-land",
+          "recover": "chiikawa-recover",
+          "settle": "chiikawa-settle"
+        }
+      },
+      {
+        "part": "hachiware",
+        "charId": "hachiware",
+        "box": {
+          "x": 0.37,
+          "y": 0.14,
+          "width": 0.285,
+          "height": 0.645
+        },
+        "poses": {
+          "air": "hachiware-air",
+          "land": "hachiware-land",
+          "recover": "hachiware-recover",
+          "settle": "hachiware-settle"
+        }
+      },
+      {
+        "part": "usagi",
+        "charId": "usagi",
+        "box": {
+          "x": 0.64,
+          "y": 0.012,
+          "width": 0.28,
+          "height": 0.875
+        },
+        "poses": {
+          "air": "usagi-air",
+          "land": "usagi-land",
+          "recover": "usagi-recover",
+          "settle": "usagi-settle"
         }
       }
     ]

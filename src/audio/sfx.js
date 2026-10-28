@@ -19,7 +19,7 @@ function updateMixGains(sfx) {
   if (sfx.voiceMaster) sfx.voiceMaster.gain.value = sfx.volume * (sfx.voiceVolume ?? 1);
 }
 
-// 정지된 컨텍스트에서도 파일 준비는 가능하다. 첫 입력 전 로딩 화면에서 끝낸다.
+// 정지된 컨텍스트에서도 타이틀 표시 후 백그라운드로 파일을 준비할 수 있다.
 function prepareSfx(sfx) {
   if (sfx.context) return Promise.all([preloadRecordedSfx(sfx), preloadCharacterVoices(sfx)]);
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;

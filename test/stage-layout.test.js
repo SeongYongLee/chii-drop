@@ -19,3 +19,18 @@ test('portrait stage uses the available height while focused and landscape views
   assert.deepEqual(fitStage(370,530,false,true),{width:370,height:530});
   assert.deepEqual(fitStage(370,530,true,true),fitStage(370,530,true));
 });
+
+test('game portrait layout follows the shared viewport query even when controls make the board area wider than tall', async () => {
+  const { attachStageLayout, ONLINE_PORTRAIT_QUERY } = await import('../src/net/stage-layout.js');
+  for (const [width,height] of [[760,900],[761,900],[640,700],[700,640],[640,640]]) {
+    const listeners=new Map(),media={matches:width<=760&&height>=width,addEventListener(name,cb){listeners.set(name,cb);},removeEventListener(name){listeners.delete(name);}};
+    const view={matchMedia(query){assert.equal(query,ONLINE_PORTRAIT_QUERY);return media;},ResizeObserver:class{observe(){}disconnect(){}},addEventListener(){},removeEventListener(){}};
+    const area={getBoundingClientRect:()=>({width,height:height-194})};
+    const stage={dataset:{},style:{},classList:{contains:()=>false}};
+    const layout=attachStageLayout(area,stage,view);
+    assert.equal(stage.dataset.portrait,String(media.matches),`${width}x${height}`);
+    if(media.matches)assert.equal(stage.style.height,`${height-194}px`);
+    media.matches=!media.matches;listeners.get('change')();assert.equal(stage.dataset.portrait,String(media.matches));
+    layout.dispose();assert.equal(listeners.size,0);
+  }
+});

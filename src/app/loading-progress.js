@@ -14,6 +14,7 @@ export function createLoadingProgress(onChange = () => {}) {
   const emit = () => onChange(state());
   emit();
   return {
+    reset() { tasks.clear(); tasks.add('manifest'); tasks.add('characters'); settled.clear(); planned = false; ready = false; emit(); },
     plan(ids) { for (const id of ids) tasks.add(id); planned = true; emit(); },
     complete(id, ok = true) { settled.set(id, ok); emit(); },
     settleGroup(prefix) { for (const id of tasks) if (id.startsWith(prefix) && !settled.has(id)) settled.set(id, false); emit(); },
@@ -22,12 +23,22 @@ export function createLoadingProgress(onChange = () => {}) {
   };
 }
 
-export function createLoadingScreen(doc) {
+export function createLoadingScreen(doc, { onRetry } = {}) {
   let failed = false;
   const root = doc.getElementById('loading-screen');
   const stage = root?.querySelector('[data-loading-stage]'), bar = root?.querySelector('[data-loading-bar]');
   const percent = root?.querySelector('[data-loading-percent]'), detail = root?.querySelector('[data-loading-detail]');
+  const retry = root?.querySelector('[data-loading-retry]');
+  retry?.addEventListener('click', () => onRetry?.());
   return {
+    reset() {
+      failed = false;
+      if (root) root.hidden = false;
+      if (retry) retry.hidden = true;
+      bar?.removeAttribute?.('value');
+      if (percent) percent.textContent = '잠시만 기다려 주세요';
+      if (detail) detail.textContent = '연결 상태를 확인하고 자료를 다시 준비합니다.';
+    },
     update(state) {
       if (!root || failed) return;
       if (stage.textContent !== state.stage) stage.textContent = state.stage;
@@ -41,9 +52,10 @@ export function createLoadingScreen(doc) {
     fail() {
       if (!root) return;
       failed = true;
+      if (retry) retry.hidden = false;
       stage.textContent = '게임 자료를 불러오지 못했습니다';
       bar.removeAttribute('value'); percent.textContent = '다시 불러와 주세요';
-      detail.textContent = '연결 상태를 확인한 뒤 새로고침해 주세요.';
+      detail.textContent = '연결 상태를 확인한 뒤 다시 시도해 주세요.';
     },
   };
 }

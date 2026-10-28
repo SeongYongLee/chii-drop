@@ -1,11 +1,11 @@
+import { fetchAssetJson } from '../app/asset-request.js';
+
 async function loadSkinScript(dir, { includeStory = false } = {}) {
   if (!dir) {
     return null;
   }
   try {
-    const response = await fetch(`${dir}/${includeStory ? 'story' : 'characters'}.json`, { cache: 'no-store' });
-    if (!response.ok) return null;
-    const data = await response.json();
+    const data = await fetchAssetJson(`${dir}/${includeStory ? 'story' : 'characters'}.json`, { cache: 'no-store' });
     // 일반 플레이에서는 대본을 요청하지 않고 캐릭터 이름과 ID만 사용한다.
     return includeStory ? data : { characters: data.characters, scenes: {} };
   } catch {

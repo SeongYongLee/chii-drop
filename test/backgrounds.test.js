@@ -39,3 +39,17 @@ test('배경 미리보기는 로컬에서만 열고 생성 기록은 제공하�
   assert.equal(await status('preview.html','192.168.0.30'),404);
   assert.equal(await status('generation.json','127.0.0.1'),404);
 });
+
+test('CSS가 같은 배경을 표시하면 Canvas는 중복 이미지를 그리지 않고 이전 프레임만 지운다', async t => {
+  t.mock.method(globalThis, 'fetch', async () => ({ok:true,json:async()=>({ background:{file:'common.png'},backgrounds:{'game:market':{file:'tea.png'}} })}));
+  const previous = globalThis.Image;
+  globalThis.Image = class { width=1600;height=900;set src(url){this.url=url;queueMicrotask(()=>this.onload());}get src(){return this.url;} };
+  t.after(()=>{globalThis.Image=previous;});
+  const skin = await loadImageSkin('skin'); let draws=0, clears=0;
+  const ctx={canvasBackdrop:true,pageBackdropUrl:'skin/tea.png',drawImage(){draws++;},clearRect(x,y,w,h){assert.deepEqual([x,y,w,h],[0,0,960,540]);clears++;}};
+  for(let n=0;n<600;n++)skin.drawBackground(ctx,960,540,'game:market');
+  assert.equal(draws,0);assert.equal(clears,600);
+  // 전환 중 다른 배경이거나 CSS 배경이 없으면 원래 경로로 그린다.
+  skin.drawBackground(ctx,960,540,'unknown');assert.equal(draws,1);
+  ctx.canvasBackdrop=false;skin.drawBackground(ctx,960,540,'game:market');assert.equal(draws,2);
+});

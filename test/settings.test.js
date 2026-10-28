@@ -37,10 +37,11 @@ test('이전 스킨 선택값만 제거하고 음량·음악·경기 기록은 �
   assert.equal(values.get('chii-drop:story'), 'keep story');
 });
 
-test('이전 CPU 승패는 유지하고 새 난이도 기록은 0승 0패로 준비한다', (t) => {
+test('이전 CPU 승패를 유지하고 새 난이도의 기록은 독립적으로 저장·복원한다', (t) => {
   const previous = globalThis.window;
-  globalThis.window = { localStorage: { getItem: () => JSON.stringify({ soloBest: 100,
-    cpu: { easy: { win: 3, lose: 2 }, hard: { win: 1, lose: 4 }, expert: { win: 5, lose: 6 }, master: { win: 7, lose: 8 } } }) } };
+  const values = new Map([['chii-drop:records', JSON.stringify({ soloBest: 100,
+    cpu: { easy: { win: 3, lose: 2 }, hard: { win: 1, lose: 4 }, expert: { win: 5, lose: 6 }, master: { win: 7, lose: 8 } } })]]);
+  globalThis.window = { localStorage: { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value) } };
   t.after(() => { globalThis.window = previous; });
   const records = loadRecords();
   assert.equal(records.soloBest, 100); assert.deepEqual(records.cpu.hard, { win: 1, lose: 4 });
@@ -48,21 +49,13 @@ test('이전 CPU 승패는 유지하고 새 난이도 기록은 0승 0패로 준
   assert.deepEqual(records.cpu.master, { win: 7, lose: 8 });
   assert.deepEqual(records.cpu.grandmaster, { win: 0, lose: 0 });
   assert.deepEqual(records.cpu.beginner, { win: 0, lose: 0 });
-});
-
-test('입문·달인 경기 기록은 저장 후에도 기존 난이도 기록과 분리된다', (t) => {
-  const previous = globalThis.window;
-  const values = new Map();
-  globalThis.window = { localStorage: { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value) } };
-  t.after(() => { globalThis.window = previous; });
-  const records = loadRecords();
   records.cpu.beginner.win++;
   records.cpu.grandmaster.lose++;
   saveRecords(records);
   const loaded = loadRecords();
   assert.deepEqual(loaded.cpu.beginner, { win: 1, lose: 0 });
-  assert.deepEqual(loaded.cpu.easy, { win: 0, lose: 0 });
-  assert.deepEqual(loaded.cpu.master, { win: 0, lose: 0 });
+  assert.deepEqual(loaded.cpu.easy, { win: 3, lose: 2 });
+  assert.deepEqual(loaded.cpu.master, { win: 7, lose: 8 });
   assert.deepEqual(loaded.cpu.grandmaster, { win: 0, lose: 1 });
 });
 
@@ -75,4 +68,23 @@ test('착지 위치는 새 설정·저장소 차단 시 기본 켜짐이며 저�
   assert.equal(loadSettings().ghost, false);
   globalThis.window.localStorage.getItem = () => { throw new Error('blocked'); };
   assert.equal(loadSettings().ghost, true);
+});
+
+test('손상된 JSON 구조·개별 값은 복구하면서 정상 난이도와 소수 음량은 보존한다', t => {
+  const previous = globalThis.window;
+  t.after(() => { globalThis.window = previous; });
+  let raw;
+  globalThis.window = { localStorage: { getItem: () => raw, setItem() {} } };
+  for (const value of ['{broken', 'null', '[]', '42', '"invalid"']) {
+    raw = value; assert.equal(loadRecords().cpu.normal.win, 0); assert.equal(loadSettings().volume, 5);
+  }
+  raw = JSON.stringify({ soloBest: 'bad', soloMaxChain: 3, cpu: { normal: null, hard: { win: -2, lose: 4 }, easy: { win: 2.5, lose: 8 } } });
+  const records = loadRecords();
+  assert.equal(records.soloBest, 0); assert.equal(records.soloMaxChain, 3);
+  assert.deepEqual(records.cpu.normal, { win: 0, lose: 0 });
+  assert.deepEqual(records.cpu.hard, { win: 0, lose: 4 }); assert.deepEqual(records.cpu.easy, { win: 0, lose: 8 });
+  raw = JSON.stringify({ audioScaleVersion: 2, volume: -4, voiceVolume: 50, musicVolume: 3.5, music: 'false', ghost: false });
+  const settings = loadSettings();
+  assert.equal(settings.volume, 0); assert.equal(settings.voiceVolume, 10); assert.equal(settings.musicVolume, 3.5);
+  assert.equal(settings.music, true); assert.equal(settings.ghost, false);
 });

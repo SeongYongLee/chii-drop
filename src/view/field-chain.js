@@ -1,3 +1,4 @@
+import { prefersReducedMotion } from './motion-preference.js';
 import { FIELD_TOP, FIELD_WIDTH, FIELD_HEIGHT } from './layout.js';
 
 const FIELD_CHAIN_FRAMES = 132;
@@ -6,7 +7,7 @@ const FIELD_CHAIN_FADE = 6;
 const smooth = value => { const t = Math.max(0, Math.min(1, value)); return t*t*(3-2*t); };
 
 function fieldChainPresentation(skin, character, effect, player,
-  reduced = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false) {
+  reduced = prefersReducedMotion()) {
   const reaction = effect.fieldChain;
   if (!character || player?.lost || !skin.fieldChainCharacters?.includes(character.id) || !reaction || reaction.chain < 1) {
     return { fieldAlpha: 0, portraitAlpha: 1, frame: 0 };

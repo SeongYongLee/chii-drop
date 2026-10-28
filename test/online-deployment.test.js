@@ -8,7 +8,7 @@ import WebSocket from 'ws';
 import { parseOnlineConfig } from '../src/net/config.js';
 import { runtimeConfig } from '../server/runtime-config.js';
 import { createOnlineServer } from '../server/index.js';
-import { createProfileStore } from '../server/profiles.js';
+import { createNodeProfileStore as createProfileStore } from '../server/node-profile-store.js';
 import { PROTOCOL, stateHash } from '../src/net/rollback.js';
 import { RULES_VERSION } from '../src/engine/rules.js';
 import { checkOnline } from '../scripts/check-online.mjs';
@@ -77,7 +77,7 @@ test('운영 서버는 Pages Origin만 허용하고 편집·정적 자료를 차
   const hashA = await wait(a, 'checksum'), hashB = await wait(b, 'checksum');
   assert.deepEqual(hashA, hashB); assert.equal(hashA.hash, stateHash(lobby.rooms.get(code).state));
   assert.equal((await (await fetch(base + '/health')).json()).activeMatches, 1);
-  const restored = createProfileStore({ file }); assert.equal(restored.authenticate(identity.token).profile.id, identity.profile.id);
+  const restored = createProfileStore({ file }); assert.equal(restored.authenticate(identity.token).profile.id, identity.profile.id); restored.close();
   const old = await client(); old.send({ type: 'hello', protocol: PROTOCOL - 1, rulesVersion: RULES_VERSION });
   assert.equal((await wait(old, 'incompatible')).type, 'incompatible');
 });

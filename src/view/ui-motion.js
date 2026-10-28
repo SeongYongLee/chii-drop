@@ -1,14 +1,21 @@
+import { prefersReducedMotion } from './motion-preference.js';
 import { UI_FONT } from './festival.js';
 
 const TRANSITION_FRAMES = 14;
 const STAMP_FRAMES = 12;
 
 function reducedUiMotion() {
-  return Boolean(globalThis.window?.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+  return prefersReducedMotion();
 }
 
 // 마지막으로 보인 화면만 저장한다. 이전 장면의 update/draw를 다시 호출하지 않는다.
-function captureUiScreen(canvas) {
+function captureUiScreen(canvas, { gameplay = false } = {}) {
+  // 경기 진입은 선택·조작 안내의 큰 캐릭터 화면을 경기판 위에 겹치지 않는다.
+  if (gameplay) return null;
+  // HTML 메뉴가 Canvas를 숨긴 동안 그려진 내부 그림은 실제 이전 화면이 아니다.
+  if (canvas.hidden || !canvas.width || !canvas.height) return null;
+  const rect = canvas.getBoundingClientRect?.();
+  if (rect && (rect.width <= 0 || rect.height <= 0)) return null;
   const snapshot = document.createElement('canvas');
   snapshot.width = canvas.width;
   snapshot.height = canvas.height;

@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile, readdir, stat, writeFile, rm } from 'node:fs/promises';
+import { readFile, readdir, stat, writeFile, rm, cp, mkdtemp } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { publicManifest, publicCharacterInfo, validateCharacterInfo, validateStory, imagePaths, audioPaths, runtimePaths, remapImages, safeFile, RUNTIME, STORY } from '../scripts/pages/assets.mjs';
 import { buildPages } from '../scripts/build-pages.mjs';
@@ -32,6 +36,22 @@ test('실행 팩은 스토리 출연진을 유지하며 선택창 캐릭터 정�
   assert.throws(()=>validateStory({characters:{unknown:{charId:'unknown'}},scenes:{}},manifest));
 });
 test('Pages 배포본에는 실행 자료와 루트 README만 포함하고 로컬 MD·서버 데이터·검토본은 제외한다', async (t) => {
+  // 별도 프로세스와 작업 폴더를 사용해 개발 중인 src/dist에 손대지 않는다.
+  if (process.env.CHII_PAGES_TEST_ISOLATED !== '1') {
+    const workspace = await mkdtemp(join(tmpdir(), 'chii-pages-test-'));
+    t.after(() => rm(workspace, { recursive: true, force: true }));
+    for (const path of ['src', 'scripts', 'package.json', 'test/pages-build.test.js', RUNTIME, STORY, 'index.html', 'style.css', 'online.html', 'online.css',
+      'README.md', 'asset-worker.js', 'online-config.json']) {
+      await cp(path, join(workspace, path), { recursive: true });
+    }
+    try {
+      const { stdout } = await promisify(execFile)(process.execPath,
+        ['--test', '--test-name-pattern=Pages 배포본', join(workspace, 'test/pages-build.test.js')],
+        { cwd: workspace, timeout: 60000, env: { ...process.env, CHII_PAGES_TEST_ISOLATED: '1' } });
+      t.diagnostic(stdout);
+    } catch (error) { throw new Error(`${error.message}\n${error.stdout}\n${error.stderr}`, { cause: error }); }
+    return;
+  }
   // 로컬 문서를 src에 추가해도 재귀 복사로 노출되지 않아야 한다.
   const localDoc = `src/pages-local-${process.pid}.MD`;
   await writeFile(localDoc, 'local development document');
@@ -67,8 +87,11 @@ test('Pages 배포본에는 실행 자료와 루트 README만 포함하고 로�
   const sourceFile = 'src/app/modes.js';
   const source = await readFile(sourceFile,'utf8');
   await writeFile(`dist/${sourceFile}`,source+'\n// accidental deployment-only change\n');
-  await assert.rejects(checkBuild(),/작업 코드와 배포 파일이 다릅니다/);
-  await writeFile(`dist/${sourceFile}`,source);
+  try {
+    await assert.rejects(checkBuild(),/작업 코드와 배포 파일이 다릅니다/);
+  } finally {
+    await writeFile(`dist/${sourceFile}`,source);
+  }
   async function walk(folder) { const out=[];for(const e of await readdir(folder,{withFileTypes:true})) {const path=`${folder}/${e.name}`;out.push(...(e.isDirectory()?await walk(path):[path]));}return out; }
   const files=await walk('dist');
   assert.deepEqual(files.filter(p=>/(?:^|\/)story\.json$/i.test(p)),[`dist/${STORY}`]);

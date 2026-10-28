@@ -3,14 +3,12 @@ import { AUTOMATIC_MATCHMAKING } from './features.js';
 // 온라인 화면은 메인 게임 문서 안에 한 번만 만든다.
 export const onlineTemplate = `
   <a class="skip-link" href="#main">본문으로 건너뛰기</a>
-  <header class="topbar">
-    <a href="#menu" data-online-exit id="online-back" class="back" aria-label="메인 메뉴로 돌아가기"><span aria-hidden="true">←</span> 메인 메뉴</a>
-    <h1 class="brand-title"><a class="brand" href="#play"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>온라인 모드</a></h1>
+  <main id="main" aria-labelledby="online-menu-title">
+    <header class="online-menu-heading">
+      <h1 id="online-menu-title">온라인 대전</h1>
+      <span id="connection" class="connection">연결 중…</span>
+    </header>
     <div id="queue-banner" class="queue-banner" hidden><span id="queue-banner-status" role="status" aria-live="polite">상대 찾는 중…</span><button id="queue-banner-cancel" type="button" aria-label="자동 매칭 취소">취소</button></div>
-    <div class="header-tools"><button id="touch-options" class="quiet" type="button" aria-label="터치 조작 옵션">⚙ 옵션</button>
-    <span id="connection" class="connection">연결 중…</span></div>
-  </header>
-  <main id="main">
     <section id="player-panel" class="profile" aria-label="내 플레이어">
       <div class="player-avatar" aria-hidden="true"><canvas id="lobby-avatar" width="192" height="192"></canvas></div>
       <div class="profile-name"><span class="eyebrow">내 플레이어</span><h2 id="my-name">플레이어 연결 중…</h2></div>
@@ -79,11 +77,15 @@ export const onlineTemplate = `
       <p class="keyboard-help hint">← → 이동 · ↓ 빠르게 내리기 · Z/X 회전</p>
     </section>
     <section id="room-chat" class="room-chat" aria-label="방 채팅" hidden>
-      <header class="chat-heading"><h3>방 채팅</h3><button id="chat-toggle" type="button" class="quiet" aria-expanded="true" aria-controls="chat-body">접기</button></header>
+      <header class="chat-heading"><h3>방 채팅</h3><p id="chat-preview" class="chat-preview"></p><button id="chat-toggle" type="button" class="quiet" aria-expanded="true" aria-controls="chat-body">접기</button></header>
       <div id="chat-body" class="chat-body"><ol id="chat-log" class="chat-log" role="log" aria-live="polite" aria-relevant="additions" aria-label="채팅 기록"></ol><p id="chat-empty" class="hint">이 방에서 함께 이야기해요.<br>최근 100개 메시지가 유지됩니다.</p></div>
       <form id="chat-form" class="chat-form"><label class="sr-only" for="chat-input">채팅 메시지</label><input id="chat-input" maxlength="160" autocomplete="off" enterkeyhint="send" placeholder="메시지 입력…"><button id="chat-send" class="primary" type="submit">전송</button></form>
       <p id="chat-status" class="hint" role="status"></p>
     </section>
+    <footer class="online-menu-actions">
+      <a href="#menu" data-online-exit id="online-back" class="button secondary" aria-label="멀티플레이로 돌아가기">뒤로</a>
+      <button id="touch-options" class="quiet" type="button" aria-label="터치 조작 옵션">조작 옵션</button>
+    </footer>
     <p class="online-navigation-hint"><kbd>↑ ↓ ← →</kbd> 이동 <span>·</span> <kbd>Enter</kbd> 선택 <span>·</span> <kbd>Esc</kbd> 뒤로 <span>·</span> <kbd>Tab</kbd> 입력창 이동</p>
     <p id="reconnect-help" class="hint" hidden>자동으로 재접속하고 있어요. <button id="reconnect" class="text-button">다시 접속</button></p>
   </main>

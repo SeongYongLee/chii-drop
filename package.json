@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node server/index.js",
     "test": "node --test --test-concurrency=1 test/*.test.js",
+    "test:browser": "playwright test",
     "online": "node server/index.js",
     "online:cloudflare": "wrangler dev --local",
     "dev:cloudflare": "node scripts/dev-cloudflare.mjs",
@@ -33,9 +34,10 @@
     "ws": "^8.22.0"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.13.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "wrangler": "^4.152.0"
   }
 }

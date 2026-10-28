@@ -106,56 +106,60 @@ function drawBoard(ctx, skin, x, player, effect) {
   const flashFrame = player.phase === 'flash' ? FLASH_FRAMES - player.phaseTimer : 0;
   const popFrame = player.phase === 'pop' ? POP_FRAMES - player.phaseTimer : 0;
 
-  for (let y = 1; y < ROWS; y++) {
-    for (let col = 0; col < COLS; col++) {
-      const i = y * COLS + col;
-      const color = board.cells[i];
-      if (color === 0) {
-        continue;
-      }
-      const px = x + col * CELL;
-      let py = cellTop(y) + board.offset[i];
-      // 13단으로 떨어져 들어오는 중인 블록은 그리지 않는다.
-      if (y === 1 && board.offset[i] < 0) {
-        continue;
-      }
-      const style = {};
-      const falling = board.offset[i] < 0;
-      const landing = board.land[i] >= 0;
-      if (clearing.has(i)) {
-        if (player.phase === 'flash' && flashFrame % 4 === 2) {
+  // 모든 그림자를 먼저 깔아 인접 블록 위로 그림자가 덮이지 않게 한다.
+  for (const shadowOnly of [true, false]) {
+    if (shadowOnly && !skin.drawBlobShadowPass) continue;
+    for (let y = 1; y < ROWS; y++) {
+      for (let col = 0; col < COLS; col++) {
+        const i = y * COLS + col;
+        const color = board.cells[i];
+        if (color === 0) {
           continue;
         }
-        if (player.phase === 'pop') {
-          const shape =
-            color === GARBAGE ? garbagePopShape(popFrame) : popShape(popFrame, effect.popDelays?.get(i) ?? 1);
-          if (!shape) {
+        const px = x + col * CELL;
+        let py = cellTop(y) + board.offset[i];
+        // 13단으로 떨어져 들어오는 중인 블록은 그리지 않는다.
+        if (y === 1 && board.offset[i] < 0) {
+          continue;
+        }
+        const style = { shadowOnly, shadow: shadowOnly };
+        const falling = board.offset[i] < 0;
+        const landing = board.land[i] >= 0;
+        if (clearing.has(i)) {
+          if (player.phase === 'flash' && flashFrame % 4 === 2) {
             continue;
           }
-          style.shape = shape;
-        } else {
-          style.links = linksAt(effect, board.cells, i);
+          if (player.phase === 'pop') {
+            const shape =
+              color === GARBAGE ? garbagePopShape(popFrame) : popShape(popFrame, effect.popDelays?.get(i) ?? 1);
+            if (!shape) {
+              continue;
+            }
+            style.shape = shape;
+          } else {
+            style.links = linksAt(effect, board.cells, i);
+          }
+        } else if (landing && color !== GARBAGE) {
+          style.shape = landingShape(board.land[i]);
+        } else if (!falling) {
+          // 정지한 블록과 착지 중인 방해 블록만 열 흔들림을 따른다.
+          style.links = color === GARBAGE ? 0 : linksAt(effect, board.cells, i);
+          py += effect.quake.offsets[col];
         }
-      } else if (landing && color !== GARBAGE) {
-        style.shape = landingShape(board.land[i]);
-      } else if (!falling) {
-        // 정지한 블록과 착지 중인 방해 블록만 열 흔들림을 따른다.
-        style.links = color === GARBAGE ? 0 : linksAt(effect, board.cells, i);
-        py += effect.quake.offsets[col];
-      }
-      if (player.lost) {
-        const rowFromBottom = ROWS - 1 - y;
-        const t = player.loseFrames - LOSE_DELAYS[col];
-        const travel = (rowFromBottom + 5) * 4;
-        if (t >= travel) {
-          continue;
+        if (player.lost) {
+          const rowFromBottom = ROWS - 1 - y;
+          const t = player.loseFrames - LOSE_DELAYS[col];
+          const travel = (rowFromBottom + 5) * 4;
+          if (t >= travel) {
+            continue;
+          }
+          py += 8 * Math.max(0, t);
+          style.links = 0;
         }
-        py += 8 * Math.max(0, t);
-        style.links = 0;
+        ctx.globalAlpha = y < HIDDEN_ROWS ? 0.55 : 1;
+        skin.drawBlob(ctx, color, px, py, CELL, style);
+        ctx.globalAlpha = 1;
       }
-      ctx.globalAlpha = y < HIDDEN_ROWS ? 0.55 : 1;
-      skin.drawBlob(ctx, color, px, py, CELL, style);
-      ctx.globalAlpha = 1;
     }
   }
 }
@@ -323,20 +327,15 @@ function drawAllClear(ctx, x, effect) {
   ctx.fillText('싹쓸이', x + 96, ac.y);
 }
 
-function drawPair(ctx, skin, pair, x, y, shadow) {
-  if (!pair) {
-    return;
+function drawPair(ctx, skin, pair, x, y) {
+  if (!pair) return;
+  // 필드와 같은 그림자를 두 블록 뒤에 먼저 깐다.
+  if (skin.drawBlobShadowPass) {
+    skin.drawBlob(ctx, pair[1], x, y - CELL, CELL, { shadowOnly: true });
+    skin.drawBlob(ctx, pair[0], x, y, CELL, { shadowOnly: true });
   }
-  if (shadow) {
-    ctx.save();
-    ctx.filter = skin.landingShadow?.filter ?? 'brightness(0)';
-    ctx.globalAlpha = 0.1;
-    skin.drawBlob(ctx, pair[1], x + 12, y - CELL + 12, CELL);
-    skin.drawBlob(ctx, pair[0], x + 12, y + 12, CELL);
-    ctx.restore();
-  }
-  skin.drawBlob(ctx, pair[1], x, y - CELL, CELL);
-  skin.drawBlob(ctx, pair[0], x, y, CELL);
+  skin.drawBlob(ctx, pair[1], x, y - CELL, CELL, { shadow: false });
+  skin.drawBlob(ctx, pair[0], x, y, CELL, { shadow: false });
 }
 
 // 13절 자. 나갈 쌍은 위로 빠지고, 다다음은 다음 칸으로, 새 쌍은 다다음 칸으로 포물선을 그리며 들어온다.
@@ -356,11 +355,11 @@ function drawNext(ctx, skin, effect, solo = false) {
   ctx.rect(box.x, box.y, box.width, box.height + 8);
   ctx.clip();
   if (anim.frame < NEXT_WAIT && anim.outgoing) {
-    drawPair(ctx, skin, anim.outgoing, side.next1.x, side.next1.y - 7 * anim.frame, !solo);
+    drawPair(ctx, skin, anim.outgoing, side.next1.x, side.next1.y - 7 * anim.frame);
   }
   // 나가는 쌍이 빠진 뒤에 새 쌍을 표시한다. 대기 1~8프레임에 세 쌍이 겹치지 않게 한다.
-  if (!anim.waiting && anim.frame >= NEXT_WAIT) drawPair(ctx, skin, anim.pairs[1], NEXT_START.x + dir2 * moving, anim.y2, !solo);
-  drawPair(ctx, skin, anim.pairs[0], side.next2.x + dir1 * 2 * moving, anim.y1, !solo);
+  if (!anim.waiting && anim.frame >= NEXT_WAIT) drawPair(ctx, skin, anim.pairs[1], NEXT_START.x + dir2 * moving, anim.y2);
+  drawPair(ctx, skin, anim.pairs[0], side.next2.x + dir1 * 2 * moving, anim.y1);
   ctx.restore();
 }
 
@@ -514,7 +513,7 @@ function drawPortraitNext(ctx, skin, effects) {
     if(anim){
       const progress=Math.max(0,Math.min(16,anim.frame-NEXT_WAIT))/16;
       const side=SIDES[effect.side];
-      const pair=(value,x,y)=>{ctx.save();ctx.translate(x,y);ctx.scale(2,2);drawPair(ctx,skin,value,0,0,false);ctx.restore()};
+      const pair=(value,x,y)=>{ctx.save();ctx.translate(x,y);ctx.scale(2,2);drawPair(ctx,skin,value,0,0);ctx.restore()};
       if(anim.frame<NEXT_WAIT&&anim.outgoing)pair(anim.outgoing,first,180-14*anim.frame);
       pair(anim.pairs[0],first+direction*64*(1-progress),180+2*(anim.y1-side.next1.y));
       // 나가는 쌍이 빠진 뒤 새 쌍을 클립 바깥에서 들인다. 세 쌍이 한꺼번에 보이지 않게 한다.
@@ -625,4 +624,4 @@ function drawBanner(ctx, text, sub) {
   }
 }
 
-export { FONT, INK, drawBanner, drawGame };
+export { FONT, INK, drawBanner, drawGame, drawBoard, drawWarning };

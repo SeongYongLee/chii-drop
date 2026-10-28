@@ -1,3 +1,5 @@
+import { createTitleTransition } from './title-transition.js';
+import { renderRecordsPanel } from './records-panel.js';
 import { attachTouchControls } from '../net/touch.js';
 import { setTouchKeys, MENU_KEYS } from './keyboard.js';
 import { createTouchLayoutEditor } from './touch-layout.js';
@@ -41,6 +43,9 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
   const media = view.matchMedia('(pointer: coarse), (max-width: 760px), (max-height: 500px) and (max-width: 960px)');
   let context = {}, key = '', queued = 0, localPlayer = 0, start = null, enabled = false, itemsKey = '';
   let setupItemsKey = '', noticeKey = '', backWasSelected = false;
+  let chromeState = [];
+  let renderedLayout, titleSource;
+  const titleTransition = createTitleTransition({ document: view.document, canvas, menu: container, onComplete: clearEditorInput });
   const pauseDialog=createPauseDialog(view,{
     opened:()=>clearEditorInput(),
     choose:index=>{onUnlock();context.items?.[index]?.activate();sync()},
@@ -55,10 +60,13 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
     onOpen: clearEditorInput, onClose: () => { clearEditorInput(); sync(); } }) : null;
   function renderItems() {
     const items = context.items ?? [];
-    const signature = JSON.stringify([context.layout, context.setup, context.columns, items.map(({ label, value, disabled, selected, adjustable, previewKey, compactLabel, sectionLabel }) =>
+    const signature = JSON.stringify([context.layout, context.records, context.setup, context.columns, items.map(({ label, value, disabled, selected, adjustable, previewKey, compactLabel, sectionLabel }) =>
       [label, value, disabled, selected, adjustable, previewKey, compactLabel, sectionLabel])]);
     if (signature === itemsKey) return;
     itemsKey = signature;
+    if (context.records) {
+      setupItemsKey = ''; renderRecordsPanel(view.document, nativeItems, context.records); return;
+    }
     if (context.layout === 'match-setup') {
       nativeItems.dataset.columns = '2'; nativeItems.dataset.grouped = 'false';
       const contentKey = JSON.stringify([context.setup, items.map(({ selected, ...item }) => item)]);
@@ -124,71 +132,102 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
     if (enabled) nativeItems.querySelector?.('[aria-current="true"]')?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
   }
   function clear() { touch.clear(); queued = 0; keyboard.touchHeld?.clear(); keyboard.touchPressed?.clear(); }
-  function sync() {
+  function sync({ render = true } = {}) {
     context = getContext();
     if (context.local) context = { ...context, player: localPlayer };
     const nextKey = `${context.enabled}:${context.mode}:${context.player}:${context.paused}`;
     if (nextKey !== key) { clear(); key = nextKey; }
     const active = Boolean(context.enabled && (media.matches || ['match-setup', 'list-menu', 'title-menu'].includes(context.layout)) && !editor?.editing);
     if (enabled !== active) { enabled = active; touch.setEnabled(enabled); }
+    // 입력을 읽을 때도 최신 모드·플레이어는 반영하되 DOM은 장면 갱신 후 한 번 그린다.
+    if (!render) return;
+    const departure = renderedLayout === 'title-menu' && context.layout === 'list-menu' && context.enabled
+      ? titleTransition.prepare(titleSource) : null;
+    if (context.layout !== 'list-menu' || !context.enabled) titleTransition.cancel();
+    renderedLayout = context.layout;
+    if (context.layout === 'title-menu') titleSource = context.titleSource;
     const modalPause=Boolean(context.enabled && context.paused && pauseDialog);
-    if (menuButton) menuButton.hidden = !context.enabled || media.matches || !(context.canPause ?? context.mode === 'game') || Boolean(context.paused);
-    if (backNavigationButton) backNavigationButton.hidden = !context.enabled || media.matches || !context.canBack || ['match-setup', 'list-menu', 'title-menu'].includes(context.layout) || Boolean(context.gameScreen);
-    container.hidden = (!media.matches && !['match-setup', 'list-menu', 'title-menu'].includes(context.layout)) || modalPause;
-    container.dataset.menuLayout = context.layout ?? '';
-    if (view.document.body) view.document.body.dataset.menuLayout = active ? (context.layout ?? '') : '';
-    menu.hidden = context.mode === 'game'; game.hidden = context.mode !== 'game';
-    if (container.dataset.mode !== context.mode) container.dataset.mode = context.mode;
-    if (view.document.body) view.document.body.dataset.touchMode = active ? (modalPause && context.gameScreen ? 'game' : context.mode) : 'none';
-    if (view.document.body) view.document.body.dataset.gameScreen = String(Boolean(context.gameScreen));
-    menu.dataset.hasItems = String(Boolean(context.items?.length));
-    menu.dataset.title = String(Boolean(context.title));
-    confirmButton.hidden = Boolean(context.direct);
-    confirmButton.textContent = context.title ? '시작' : '결정';
-    if(backButton)backButton.hidden=Boolean(context.title||context.hideBack);
-    if (notice) {
-      notice.hidden = !context.notice;
-      const nextNoticeKey = JSON.stringify([context.notice, context.noticeSummary]);
-      if (noticeKey !== nextNoticeKey) {
-        noticeKey = nextNoticeKey;
-        if (context.noticeSummary) {
-          const details = view.document.createElement('details');
-          const summary = view.document.createElement('summary'); summary.textContent = context.noticeSummary;
-          const text = view.document.createElement('p'); text.textContent = context.notice;
-          details.append(summary, text); notice.replaceChildren(details);
-        } else notice.textContent = context.notice ?? '';
+    const nextChrome = [active, modalPause, media.matches, localPlayer, context.enabled, context.mode,
+      context.paused, context.canPause, context.canBack, context.layout, context.gameScreen, context.direct,
+      context.title, context.hideBack, context.notice, context.noticeSummary, context.heading,
+      context.fanNotice, context.versionLabel, context.onlineActive, context.onlineMenu, context.backSelected,
+      context.label, context.local, Boolean(context.items?.length), Boolean(context.records)];
+    if (chromeState.length !== nextChrome.length || nextChrome.some((value, index) => value !== chromeState[index])) {
+      chromeState = nextChrome;
+      if (menuButton) menuButton.hidden = !context.enabled || media.matches || !(context.canPause ?? context.mode === 'game') || Boolean(context.paused);
+      if (backNavigationButton) backNavigationButton.hidden = !context.enabled || media.matches || !context.canBack || ['match-setup', 'list-menu', 'title-menu'].includes(context.layout) || Boolean(context.gameScreen);
+      container.hidden = (!media.matches && !['match-setup', 'list-menu', 'title-menu'].includes(context.layout)) || modalPause;
+      container.dataset.menuLayout = context.layout ?? '';
+      container.dataset.records = String(Boolean(context.records));
+      if (view.document.body) view.document.body.dataset.menuRecords = String(Boolean(context.records));
+      if (view.document.body) view.document.body.dataset.menuLayout = active ? (context.layout ?? '') : '';
+      menu.hidden = context.mode === 'game'; game.hidden = context.mode !== 'game';
+      if (container.dataset.mode !== context.mode) container.dataset.mode = context.mode;
+      if (view.document.body) view.document.body.dataset.touchMode = active ? (modalPause && context.gameScreen ? 'game' : context.mode) : 'none';
+      if (view.document.body) view.document.body.dataset.gameScreen = String(Boolean(context.gameScreen));
+      menu.dataset.hasItems = String(Boolean(context.items?.length));
+      menu.dataset.title = String(Boolean(context.title));
+      confirmButton.hidden = Boolean(context.direct);
+      confirmButton.textContent = context.title ? '시작' : '결정';
+      if(backButton)backButton.hidden=Boolean(context.title||context.hideBack);
+      if (notice) {
+        notice.hidden = !context.notice;
+        const nextNoticeKey = JSON.stringify([context.notice, context.noticeSummary]);
+        if (noticeKey !== nextNoticeKey) {
+          noticeKey = nextNoticeKey;
+          if (context.noticeSummary) {
+            const details = view.document.createElement('details');
+            const summary = view.document.createElement('summary'); summary.textContent = context.noticeSummary;
+            const text = view.document.createElement('p'); text.textContent = context.notice;
+            details.append(summary, text); notice.replaceChildren(details);
+          } else notice.textContent = context.notice ?? '';
+        }
       }
-    }
-    if (heading) {
-      heading.hidden = !context.heading || context.layout === 'match-setup';
-      if (heading.textContent !== (context.heading ?? '')) heading.textContent = context.heading ?? '';
-    }
-    if (fanNotice) {
-      fanNotice.hidden = !['list-menu', 'title-menu', 'match-setup'].includes(context.layout);
-      const text = [context.fanNotice, context.versionLabel].filter(Boolean).join('\n');
-      if (fanNotice.textContent !== text) fanNotice.textContent = text;
-    }
-    if (backButton) {
-      if (context.backSelected) {
-        backButton.setAttribute('aria-current', 'true');
-        if (!backWasSelected) backButton.scrollIntoView?.({ block: 'nearest' });
+      if (heading) {
+        heading.hidden = !context.heading || context.layout === 'match-setup';
+        if (heading.textContent !== (context.heading ?? '')) heading.textContent = context.heading ?? '';
       }
-      else backButton.removeAttribute('aria-current');
-      backWasSelected = Boolean(context.backSelected);
+      if (fanNotice) {
+        fanNotice.hidden = context.onlineActive ? !context.onlineMenu : !['list-menu', 'title-menu', 'match-setup'].includes(context.layout);
+        const text = [context.fanNotice, context.versionLabel].filter(Boolean).join('\n');
+        if (fanNotice.textContent !== text) fanNotice.textContent = text;
+      }
+      if (backButton) {
+        if (context.backSelected) {
+          backButton.setAttribute('aria-current', 'true');
+          if (!backWasSelected) backButton.scrollIntoView?.({ block: 'nearest' });
+        }
+        else backButton.removeAttribute('aria-current');
+        backWasSelected = Boolean(context.backSelected);
+      }
+      const text = context.label ?? (context.enabled ? '메뉴 선택' : '불러오는 중…');
+      label.hidden = !text;
+      if (label.textContent !== text) label.textContent = text;
+      playerButton.hidden = !context.local;
+      const playerText = `${localPlayer + 1}P 조작 · 전환`;
+      if (playerButton.textContent !== playerText) playerButton.textContent = playerText;
     }
     renderItems();
-    companions.sync(enabled && context.layout === 'list-menu' ? context.companions : []);
+    companions.sync(context.companions, context.companionAnchor);
+    if (departure) { clearEditorInput(); titleTransition.start(departure, context.companions ?? []); }
     if (context.layout === 'match-setup') animateSetupCards(nativeItems, context.items ?? [], context.animationFrame ?? 0);
     pauseDialog?.sync(context.items??[],modalPause);
-    const text = context.label ?? (context.enabled ? '메뉴 선택' : '불러오는 중…');
-    label.hidden = !text;
-    if (label.textContent !== text) label.textContent = text;
-    playerButton.hidden = !context.local;
-    const playerText = `${localPlayer + 1}P 조작 · 전환`;
-    if (playerButton.textContent !== playerText) playerButton.textContent = playerText;
   }
   view.addEventListener('keydown', event => {
+    if (titleTransition.active && Object.values(MENU_KEYS).some(codes => codes.includes(event.code))) {
+      event.preventDefault(); event.stopImmediatePropagation(); return;
+    }
     if (event.target?.closest?.('.menu-companion')) return;
+    if (enabled && context.records && ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(event.code)) {
+      const panel = nativeItems.querySelector?.('.records-panel');
+      if (panel) {
+        const step = event.code.startsWith('Page') ? panel.clientHeight * .8 : 56;
+        const top = event.code === 'Home' ? 0 : event.code === 'End' ? panel.scrollHeight
+          : panel.scrollTop + (['ArrowUp', 'PageUp'].includes(event.code) ? -step : step);
+        panel.scrollTo({ top, behavior: 'instant' });
+        event.preventDefault(); event.stopImmediatePropagation(); return;
+      }
+    }
     if (['ArrowUp', 'ArrowDown', 'KeyW', 'KeyS'].includes(event.code) && event.target === backButton) backButton.blur?.();
     if (setupPicker?.isOpen || !['match-setup', 'list-menu', 'title-menu'].includes(context.layout) || !['Enter', 'Space'].includes(event.code)) return;
     if (event.target === backButton) {
@@ -241,9 +280,9 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
     if (!onTap(point,{height:logicalHeight,portrait:canvas.portraitScreen===true}) && context.mode !== 'game') queued |= MOBILE_INPUT.confirm;
   });
   for (const name of ['pointercancel', 'lostpointercapture']) canvas.addEventListener(name, () => { start = null; });
-  view.addEventListener('blur', () => { start = null; clear(); });
-  view.addEventListener('resize', () => { start = null; clear(); sync(); });
-  view.document.addEventListener('visibilitychange', () => { if (view.document.hidden) { start = null; clear(); } });
+  view.addEventListener('blur', () => { titleTransition.cancel(); start = null; clear(); });
+  view.addEventListener('resize', () => { titleTransition.cancel(); start = null; clear(); sync(); });
+  view.document.addEventListener('visibilitychange', () => { if (view.document.hidden) { titleTransition.cancel(); start = null; clear(); } });
   media.addEventListener('change', sync);
   sync();
   return {
@@ -252,7 +291,8 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
     get touchInput(){return media.matches},
     get menuVisible(){return enabled && ['list-menu', 'title-menu', 'match-setup'].includes(context.layout)},
     read() {
-      sync();
+      sync({ render: false });
+      if (titleTransition.active) { clearEditorInput(); return; }
       const input = touch.read() | queued; queued = 0;
       setTouchKeys(keyboard, context.enabled && !editor?.editing ? mobileKeyCodes(input, context) : []);
     },

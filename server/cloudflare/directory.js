@@ -3,6 +3,7 @@ import { DurableObject } from 'cloudflare:workers';
 import { randomBytes } from 'node:crypto';
 import { ROOM_CAPACITY, roomHeadcount } from '../../src/net/room-capacity.js';
 import { createProfileStore } from '../profiles.js';
+import { createSqlProfileRepository } from '../profile-repository.js';
 import manifest from '../../skins/chiikawa/pages-runtime/manifest.json';
 import { accept, checkVersion, closeUnauthenticated, parseMessage, rateLimit, readState, send, setupStorage, writeState } from './shared.js';
 
@@ -12,17 +13,18 @@ export class Directory extends DurableObject {
     super(ctx, env); setupStorage(ctx);
     this.logDiagnostic = createDiagnostics('directory');
     const saved = readState(ctx) ?? {};
-    this.data = saved.profiles;
     this.rooms = saved.rooms ?? {};
     this.revisions = saved.revisions ?? {};
     this.claims = saved.claims ?? {};
     this.queue = saved.queue ?? {};
     this.chain = Promise.resolve();
-    this.profiles = createProfileStore({ load: () => this.data, save: next => {
-      this.persist(next); this.data = next;
-    } });
+    this.profiles = createProfileStore({ repository: createSqlProfileRepository({
+      exec: (query, ...params) => ctx.storage.sql.exec(query, ...params).toArray(),
+      transaction: action => ctx.storage.transactionSync(action), legacy: saved.profiles,
+    }) });
+    if (saved.profiles) this.persist();
   }
-  persist(profiles = this.data) { writeState(this.ctx, { profiles, rooms: this.rooms, revisions: this.revisions, claims: this.claims, queue: this.queue }); }
+  persist() { writeState(this.ctx, { rooms: this.rooms, revisions: this.revisions, claims: this.claims, queue: this.queue }); }
   serial(action) {
     const result = this.chain.then(action);
     this.chain = result.catch(() => { this.logDiagnostic('server_error', null, 'message'); });
@@ -30,7 +32,7 @@ export class Directory extends DurableObject {
   }
   identify(token) {
     return this.serial(() => {
-      if (!token && Object.keys(this.data?.players ?? {}).length >= 2000) throw new Error('새 플레이어 등록이 가득 찼습니다.');
+      if (!token && this.profiles.count() >= 2000) throw new Error('새 플레이어 등록이 가득 찼습니다.');
       return this.profiles.authenticate(token);
     });
   }
@@ -117,7 +119,7 @@ export class Directory extends DurableObject {
         if (msg.type === 'hello') {
           try { checkVersion(msg); } catch (e) { this.logDiagnostic('protocol_mismatch', null, 'hello'); send(ws, { type: 'incompatible', reason: e.message }); return; }
           if (meta.profileId) throw new Error('이미 인증된 연결입니다.');
-          if (!msg.token && Object.keys(this.data?.players ?? {}).length >= 2000) throw new Error('새 플레이어 등록이 가득 찼습니다.');
+          if (!msg.token && this.profiles.count() >= 2000) throw new Error('새 플레이어 등록이 가득 찼습니다.');
           const identity = this.profiles.authenticate(msg.token);
           if (this.sockets(identity.profile.id).some(other => other !== ws)) { send(ws, { type: 'error', retryable: true, reason: '이미 연결된 세션을 확인하고 있습니다.' }); return; }
           ws.serializeAttachment({ ...meta, profileId: identity.profile.id });

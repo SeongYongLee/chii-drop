@@ -1,3 +1,5 @@
+import { createFrameStats } from './frame-stats.js';
+import { startOnlineFrameClock } from './frame-clock.js';
 import { createOnlineTelemetry } from '../analytics/online.js';
 import { loadOnlineConfig, onlineTokenKey } from './config.js';
 import { AUTOMATIC_MATCHMAKING } from './features.js';
@@ -8,7 +10,7 @@ import { setupScreen } from '../app/screen.js';
 import { loadSettings } from '../app/storage.js';
 import { createEffects, tickCharacters, observeMatchEffects, animateMatchEffects } from '../view/effects.js';
 import { drawBanner, drawGame } from '../view/renderer.js';
-import { chooseBattleScenery, applyPageBackdrop } from '../view/battle-backgrounds.js';
+import { chooseBattleScenery, applyOnlineBackdrop } from '../view/battle-backgrounds.js';
 import { drawFieldResults } from '../view/field-results.js';
 import { playSfx, prepareSfx, unlockSfx, setSfxOptions } from '../audio/sfx.js';
 import { mixLevels } from '../audio/mix-levels.js';
@@ -50,6 +52,8 @@ let rematchPending = false;
 let profileCharId, profileSaving = false;
 let effects = createEffects(2), active = false, rtt = 0, verifiedWinner = null, error = null;
 let inputWaitingSince = null;
+const frameStats = createFrameStats();
+let metricsAt = -Infinity;
 const inputBatcher = createInputBatcher({ maxBatch: requestedBatchLimit, adaptive: batchAdaptive });
 let routedRoom = null, automaticHeartbeat = false, heartbeatSent = 0;
 const ctx = setupScreen($('screen'));
@@ -86,6 +90,7 @@ const menuNavigation = attachMenuNavigation({ view: window, root,
 // 폼을 편집하는 동안 게임용 키보드 처리기를 통과하지 않는다.
 window.addEventListener('keydown', (event) => {
   const target = event.composedPath()[0];
+  if(target.closest?.('.menu-companion'))return;
   if (opened && ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'A', 'SUMMARY'].includes(target.tagName) && !target.closest('#touch-controls') && !target.closest('.controls-guide')) event.stopImmediatePropagation();
 }, true);
 keyboard.enabled = false;
@@ -201,6 +206,7 @@ function updateCharacterButtons() {
 const panelRoutes = { play: 'play', 'new-room': 'create', leaderboard: 'rankings' };
 function selectPanel({ scroll = false } = {}) {
   const panel = panelRoutes[location.hash.slice(1)] ?? 'play';
+  if (!room) $('online-menu-title').textContent = { play: '온라인 대전', create: '방 만들기', rankings: '랭킹' }[panel];
   for (const name of ['play', 'create', 'rankings']) {
     $(`panel-${name}`).hidden = name !== panel;
     const tab = $(`tab-${name}`);
@@ -269,8 +275,11 @@ function buttons() {
   $('rename').disabled = !free || profileSaving;
   for (const button of $('profile-character-options').children) button.disabled = !free || profileSaving;
   const back = $('online-back');
-  back.textContent = room ? '← 방 나가기' : '← 메인 메뉴';
-  back.setAttribute('aria-label', room ? '방 나가기' : '메인 메뉴로 돌아가기');
+  back.textContent = room ? '방 나가기' : '뒤로';
+  $('online-menu-title').textContent = game ? '온라인 대전' : room
+    ? room.phase === 'selecting' ? '캐릭터 선택' : '대기실'
+    : ({ create: '방 만들기', rankings: '랭킹' }[panelRoutes[location.hash.slice(1)]] ?? '온라인 대전');
+  back.setAttribute('aria-label', room ? '방 나가기' : '이전 메뉴로 돌아가기');
   back.href = room ? '#play' : '#menu';
   chat.update({ connected, playing: !!game, finished: matchFinished, spectating, playerId: profile?.id });
   $('matchmake').disabled = !AUTOMATIC_MATCHMAKING || !free;
@@ -528,7 +537,7 @@ function connect() {
       if (msg.type === 'joined') {
         telemetry.joined();
         mobileViewport.dismissKeyboard();
-        chat.enter(msg.code);
+        chat.enter(msg.code, { collapsed: true });
         submitting = false; queued = false; side = msg.side; spectating = msg.role === 'spectator'; $('password-dialog').close(); $('code-dialog').close(); $('invite-choice-dialog').close(); root.querySelector('.profile-edit').open = false; resetGame(); showPlay(); status(spectating ? '관전으로 입장했습니다. 경기를 기다려 주세요.' : '방에 참가했습니다. 상대와 함께 준비해 주세요.');
       }
       if (msg.type === 'chatHistory') chat.history(msg);
@@ -706,7 +715,7 @@ $('cancel-match').onclick = $('queue-banner-cancel').onclick = () => send({ type
 async function explainControls(force = false) {
   if (guiding) return;
   guiding = true; buttons(); keyboard.held.clear(); touch.clear();
-  try { await showOnlineControls({ keyboard, touch: window.matchMedia('(pointer: coarse)').matches, force }); }
+  try { await showOnlineControls({ keyboard, skin, touch: window.matchMedia('(pointer: coarse)').matches, force }); }
   finally { guiding = false; buttons(); }
 }
 $('online-guide').onclick = () => { void explainControls(true); };
@@ -764,10 +773,11 @@ setInterval(() => {
   }
   if (ws && [0, 1].includes(ws.readyState) && performance.now() - lastPacket > 10000) abandonConnection();
 }, 1000);
-function tick(now) {
-  if (!opened) { last = now; requestAnimationFrame(tick); return; }
-  lobbyPresentation.tick(now, { playing: !!game, inRoom: !!room, charId: room?.players.find(p => p.id === profile?.id)?.charId ?? profile?.charId });
-  if (!spectating && room?.phase === 'selecting' && !$('character-select-view').hidden && !active) for (const button of $('character-options').children) {
+function tick(now, { render = !document.hidden } = {}) {
+  if (!opened) { last = now; return; }
+  const tickStart = performance.now();
+  if (render) lobbyPresentation.tick(now, { playing: !!game, inRoom: !!room, charId: room?.players.find(p => p.id === profile?.id)?.charId ?? profile?.charId });
+  if (render && !spectating && room?.phase === 'selecting' && !$('character-select-view').hidden && !active) for (const button of $('character-options').children) {
     const portrait = button.querySelector('canvas'), preview = portrait.getContext('2d');
     preview.clearRect(0, 0, 192, 192);
     skin.drawCharacter(preview, button.dataset.charId, 'idle', 8, 8, 176, { frame: Math.floor(now * .06), instance: `online-choice-${button.dataset.charId}`, presentation: 'selection' });
@@ -788,7 +798,7 @@ function tick(now) {
       if (spectating) {
         const packet = game.advance(); if (packet) confirmed(packet.confirmed);
       } else {
-      const packet = game.advance(document.hidden ? 0 : (readInput(keyboard, KEYMAPS.solo) | touch.read()));
+      const packet = game.advance(!render || document.hidden ? 0 : (readInput(keyboard, KEYMAPS.solo) | touch.read()));
       if (packet) {
         inputBatcher.setPressure(rtt > 220 || game.state.frame - game.confirmedState.frame > 12);
         const batch = inputBatcher.push(packet.frame, packet.input);
@@ -805,8 +815,9 @@ function tick(now) {
     if (batch) send({ ...batch, matchId, epoch });
     inputWaitingSince ??= now;
   } else inputWaitingSince = null;
-  if (game) {
-    applyPageBackdrop(ctx, skin, battleScenery ? `game:${battleScenery}` : 'game');
+  const drawStart = performance.now();
+  if (game && render) {
+    applyOnlineBackdrop(ctx, skin, battleScenery ? `game:${battleScenery}` : 'game');
     drawGame(ctx, { skin, scenery: battleScenery, match: game.state, effects, characters: participants.map((p, i) => ({ id: (participants[i]?.charId ?? skin.characters[i % skin.characters.length].id), name: p.name })), showGhost: true, result: verifiedWinner !== null });
     if (error) drawBanner(ctx, '연결 종료', error);
     else if (paused) drawBanner(ctx, '재접속 대기', `경기 일시 정지 · 남은 유예 ${Math.max(0, Math.ceil((pauseUntil - now) / 1000))}초`);
@@ -818,25 +829,30 @@ function tick(now) {
     });
     else if (!spectating && active && inputWaitingSince !== null && now - inputWaitingSince >= 250) drawBanner(ctx, '상대 입력 대기', '연결이 회복되면 이어집니다');
     if (spectating && matchFinished && !game.canAdvance && active) { active = false; buttons(); }
-    $('metrics').textContent = `${transport === 'state15' && !spectating ? '실험: 상태 15Hz' : `입력 동기화 · ${batchAdaptive && batchLimit === 6 ? '적응형 최대 6' : batchLimit}프레임 묶음`} · 확정 ${game.confirmedState.frame} · 검증 ${lastVerified} · 서버 왕복 ${rtt}ms · 예측 ${game.state.frame - game.confirmedState.frame}프레임 · 보정 ${game.rollbacks}회 · 송신 ${(wireSent / 1024).toFixed(1)}KB · 수신 ${(wireReceived / 1024).toFixed(1)}KB`;
+    if (now - metricsAt >= 250) {
+    metricsAt = now;
+    const stats = frameStats.current;
+    $('metrics').textContent = `${stats.fps}fps · 계산 ${stats.simulation.toFixed(1)}ms · 그리기 ${stats.drawing.toFixed(1)}ms · 최대 ${stats.peak.toFixed(1)}ms · 대기 ${stats.waiting}회 · ` + `${transport === 'state15' && !spectating ? '실험: 상태 15Hz' : `입력 동기화 · ${batchAdaptive && batchLimit === 6 ? '적응형 최대 6' : batchLimit}프레임 묶음`} · 확정 ${game.confirmedState.frame} · 검증 ${lastVerified} · 서버 왕복 ${rtt}ms · 예측 ${game.state.frame - game.confirmedState.frame}프레임 · 보정 ${game.rollbacks}회 · 송신 ${(wireSent / 1024).toFixed(1)}KB · 수신 ${(wireReceived / 1024).toFixed(1)}KB`;
+    }
   }
-  requestAnimationFrame(tick);
+  if (game) frameStats.record(now, { render, simulation: drawStart - tickStart, drawing: performance.now() - drawStart, waiting: !spectating && active && !game.canAdvance });
 }
-requestAnimationFrame(tick);
+const frameClock = startOnlineFrameClock({ tick, enabled: () => opened });
 for (const back of root.querySelectorAll('[data-online-exit]')) back.onclick = event => {
   event.preventDefault();
+  if (!room && ['#new-room', '#leaderboard'].includes(location.hash)) { showPlay(); return; }
   if (room) { leaveRoom(); return; }
   if (!spectating && game && room?.rated && !window.confirm('메인 메뉴로 나가면 이탈 패배가 반영됩니다. 나갈까요?')) return;
   send({ type: 'leave' });
   telemetry.close();
-  opened = false; departing = true; keyboard.enabled = false;
+  opened = false; frameClock.refresh(); departing = true; keyboard.enabled = false;
   clearTimeout(reconnectTimer); reconnectTimer = null; ws?.close(); ws = null;
   for (const dialog of root.querySelectorAll('dialog[open]')) dialog.close();
   room = null; queued = false; spectating = false; connected = false; routedRoom = null; chat.clear(); resetGame(); clearControls(); buttons();
   onExit();
 };
 return { menu: menuNavigation, open() {
-  opened = true; departing = false; keyboard.enabled = true;
+  opened = true; frameClock.refresh(); departing = false; keyboard.enabled = true;
   pendingInvite = roomInviteCode(location.href);
   reconnectAttempt = 0; error = null; last = performance.now();
   selectPanel(); stageLayout.update(); setOnlineMusic('menu'); connect(); menuNavigation.sync();

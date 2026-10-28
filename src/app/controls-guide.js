@@ -1,3 +1,4 @@
+import { createGuideBlocks } from '../view/guide-blocks.js';
 import { analytics } from '../analytics/client.js';
 import { analyticsMode } from '../analytics/events.js';
 import { defaultKeyBindings, keyLabel } from '../input/key-settings.js';
@@ -44,18 +45,22 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
       const header = doc.createElement('header'), tabs = doc.createElement('div');
       tabs.className = 'game-guide-tabs'; tabs.setAttribute('role', 'group'); tabs.setAttribute('aria-label', '안내 선택');
       const rulesTab = doc.createElement('button'), controlsTab = doc.createElement('button');
-      rulesTab.type = controlsTab.type = 'button'; rulesTab.textContent = '1. 게임 설명'; controlsTab.textContent = '2. 조작 방법';
+      rulesTab.type = controlsTab.type = 'button'; rulesTab.textContent = '게임 규칙'; controlsTab.textContent = '조작 방법';
       tabs.append(rulesTab, controlsTab); header.append(heading, tabs);
       const rules = doc.createElement('div'); rules.className = 'game-guide-rules';
+      const pictures = [];
       for (const [title, description, picture] of [
-        ['같은 색 4개 연결', '같은 색 블록을 가로·세로로 4개 이상 이으면 사라져요.', '● ● ● ●'],
-        ['이어서 지우면 연쇄', '사라진 자리에 블록이 떨어져 다시 연결되면 연쇄! 큰 연쇄일수록 공격도 강해져요.', '1연쇄 → 2연쇄!'],
-        ['대전에서는 방해 공격', '블록을 지워 상대에게 방해 블록을 보내요. 내 쪽에 올 방해도 지워서 줄일 수 있어요.', '내 연쇄 → 상대'],
+        ['같은 색 4개 연결', '같은 색을 가로·세로로 4개 이상 이으면 사라져요.', 'connect'],
+        ['이어서 지우면 연쇄', '빈자리로 떨어진 블록이 다시 연결되면 연쇄가 이어져요.', 'chain'],
+        ['연쇄로 방해 보내기', '연쇄를 이어갈수록 공격이 강해져요.\n다가오는 방해도 연쇄로 상쇄할 수 있어요.', 'attack'],
       ]) {
         const card = doc.createElement('section'), h = doc.createElement('h3'), image = doc.createElement('div'), text = doc.createElement('p');
-        h.textContent = title; image.className = 'game-guide-picture'; image.textContent = picture; image.setAttribute('aria-hidden', 'true');
-        text.textContent = description; card.append(image, h, text); rules.append(card);
+        h.textContent = title; image.className = `game-guide-picture game-guide-picture-${picture}`; pictures.push({ element: image, kind: picture }); image.setAttribute('aria-hidden', 'true');
+        text.textContent = description;
+        if (picture === 'attack') text.className = 'game-guide-attack-description';
+        card.append(image, h, text); rules.append(card);
       }
+      const illustrations = createGuideBlocks(view, app.skin, pictures);
       const warning = doc.createElement('p'); warning.className = 'game-guide-warning';
       warning.textContent = '위쪽 입구(왼쪽에서 세 번째 칸)가 막히면 패배해요. 연습 모드에서는 혼자 연쇄를 연습할 수 있어요.';
       const cards = doc.createElement('div'); cards.className = 'controls-guide-cards';
@@ -78,6 +83,7 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
         else addCard('키보드', guideRows(bindings));
       }
       const note = doc.createElement('p');
+      note.className = 'game-guide-note';
       note.textContent = mode === 'online' ? '온라인 경기는 일시정지할 수 없어요. 양쪽 모두 안내를 확인하고 준비하면 시작합니다.' : touch ? (mode === 'versus' ? '1P / 2P 버튼으로 조작할 플레이어를 바꿔요. 설정에서 터치 영역을 바꿀 수 있어요.' : '설정에서 터치 영역을 바꿀 수 있어요.')
         : `${(app.keyboard.bindings ?? defaultKeyBindings()).pause.map(keyLabel).join(' / ')}: 일시정지 · 설정에서 키 변경`;
       const actions = doc.createElement('div'); actions.className = 'game-guide-actions';
@@ -99,9 +105,10 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
       actions.append(previous, groupButton, button, cancel);
       function showPage(value) {
         page = value; const controls = page === 'controls';
+        illustrations.show(!controls);
         rules.hidden = warning.hidden = controls; cards.hidden = note.hidden = !controls;
         groupButton.hidden = !controls || !force || touch; previous.hidden = !controls && !force;
-        previous.textContent = controls ? '게임 설명' : '닫기';
+        previous.textContent = controls ? '게임 규칙' : '닫기';
         rulesTab.setAttribute('aria-pressed', String(!controls)); controlsTab.setAttribute('aria-pressed', String(controls));
         button.textContent = controls ? (force ? '닫기' : '확인하고 시작') : '조작 방법 보기';
       }
@@ -121,7 +128,7 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
           view.addEventListener('keydown', block, { capture: true }); view.addEventListener('keyup', release, { capture: true }); view.addEventListener('blur', cleanup);
         }
         analytics.track('controls_guide', { mode: analyticsMode(mode), action: cancelled ? 'cancelled' : 'completed', input_method: touch ? 'touch' : 'keyboard' });
-        dialog.close(); dialog.remove(); clear();
+        illustrations.dispose(); dialog.close(); dialog.remove(); clear();
         if (!force && !cancelled) { app.controlsGuidesSeen.add(context); rememberGuide(storage, context); }
         app.setScene(cancelled ? background : next());
       }
@@ -133,7 +140,12 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
         if (event.code === 'Tab' || event.ctrlKey || event.metaKey || event.altKey) return;
         event.stopImmediatePropagation(); event.preventDefault();
         if (event.repeat || openingKeys.size) return;
-        if (event.code === 'ArrowLeft') showPage('rules');
+        if (event.code === 'ArrowUp' || event.code === 'ArrowDown') {
+          const available = [rulesTab, controlsTab, previous, groupButton, button, cancel].filter(entry => !entry.hidden);
+          const selected = available.indexOf(doc.activeElement);
+          const direction = event.code === 'ArrowUp' ? -1 : 1;
+          available[(selected + direction + available.length) % available.length]?.focus();
+        } else if (event.code === 'ArrowLeft') showPage('rules');
         else if (event.code === 'ArrowRight') showPage('controls');
         else if (event.code === 'Escape') finish(event.code, !force);
         else if (['Enter', 'Space'].includes(event.code)) {
@@ -161,10 +173,10 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
 
 
 // 온라인은 준비 패킷을 보내기 전에 같은 안내를 확인한다. 엔진 시간은 진행하지 않는다.
-export function showOnlineControls({ keyboard, touch = false, force = false }) {
+export function showOnlineControls({ keyboard, skin, touch = false, force = false }) {
   return new Promise(resolve => {
     const done = {};
-    const app = { keyboard, mobile: { visible: touch, clear() {} },
+    const app = { keyboard, skin, mobile: { visible: touch, clear() {} },
       setScene(scene) { if (scene === done) resolve(); else queueMicrotask(() => scene.update()); } };
     withControlsGuide(app, { mode: 'online', force, background: { draw() {} }, next: () => done });
   });

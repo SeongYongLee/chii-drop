@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFile } from 'node:fs/promises';
-import { chooseBattleScenery, applyPageBackdrop } from '../src/view/battle-backgrounds.js';
+import { chooseBattleScenery, applyPageBackdrop, applyOnlineBackdrop } from '../src/view/battle-backgrounds.js';
 import { createGameScene } from '../src/app/game-scene.js';
 
 test('대전 배경 후보는 스포일러를 제외한 명시 목록이며 실행 팩과 같다', async () => {
@@ -53,4 +53,27 @@ test('가로·세로 배경 동기화는 재시작과 다른 캔버스에서 복
   applyPageBackdrop(main, skin, 'missing', document);
   assert.equal(main.pageBackdrop, false);
   assert.equal(value, 'none');
+});
+
+test('Canvas 배경을 직접 지정해 흰 게임 프레임에도 보이며 다른 장면과 기본 스킨으로 복귀한다', () => {
+  const style = {}, ctx = { canvas: { style } }, skin = { backgroundUrl: scene => scene === 'basic' ? null : `${scene}.png` };
+  const doc = { body: { dataset: {}, style: { setProperty() {}, getPropertyValue() {} } } };
+  applyOnlineBackdrop(ctx, skin, 'game:market', doc);
+  assert.equal(ctx.pageBackdrop, true);
+  assert.equal(style.backgroundImage, 'url("game:market.png")');
+  assert.equal(style.backgroundSize, 'cover'); assert.equal(style.backgroundPosition, 'center');
+  applyOnlineBackdrop(ctx, skin, 'game:grove', doc);
+  assert.equal(style.backgroundImage, 'url("game:grove.png")');
+  applyOnlineBackdrop(ctx, skin, 'basic', doc);
+  assert.equal(ctx.pageBackdrop, false); assert.equal(style.backgroundImage, 'none');
+  const noSurface = {}; applyOnlineBackdrop(noSurface, skin, 'game:market', doc);
+  assert.equal(noSurface.pageBackdrop, false, 'CSS 배경을 보장할 수 없으면 Canvas 그리기를 생략하지 않는다');
+});
+
+test('타이틀·싱글 배경은 온라인용 Canvas 배경을 만들지 않는다', () => {
+  const style = {}, ctx = { canvas: { style } };
+  applyPageBackdrop(ctx, { backgroundUrl: () => 'title.png' }, 'title', {});
+  assert.equal(ctx.pageBackdrop, true);
+  assert.equal(ctx.canvasBackdrop, undefined);
+  assert.equal(style.backgroundImage, undefined);
 });

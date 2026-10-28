@@ -11,3 +11,4 @@ run(['test/cloudflare-runtime.mjs']);
 run(['node_modules/wrangler/bin/wrangler.js', 'deploy', '--dry-run', '--outdir', '.wrangler/dry-run']);
 run(['scripts/build-pages.mjs']);
 run(['scripts/check-build.mjs']);
+run(['node_modules/@playwright/test/cli.js', 'test']);

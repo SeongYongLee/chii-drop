@@ -32,8 +32,16 @@
         <progress data-loading-bar max="100" aria-label="게임 로딩 진행률"></progress>
         <strong data-loading-percent>잠시만 기다려 주세요</strong>
         <p data-loading-detail>이미지와 소리를 준비합니다.</p>
+        <button type="button" data-loading-retry hidden>다시 시도</button>
       </div>
     </section>
+    <aside id="background-download" class="background-download" aria-label="경기 자료 준비 상태" hidden>
+      <span data-download-label>경기 자료 준비 중</span>
+      <strong data-download-percent>0%</strong>
+      <progress data-download-bar max="100" value="0" aria-label="경기 자료 준비 진행률"></progress>
+      <button data-download-retry type="button" hidden>재시도</button>
+      <span data-download-announcement class="download-announcement" role="status" aria-live="polite"></span>
+    </aside>
     <main class="stage">
       <canvas id="screen" aria-label="게임 화면"></canvas>
       <button id="screen-back" class="screen-back" type="button" hidden>뒤로</button>
@@ -96,6 +104,9 @@
           document.querySelector('[data-loading-stage]').textContent = '게임을 시작하지 못했습니다';
           document.querySelector('[data-loading-percent]').textContent = '새로고침해 주세요';
           document.querySelector('[data-loading-detail]').textContent = '연결 상태를 확인한 뒤 다시 시도해 주세요.';
+          const retry = document.querySelector('[data-loading-retry]');
+          retry.hidden = false;
+          retry.onclick = () => location.reload();
         }
       })();
     </script>

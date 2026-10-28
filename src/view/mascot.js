@@ -1,3 +1,4 @@
+import { prefersReducedMotion } from './motion-preference.js';
 // 표시 시계만 읽는다. 경기 난수·입력·물리에 관여하지 않는 작은 관전 캐릭터다.
 function mascotPose(frame = 0, reducedMotion = false) {
   if (reducedMotion) return { position: 0, direction: 1, mood: 'idle', frame: 0 };
@@ -13,7 +14,7 @@ function mascotPose(frame = 0, reducedMotion = false) {
 
 function drawMascot(ctx, view, portrait = false) {
   if (!view.skin.drawMascot) return;
-  const reduced = view.reducedMotion ?? globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  const reduced = view.reducedMotion ?? prefersReducedMotion();
   const frame = view.effects[0]?.blinkFrame ?? 0;
   const pose = mascotPose(frame, reduced);
   const reaction = pose.mood !== 'walk' && view.effects.find(effect => effect.mood === 'happy' && effect.characterChain > 0 && effect.characterFrame < 42);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createUiTransition, drawConfirmationStamp, TRANSITION_FRAMES } from '../src/view/ui-motion.js';
+import { captureUiScreen, createUiTransition, drawConfirmationStamp, TRANSITION_FRAMES } from '../src/view/ui-motion.js';
 
 function canvasSpy() {
   const images = [], scales = [];
@@ -57,4 +57,19 @@ test('움직임 줄이기는 화면 겹침과 도장의 확대·투명도 변화
   drawConfirmationStamp(spy.ctx, { x: 100, y: 100 }, 0);
   assert.deepEqual(spy.scales, [[1, 1]]);
   assert.equal(spy.ctx.globalAlpha, 1);
+});
+
+
+test('DOM 메뉴 뒤에 숨겨진 Canvas의 큰 캐릭터는 경기 전환에 다시 나타나지 않는다', t => {
+  const old = globalThis.document; let copies = 0;
+  globalThis.document = { createElement: () => ({ getContext: () => ({ drawImage() { copies++; } }) }) };
+  t.after(() => { if (old === undefined) delete globalThis.document; else globalThis.document = old; });
+  const hidden = { width: 1280, height: 720, getBoundingClientRect: () => ({ width: 0, height: 0 }) };
+  const image = captureUiScreen(hidden); assert.equal(image, null); assert.equal(copies, 0);
+  const transition = createUiTransition(), spy = canvasSpy();
+  transition.start(image); transition.draw(spy.ctx, 960, 540); assert.equal(spy.images.length, 0);
+  const visible = { ...hidden, getBoundingClientRect: () => ({ width: 640, height: 360 }) };
+  assert.equal(captureUiScreen(visible, { gameplay: true }), null); assert.equal(copies, 0);
+  const snapshot = captureUiScreen(visible); assert.equal(copies, 1);
+  assert.equal(snapshot.width, 1280); assert.equal(snapshot.height, 720);
 });

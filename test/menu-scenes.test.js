@@ -232,3 +232,26 @@ test('대전 설정도 시작 다음의 뒤로를 방향키로 선택한다', ()
   h.press('Enter');
   assert.equal(h.app.scene, h.app.single);
 });
+
+test('메인 메뉴부터는 타이틀 그림을 그리지 않고 기존 하단 캐릭터를 유지한다', () => {
+  const h = harness();
+  let art = 0;
+  h.app.skin.drawTitleArt = () => { art++; };
+  h.app.mobile = { menuVisible: true };
+  const ctx = new Proxy({ pageBackdrop: true }, { get: (o, k) => o[k] ?? (() => {}) });
+  for (const scene of [h.app.main, h.app.single, h.app.multi]) scene.draw(ctx, h.app);
+  assert.equal(art, 0);
+  assert.equal(h.app.main.menuCompanions(h.app).length, 3);
+});
+
+test('기록 화면은 통계를 제공하고 Enter와 Esc로 메인 메뉴로 돌아간다', () => {
+  const h = harness();
+  h.app.records = { soloBest:12345, soloMaxChain:4, cpu:{ beginner:{win:2,lose:1} } };
+  const enterRecords = () => h.app.main.touchItems(h.app).find(item=>item.label==='기록').activate();
+  enterRecords();
+  assert.equal(h.app.scene.touchRecords(h.app).best,12345);
+  assert.equal(h.app.scene.touchRecords(h.app).wins,2);
+  assert.deepEqual(h.app.scene.touchRecords(h.app).story,[]);
+  h.wait(1); h.press('Enter'); assert.equal(h.app.scene,h.app.main);
+  enterRecords(); h.press('Escape'); assert.equal(h.app.scene,h.app.main);
+});

@@ -1,20 +1,48 @@
+import { ONLINE_PORTRAIT_QUERY } from './stage-layout.js';
+
 // 방 수명과 함께 유지한다. 경기 초기화·재대전은 채팅 기록을 지우지 않는다.
-export function attachRoomChat(root, shell, { send, onFocusChange = () => {} }) {
+export function attachRoomChat(root, shell, { send, onFocusChange = () => {}, view = window }) {
   const $ = id => root.getElementById(id);
   let code = null, ownId, messages = [], connected = false, readingOnly = false, wasPlaying = false, pending = null;
-  let expanded = true;
+  let expanded = true, spectating = false, finished = false;
+  const portrait = view.matchMedia(ONLINE_PORTRAIT_QUERY);
+  const locked = () => readingOnly && portrait.matches;
   function controls() {
     $('room-chat').hidden = !code;
-    shell.dataset.chatExpanded = String(expanded);
-    $('chat-toggle').setAttribute('aria-expanded', String(expanded));
-    $('chat-toggle').textContent = expanded ? '접기' : `펼치기${messages.length ? ` · ${messages.length}` : ''}`;
-    $('chat-form').hidden = readingOnly || !expanded;
+    const open = expanded && !locked();
+    shell.dataset.chatExpanded = String(open);
+    shell.dataset.chatLocked = String(locked());
+    $('chat-toggle').disabled = locked();
+    $('chat-toggle').hidden = locked();
+    $('chat-toggle').setAttribute('aria-expanded', String(open));
+    $('chat-toggle').textContent = open ? '접기' : `펼치기${messages.length ? ` · ${messages.length}` : ''}`;
+    $('chat-form').hidden = readingOnly || !open;
     $('chat-input').disabled = !connected || readingOnly;
     $('chat-send').disabled = !connected || readingOnly || pending !== null || !$('chat-input').value.trim();
-    $('chat-status').textContent = !connected ? '재접속 중… 기록은 유지됩니다.' : readingOnly ? '경기 중에는 읽기만 가능해요.' : pending !== null ? '전송 중…' : '';
+    $('chat-status').textContent = !connected ? '재접속 중… 기록은 유지됩니다.' : pending !== null ? '전송 중…' : '';
+  }
+  portrait.addEventListener('change', controls);
+  // 가로 중앙 여백은 레터박스를 뺀 실제 경기판을 기준으로 맞춘다.
+  function place() {
+    const stage = $('game-stage').getBoundingClientRect(), frame = shell.getBoundingClientRect();
+    shell.style.setProperty('--chat-stage-center', `${stage.left - frame.left + stage.width / 2}px`);
+    shell.style.setProperty('--chat-stage-top', `${stage.top - frame.top + stage.height * .43}px`);
+    shell.style.setProperty('--chat-stage-width', `${stage.width * .235}px`);
+    shell.style.setProperty('--chat-stage-height', `${stage.height * .35}px`);
+    shell.style.setProperty('--chat-collapsed-top', `${stage.top - frame.top + stage.height * 308 / 448}px`);
+    shell.style.setProperty('--chat-strip-height', `${Math.max(20, Math.min(40, stage.height * 40 / 448))}px`);
+  }
+  const observer = new view.ResizeObserver(place);
+  observer.observe($('game-stage')); observer.observe(shell);
+
+  function preview() {
+    const latest = messages.at(-1);
+    $('chat-preview').textContent = latest?.text ?? '아직 메시지가 없어요';
+    $('chat-preview').setAttribute('aria-label', latest ? `${latest.name}: ${latest.text}` : '아직 메시지가 없어요');
+    $('chat-preview').title = latest ? `${latest.name}: ${latest.text}` : '';
   }
   function appendMessage(message) {
-    const line = document.createElement('li'), name = document.createElement('strong'), body = document.createElement('span');
+    const line = root.ownerDocument.createElement('li'), name = root.ownerDocument.createElement('strong'), body = root.ownerDocument.createElement('span');
     name.textContent = message.name; body.textContent = message.text;
     line.classList.toggle('is-self', message.playerId === ownId);
     line.append(name, body); $('chat-log').append(line);
@@ -27,9 +55,9 @@ export function attachRoomChat(root, shell, { send, onFocusChange = () => {} }) 
     for (const message of messages) appendMessage(message);
     $('chat-empty').hidden = messages.length > 0;
     log.scrollTop = atBottom || !expanded ? log.scrollHeight : previousTop;
-    controls();
+    preview(); controls();
   }
-  $('chat-toggle').onclick = () => { expanded = !expanded; controls(); $('chat-log').scrollTop = $('chat-log').scrollHeight; };
+  $('chat-toggle').onclick = () => { if (locked()) return; expanded = !expanded; controls(); $('chat-log').scrollTop = $('chat-log').scrollHeight; };
   $('chat-input').addEventListener('input', controls);
   $('chat-input').addEventListener('focus', onFocusChange);
   $('chat-input').addEventListener('blur', onFocusChange);
@@ -40,14 +68,16 @@ export function attachRoomChat(root, shell, { send, onFocusChange = () => {} }) 
     pending = text; send({ type: 'chat', text }); controls();
   };
   return {
-    enter(nextCode) {
+    enter(nextCode, { collapsed = false } = {}) {
       if (nextCode === code) return;
-      code = nextCode; messages = []; pending = null; expanded = true; wasPlaying = false;
+      code = nextCode; messages = []; pending = null; expanded = !collapsed; wasPlaying = false;
       $('chat-input').value = ''; render();
     },
     update(state) {
       ownId = state.playerId; connected = state.connected;
-      if (state.playing && !wasPlaying) expanded = false;
+      if (state.playing && (!wasPlaying || state.spectating !== spectating || (finished && !state.finished))) expanded = state.spectating;
+      if (state.finished && !finished) expanded = true;
+      spectating = state.spectating; finished = state.finished;
       if (!state.playing && wasPlaying) expanded = true;
       wasPlaying = state.playing;
       readingOnly = state.playing && !state.finished && !state.spectating;
@@ -68,7 +98,7 @@ export function attachRoomChat(root, shell, { send, onFocusChange = () => {} }) 
       const log = $('chat-log'), atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 32;
       appendMessage(packet.message);
       while (log.children.length > 100) log.firstElementChild.remove();
-      $('chat-empty').hidden = true; controls();
+      $('chat-empty').hidden = true; preview(); controls();
       if (atBottom || !expanded) log.scrollTop = log.scrollHeight;
     },
     error(reason) { pending = null; controls(); $('chat-status').textContent = reason; },

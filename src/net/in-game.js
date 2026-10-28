@@ -23,8 +23,12 @@ export function createOnlineView(app, canvas) {
   const stylesReady = Promise.all(styles);
   void stylesReady.catch(() => {});
   const shell = document.createElement('div'); shell.className = 'online-shell';
-  Object.assign(shell.dataset, { inRoom: 'false', playing: 'false', connected: 'false', matchmaking: String(AUTOMATIC_MATCHMAKING) });
+  Object.assign(shell.dataset, { embedded: 'true', inRoom: 'false', playing: 'false', connected: 'false', matchmaking: String(AUTOMATIC_MATCHMAKING) });
   shell.innerHTML = onlineTemplate; root.append(shell); document.body.append(host);
+  app.onlineCompanionsVisible=()=>!host.hidden&&host.dataset.playing!=='true';
+  app.onlineCompanionAnchor={getBoundingClientRect(){
+    return root.getElementById('main').getBoundingClientRect();
+  }};
   // viewport 수치 대신 실제 프레임을 측정해 확대·창 크기 변경도 같은 기준을 쓴다.
   function fitLobby() {
     const { width, height } = host.getBoundingClientRect();
@@ -41,7 +45,8 @@ export function createOnlineView(app, canvas) {
     app.onlineActive = false; document.body.dataset.onlineActive = 'false'; app.keyboard.enabled = true;
     app.keyboard.held.clear(); app.keyboard.pressed.clear();
     history.replaceState(null, '', location.pathname + location.search);
-    app.goToMenu(); app.mobile.sync();
+    if (app.goToMultiplayer) app.goToMultiplayer(); else app.goToMenu();
+    app.mobile.sync();
   }
   return async function open() {
     if (!MODES.multiplayer || app.onlineActive) return;

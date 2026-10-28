@@ -894,3 +894,201 @@
 @media (prefers-reduced-motion:reduce) {
   .online-shell button,.online-shell a { transition:none!important; }
 }
+/* Keep a clear background floor for the persistent menu companions. */
+.online-shell:not([data-playing="true"]) { padding-bottom:124px; }
+
+/* 경기 채팅: 가로는 NEXT 아래 중앙, 세로는 필드와 패드 사이. */
+.online-shell .chat-preview { display:none; min-width:0; margin:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.online-shell[data-playing=true][data-chat-expanded=false] .chat-heading h3 { display:none; }
+.online-shell[data-playing=true][data-chat-expanded=false] .chat-preview { display:block; flex:1; font-size:11px; line-height:1.4; }
+.online-shell[data-playing=true][data-chat-expanded=false] .chat-body { display:none; }
+.online-shell[data-playing=true] .chat-heading button { min-height:44px; padding:2px 5px; white-space:nowrap; }
+.online-shell[data-playing=true] .chat-log { flex:1; gap:4px; padding:0; }
+.online-shell[data-playing=true] .chat-log strong { display:inline; margin-right:5px; }
+.online-shell[data-playing=true] .chat-heading { min-height:28px; }
+@media not all and (max-width:760px) and (orientation:portrait) {
+  :host .online-shell[data-playing=true] .room-chat { top:var(--chat-stage-top,44%); left:var(--chat-stage-center,50%); width:var(--chat-stage-width,23%); height:var(--chat-stage-height,36%); max-height:none; padding:5px; gap:4px; border-radius:12px; }
+  :host .online-shell[data-playing=true][data-chat-expanded=false] .room-chat { width:var(--chat-stage-width,23%); height:auto; max-height:none; padding:0 4px; }
+  .online-shell[data-playing=true] .chat-heading h3 { font-size:11px; }
+  .online-shell[data-playing=true] .chat-form { gap:3px; }
+  .online-shell[data-playing=true] .chat-form input { min-height:48px; width:100%; padding:3px; }
+  .online-shell[data-playing=true] .chat-form button { padding:3px; }
+}
+@media (max-width:760px) and (orientation:portrait) {
+  :host .online-shell[data-playing=true] #game-view { grid-template-rows:minmax(0,1fr) calc(var(--touch-controlHeight,146px) + 48px); }
+  :host .online-shell[data-playing=true] #touch-controls { grid-row:2; padding-top:48px; }
+  :host .online-shell[data-playing=true] .room-chat { top:auto; bottom:0; left:0; transform:none; width:100%; height:calc(var(--touch-controlHeight,146px) + 48px); max-height:none; padding:5px 8px max(5px,env(safe-area-inset-bottom)); gap:4px; border-radius:12px 12px 0 0; background:#fffaf0f5; }
+  :host .online-shell[data-playing=true][data-chat-expanded=false] .room-chat { bottom:var(--touch-controlHeight,146px); height:48px; width:100%; max-height:none; padding:0 8px; }
+  .online-shell[data-playing=true][data-chat-expanded=true] #touch-controls { visibility:hidden; pointer-events:none; }
+  .online-shell[data-playing=true] .chat-heading { border-bottom:0; }
+  .online-shell[data-playing=true] .chat-preview { font-size:12px; }
+  .online-shell[data-playing=true] .chat-heading button:disabled { opacity:.5; }
+  :host .online-shell[data-playing=true] .online-result { bottom:calc(var(--touch-controlHeight,146px) + 54px); }
+}
+
+.online-shell[data-playing=true][data-chat-expanded=false] .chat-heading { border-bottom:0; }
+
+/* Embedded menu: only the card changes; the application's page remains visible. */
+:host(#online-mode) .online-shell:not([data-playing=true]) {
+  --online-floor:112px; --online-notice:100px;
+  display:flex; align-items:center; justify-content:center;
+  padding:16px 20px calc(var(--online-floor) + var(--online-notice) + 16px);
+  background:transparent; overflow:hidden;
+}
+:host(#online-mode) .online-shell:not([data-playing=true]) main {
+  flex:none; display:flex; flex-direction:column; gap:10px;
+  width:100%; max-width:960px; height:min(680px,100%); min-height:0;
+  margin:0; padding:20px; border:1px solid #e1cdb8; border-radius:28px;
+  background:#fffaf1f5; overflow-y:auto; overscroll-behavior:contain;
+  box-shadow:0 8px 0 #b9a18c19,0 16px 40px #6550440d;
+}
+:host(#online-mode) .online-menu-heading { display:flex; align-items:center; justify-content:center; position:relative; flex:none; min-height:30px; }
+:host(#online-mode) .online-menu-heading h1 { margin:0; color:#655044; font-size:22px; line-height:1.3; text-align:center; }
+:host(#online-mode) .online-menu-heading .connection { position:absolute; right:0; font-size:10px; padding:3px 7px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .profile {
+  display:flex; flex-direction:row; align-items:center; justify-content:flex-start; gap:10px;
+  min-height:52px; flex:none; padding:6px 10px; text-align:left;
+  border:0; border-bottom:1px solid #e3d6c5; border-radius:0; background:transparent;
+}
+:host(#online-mode) .online-shell:not([data-playing=true]) .profile .player-avatar { width:42px; height:42px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .profile .eyebrow,
+:host(#online-mode) .online-shell:not([data-playing=true]) .profile-score span { display:none; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .profile-name { flex:1; width:auto; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .profile h2 { font-size:15px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .profile-score { width:auto; padding:4px 10px; border:0; border-radius:12px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .profile-score strong { font-size:20px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .profile-edit { margin:0; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .profile-edit>summary { font-size:12px; min-height:40px; border-width:1px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .profile-popover { position:fixed; top:50%; left:50%; right:auto; bottom:auto; transform:translate(-50%,-50%); width:min(360px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); overflow-y:auto; z-index:20; }
+:host(#online-mode) .online-shell:not([data-playing=true]) #lobby-view {
+  display:flex; flex-direction:column; gap:10px; flex:1; min-height:160px;
+}
+:host(#online-mode) .online-shell:not([data-playing=true]) .lobby-tabs { display:flex; flex:none; gap:8px; min-height:44px; padding:0; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .lobby-panel { flex:1; min-height:120px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) #panel-play { display:flex; flex-direction:column; gap:8px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .page-heading,
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-guide,
+:host(#online-mode) .online-shell:not([data-playing=true]) .online-navigation-hint { display:none; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .rooms-card { display:flex; flex-direction:column; gap:8px; flex:1; min-height:100px; padding:10px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-list { flex:1; min-height:60px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .rooms-card>.section-head { min-height:44px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-tools { flex:none; padding-bottom:8px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-list-footer { flex:none; min-height:36px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) #panel-create { display:block; overflow-y:auto; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .create-layout { display:block; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .create-card { padding:12px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .create-form { max-width:none; gap:10px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) #panel-rankings { display:flex; flex-direction:column; gap:8px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .ranking { min-height:80px; overflow-y:auto; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .status-bar { order:8; flex:none; min-height:18px; padding:0; font-size:11px; }
+:host(#online-mode) .online-menu-actions { order:9; display:flex; gap:10px; flex:none; padding-top:12px; border-top:1px solid #e3d6c5; }
+:host(#online-mode) .online-menu-actions #online-back { flex:1; min-height:48px; font-size:16px; }
+:host(#online-mode) .online-menu-actions #touch-options { font-size:12px; }
+:host(#online-mode) .online-shell[data-playing=true] .online-menu-heading,
+:host(#online-mode) .online-shell[data-playing=true] .online-menu-actions { display:none; }
+:host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true] #player-panel { display:none; }
+:host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true] #room-view {
+  display:flex; flex-direction:column; flex:1; gap:10px; padding:0; overflow-y:auto; min-height:120px;
+}
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-arena { flex:1; min-height:150px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-spectators { min-height:48px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-chat { position:static; transform:none; flex:none; width:100%; max-height:150px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) #character-select-view { display:flex; flex-direction:column; flex:1; min-height:160px; overflow-y:auto; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .selection-header { flex:none; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .selection-header h2 { display:none; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .selection-players { flex:1; min-height:100px; }
+@media (max-width:600px) {
+  :host(#online-mode) .online-shell:not([data-playing=true]) { --online-notice:120px; --online-floor:112px; padding:10px 12px calc(var(--online-floor) + var(--online-notice) + 10px); }
+  :host(#online-mode) .online-shell:not([data-playing=true]) main { padding:14px; border-radius:24px; gap:8px; }
+  :host(#online-mode) .online-menu-heading { justify-content:flex-start; }
+  :host(#online-mode) .online-menu-heading h1 { font-size:20px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .profile-score { display:none; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .rooms-card>.section-head h3 { font-size:14px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-tools { flex-wrap:wrap; gap:6px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-search { max-width:none; width:100%; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-row { flex-wrap:wrap; padding:10px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-entry-actions { width:100%; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-entry-actions button { flex:1; }
+}
+@media (max-height:700px) {
+  :host(#online-mode) .online-shell:not([data-playing=true]) { --online-floor:92px; padding-top:8px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) main { gap:6px; padding:12px; }
+}
+@media (orientation:landscape) and (max-height:500px) {
+  :host(#online-mode) .online-shell:not([data-playing=true]) { --online-floor:52px; --online-notice:70px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) main { max-width:960px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .profile { display:none; }
+}
+:host(#online-mode:not([data-playing=true])) {
+  width:100vw; height:var(--visible-height,100dvh); top:var(--visible-top,0px);
+}
+:host(#online-mode) .online-shell:not([data-playing=true]) main { overflow:hidden; }
+:host(#online-mode) .online-shell:not([data-playing=true]) #lobby-view { min-height:0; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .lobby-panel { min-height:0; overflow-y:auto; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .rooms-card { flex:none; min-height:228px; height:100%; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .rooms-card>.section-head,
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-tools { flex:none; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-list { min-height:40px; }
+:host(#online-mode) .online-menu-heading .connection { top:50%; bottom:auto; transform:translateY(-50%); }
+
+/* 가로의 접힌 채팅은 풍뎅이가 걷는 중앙 하단 띠만 사용한다. */
+@media not all and (max-width:760px) and (orientation:portrait) {
+  :host .online-shell[data-playing=true][data-chat-expanded=false] .room-chat {
+    top:var(--chat-collapsed-top,69%); height:var(--chat-strip-height,36px); min-height:0;
+    padding:0 4px; gap:0; border-radius:8px; background:#fffaf0d9;
+  }
+  :host .online-shell[data-playing=true][data-chat-expanded=false] .chat-heading { height:100%; min-height:0; }
+  :host .online-shell[data-playing=true][data-chat-expanded=false] .chat-heading button { height:100%; min-height:0; padding:0 4px; }
+}
+:host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true] main {
+  display:grid; grid-template-columns:minmax(0,1fr) 220px;
+  grid-template-rows:30px minmax(0,1fr) auto auto; gap:10px 16px;
+}
+:host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true] .online-menu-heading { grid-row:1; grid-column:1/-1; }
+:host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true] :is(#room-view,#character-select-view) { grid-row:2; grid-column:1; min-height:0; }
+:host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true] .room-chat { grid-row:2; grid-column:2; align-self:start; max-height:100%; }
+:host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true] .status-bar { grid-row:3; grid-column:1/-1; }
+:host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true] .online-menu-actions { grid-row:4; grid-column:1/-1; }
+:host(#online-mode) .online-shell:not([data-playing=true])[data-chat-expanded=false] .chat-body { display:none; }
+:host(#online-mode) .online-shell:not([data-playing=true])[data-chat-expanded=false] .chat-preview { display:block; flex:1; font-size:11px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-header { flex:none; padding-bottom:8px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-heading { width:100%; max-width:none; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-meta .eyebrow { display:none; }
+:host(#online-mode) .online-shell:not([data-playing=true]) #room-title { font-size:18px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-invite { margin-top:6px; gap:6px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-arena { display:flex; flex-direction:column; min-height:145px; padding:8px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-arena>.spectator-hint { display:none; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-zone-heading { flex:none; min-height:28px; padding-bottom:4px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .seats { flex:1; min-height:100px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-arena .seat { flex-direction:row; gap:8px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-arena .seat canvas { flex:none; width:64px; height:64px; max-height:none; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-arena .participant-details h3 { font-size:14px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-arena .participant-details p { font-size:10px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-spectators { display:flex; flex-direction:row; align-items:center; flex:none; padding:4px 8px; min-height:40px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-spectators .spectator-hint { display:none; }
+:host(#online-mode) .online-shell:not([data-playing=true]) #spectator-list { display:flex; gap:6px; margin:0; overflow:auto; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .spectator-empty { min-height:28px; padding:4px; border:0; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-bottom { flex:none; padding:6px; gap:6px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-bottom #room-help { display:none; }
+@media(max-width:600px) {
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true] main { grid-template-columns:minmax(0,1fr); grid-template-rows:30px minmax(0,1fr) auto auto auto; gap:8px; }
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true] .room-chat { grid-column:1; grid-row:3; }
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true] .status-bar { grid-row:4; }
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true] .online-menu-actions { grid-row:5; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-arena .seat { flex-direction:column; gap:2px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-arena .seat canvas { width:52px; height:52px; }
+}
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-arena { min-height:128px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .seats { min-height:78px; gap:20px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-arena .seat canvas { position:static; inset:auto; transform:none; width:56px; height:56px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-bottom { min-height:48px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-bottom button { min-height:40px; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .spectator-panel-heading { min-height:28px; padding-bottom:0; border:0; }
+:host(#online-mode) .online-shell:not([data-playing=true]) .room-arena .participant-details { width:auto; min-width:0; flex:1; }
+@media(max-width:600px) {
+  :host(#online-mode) .online-shell:not([data-playing=true]) .selection-player { padding:8px; gap:2px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .selection-player canvas { width:52px; height:52px; flex:none; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .selection-player .eyebrow { font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .selection-player h3 { font-size:15px; margin:2px 0; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .selection-player p { font-size:10px; margin:0; }
+}

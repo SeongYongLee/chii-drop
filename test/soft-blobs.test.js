@@ -67,3 +67,20 @@ test('소품 스킨은 실제 5색 매핑을 유지하며 모든 연결·표시 
   assert.deepEqual(a.calls,b.calls);
   assert.equal(skin.blobColor(5),props.blobColor(5));
 });
+
+test('블록 그림자는 몸체와 분리해 먼저 그릴 수 있고 필요할 때 생략한다', async () => {
+  const {readFile}=await import('node:fs/promises');
+  const {createPropBlobs}=await import('../src/view/skins/prop-blobs.js');
+  const {blobArt}=JSON.parse(await readFile(new URL('../skins/chiikawa/pages-runtime/manifest.json',import.meta.url),'utf8'));
+  const props=createPropBlobs(blobArt);
+  for (const color of [1,2,3,4,5,GARBAGE]) {
+    const shadow=context(), next=context(), body=context();
+    props.drawBlob(shadow.ctx,color,0,0,32,{links:6,shadowOnly:true});
+    props.drawBlob(next.ctx,color,0,0,32,{links:6,shadow:false});
+    props.drawBlob(body.ctx,color,0,0,32,{links:6});
+    assert.equal(shadow.calls.filter(c=>c[0]==='fill').length,1,'그림자 패스에 무늬나 몸체를 중복하지 않는다');
+    assert.equal(shadow.calls.some(c=>c[0]==='stroke'),false);
+    assert.ok(body.calls.filter(c=>c[0]==='fill').length>next.calls.filter(c=>c[0]==='fill').length);
+    assert.equal(shadow.calls.filter(c=>c[0]==='save').length,shadow.calls.filter(c=>c[0]==='restore').length);
+  }
+});

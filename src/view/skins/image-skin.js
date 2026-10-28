@@ -1,3 +1,4 @@
+import { prefersReducedMotion } from '../motion-preference.js';
 import { mapMusicFiles } from '../../audio/music-config.js';
 import { drawFestivalBackground } from '../festival.js';
 import { GARBAGE } from '../../engine/field.js';
@@ -9,8 +10,22 @@ import { blinkSeed, blinkTime, compileBlink } from '../character-blink.js';
 import { compileIdleMotion, idleMotionAt } from '../character-idle.js';
 import { situationMotionAt } from '../character-situation.js';
 import { compileTravel, travelAt } from '../character-travel.js';
+import { createImageLoader } from './image-loader.js';
+import { fetchAssetJson } from '../../app/asset-request.js';
 
-const MOODS = ['idle', 'happy', 'sad', 'win', 'lose', 'fever', 'chain1', 'chain2', 'chain3', 'chain4', 'chain5', 'chain6', 'chain7', 'idleMove1', 'idleMove2', 'leading', 'trailing'];
+const MOODS = ['menuRest1', 'menuRest2', 'walk', 'idle', 'happy', 'sad', 'win', 'lose', 'fever', 'chain1', 'chain2', 'chain3', 'chain4', 'chain5', 'chain6', 'chain7', 'idleMove1', 'idleMove2', 'leading', 'trailing'];
+const MENU_MOODS = ['idle', 'walk', 'happy', 'idleMove1', 'idleMove2', 'menuRest1', 'menuRest2'];
+
+// 선택창과 메뉴 산책에 필요한 동작만 먼저 준비한다. 필드 전용 연출은 경기 자료다.
+export function menuSkinManifest(manifest) {
+  const menuEntry = entry => entry && typeof entry === 'object' ? { ...entry, fieldAction: undefined } : entry;
+  return { ...manifest, blobs: {}, background: undefined,
+    backgrounds: Object.fromEntries(Object.entries(manifest.backgrounds ?? {}).filter(([scene]) => ['title', 'menu'].includes(scene))),
+    characters: (manifest.characters ?? []).filter(c => c.selectionVisible !== false).map(character => ({ ...character,
+      moods: Object.fromEntries(MENU_MOODS.map(mood => [mood, menuEntry(character.moods?.[mood])])),
+    })),
+  };
+}
 
 function chainClip(moods, chain) {
   if (!Number.isFinite(chain) || chain < 1) return null;
@@ -29,15 +44,6 @@ const SHAPE_SCALE = {
   gpop1: [0.6, 0.6],
   gpop2: [0.35, 0.35],
 };
-
-function loadImage(url) {
-  return new Promise((resolve) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => resolve(null);
-    image.src = url;
-  });
-}
 
 function spriteRegion(image, entry, frame) {
   const columns = entry.columns ?? 1;
@@ -113,28 +119,22 @@ function spriteAt(clip, frame = 0, still = false, blink = null) {
 }
 
 export function skinImageFiles(manifest) {
-  const entries = [...Object.values(manifest.blobs ?? {}), manifest.background, manifest.titleArt, ...Object.values(manifest.backgrounds ?? {}),
+  const entries = [...Object.values(manifest.blobs ?? {}), manifest.background, manifest.titleArt, ...Object.values(manifest.titleParts ?? {}), ...Object.values(manifest.backgrounds ?? {}), ...Object.values(manifest.mascot?.moods ?? {}),
     ...(manifest.characters ?? []).flatMap(character => MOODS.map(mood => character.moods?.[mood]))];
   const files = entry => !entry ? [] : typeof entry === 'string' ? [entry]
     : [...(entry.file ? [entry.file] : []), ...(entry.frames ?? []).map(part => part?.file).filter(Boolean), ...files(entry.fieldAction)];
   return [...new Set(entries.flatMap(files))];
 }
 
-async function loadImageMap(baseUrl, entries, pending, onImage) {
-  const loadFile = (file) => {
-    if (!pending.has(file)) pending.set(file, loadImage(`${baseUrl}/${file}`).then(image => {
-      onImage?.(file, Boolean(image)); return image;
-    }));
-    return pending.get(file);
-  };
+async function loadImageMap(entries, loadFile, priority = 0) {
   const loadEntry = async (entry, allowField = true) => {
     if (!entry) return null;
     const file = typeof entry === 'string' ? entry : entry.file;
     if (!file) return null;
-    const image = await loadFile(file);
+    const image = await loadFile(file, priority);
     if (!image) return null;
     const images = Array.isArray(entry.frames) ? await Promise.all(entry.frames.map(part =>
-      part && typeof part === 'object' && part.file ? loadFile(part.file) : image)) : [];
+      part && typeof part === 'object' && part.file ? loadFile(part.file, priority) : image)) : [];
     if (images.some(image => !image)) return null;
     const clip = spriteClip(image, entry, images);
     if (!clip) return null;
@@ -161,41 +161,53 @@ function drawImageCover(ctx, sprite, width, height) {
 
 // 매니페스트의 이미지를 불러온다. 캐릭터 이미지는 다른 외형으로 대체하지 않는다.
 // 사용할 이미지나 절차적 방해 블록 스타일이 없으면 null을 돌려준다.
-async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
+async function loadImageSkin(baseUrl, { onManifest, onImage, progressive = false } = {}) {
   let manifest;
   try {
-    const response = await fetch(`${baseUrl}/manifest.json`, { cache: 'no-store' });
-    if (!response.ok) {
-      return null;
-    }
-    manifest = await response.json();
+    manifest = await fetchAssetJson(`${baseUrl}/manifest.json`, { cache: 'no-store' });
   } catch {
     return null;
   }
 
-  onManifest?.(manifest);
-  const pending = new Map();
-  const blobs = await loadImageMap(baseUrl, Object.entries(manifest.blobs ?? {}), pending, onImage);
-  const [background] = Object.values(await loadImageMap(baseUrl, [['background', manifest.background]], pending, onImage));
-  const backgrounds = await loadImageMap(baseUrl, Object.entries(manifest.backgrounds ?? {}), pending, onImage);
-  const [titleArt] = Object.values(await loadImageMap(baseUrl, [['titleArt', manifest.titleArt]], pending, onImage));
-  const mascot = await loadImageMap(baseUrl, Object.entries(manifest.mascot?.moods ?? {}), pending, onImage);
-  const characters = [];
-  for (const character of manifest.characters ?? []) {
-    const moods = await loadImageMap(
-      baseUrl,
-      MOODS.map((mood) => [mood, character.moods?.[mood]]),
-      pending,
-      onImage,
-    );
-    if (Object.keys(moods).length > 0) {
-      const idleMotion = compileIdleMotion(character.idleMotion,
-        [moods.idleMove1, moods.idleMove2].filter((clip) => clip?.frames));
-      characters.push({ id: character.id, name: character.name, selectable: character.selectable !== false,
-        selectionVisible: character.selectionVisible, selectionPortrait: character.selectionPortrait,
-        portraitSizing: character.portraitSizing,
-        voiceAvailable: character.voiceAvailable, moods, idleMotion });
-    }
+  const initial = progressive ? menuSkinManifest(manifest) : manifest;
+  onManifest?.(manifest, initial);
+  const loadFile = createImageLoader(baseUrl, onImage);
+  const blobs = {}, backgrounds = {}, mascot = {}, titleParts = {};
+  let background, titleArt;
+  const characters = (manifest.characters ?? []).map(character => ({ ...character,
+    selectable: character.selectable !== false, moods: {}, idleMotion: null,
+  }));
+  async function loadCharacter(character, priority) {
+    const target = characters.find(c => c.id === character.id);
+    const moods = await loadImageMap(MOODS.map(mood => [mood, character.moods?.[mood]]), loadFile, priority);
+    Object.assign(target.moods, moods);
+    target.idleMotion = compileIdleMotion(character.idleMotion,
+      [target.moods.idleMove1, target.moods.idleMove2].filter(clip => clip?.frames));
+  }
+  async function loadShared(source, priority) {
+    const [loadedBlobs, loadedBackgrounds, loadedMascot, art, loadedTitleParts] = await Promise.all([
+      loadImageMap(Object.entries(source.blobs ?? {}), loadFile, priority),
+      loadImageMap(Object.entries(source.backgrounds ?? {}), loadFile, priority),
+      loadImageMap(Object.entries(source.mascot?.moods ?? {}), loadFile, priority),
+      loadImageMap([['background', source.background], ['titleArt', source.titleArt]], loadFile, priority),
+      loadImageMap(Object.entries(source.titleParts ?? {}), loadFile, priority),
+    ]);
+    Object.assign(blobs, loadedBlobs); Object.assign(backgrounds, loadedBackgrounds); Object.assign(mascot, loadedMascot);
+    background = art.background ?? background; titleArt = art.titleArt ?? titleArt;
+    Object.assign(titleParts, loadedTitleParts);
+  }
+  await Promise.all([loadShared(initial, 0), ...(initial.characters ?? []).map(c => loadCharacter(c, 0))]);
+  if (progressive && loadFile.failed(skinImageFiles(initial))) return null;
+  const gameManifest = (ids, all = false) => ({ ...manifest,
+    characters: (manifest.characters ?? []).filter(c => ids.includes(c.id)),
+    backgrounds: all ? manifest.backgrounds : Object.fromEntries(Object.entries(manifest.backgrounds ?? {})
+      .filter(([scene]) => scene === 'game' || scene.startsWith('game:'))),
+  });
+  async function preloadCharacters(ids, { background = false, all = false } = {}) {
+    loadFile.retryFailures();
+    const source = gameManifest(ids, all);
+    await Promise.all([loadShared(source, background ? 10 : 0), ...source.characters.map(c => loadCharacter(c, background ? 10 : 0))]);
+    if (loadFile.failed(skinImageFiles(source))) throw new Error('경기 이미지를 불러오지 못했습니다.');
   }
 
   const grassGarbage = manifest.garbageStyle === 'grass';
@@ -205,13 +217,28 @@ async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
   }
 
   const blobImage = (color) => blobs[color === GARBAGE ? 'garbage' : String(color)];
+  const entranceReady = () => manifest.titleEntrance &&
+    [manifest.titleEntrance.lettering, ...manifest.titleEntrance.actors].every(layer =>
+      [layer.part, ...Object.values(layer.poses ?? {})].every(key => titleParts[key]));
+  function drawTitlePart(ctx, key, box) {
+    const sprite = titleParts[key];
+    if (!sprite) return null;
+    const scale = Math.min(box.width / sprite.width, box.height / sprite.height);
+    const width = sprite.width * scale, height = sprite.height * scale;
+    const fitted = { x: box.x + (box.width - width) / 2, y: box.y + (box.height - height) / 2, width, height };
+    drawSprite(ctx, sprite, fitted.x, fitted.y, width, height);
+    return fitted;
+  }
   const drawBaseBlob = props?.drawBlob ?? (manifest.blobStyle === 'soft' ? drawSoftBlob : drawBlob);
-  const selectableCharacters = characters.filter((character) => character.selectable)
-    .map(({ id, name }) => ({ id, name }));
+  const selectableCharacters = characters.filter((character) => character.selectable && (progressive || Object.keys(character.moods).length))
+    .map(({ id, name, menuCompanion }) => ({ id, name, ...(menuCompanion ? {menuCompanion} : {}) }));
   // 스킨을 준비할 때 한 번만 만드는 표시 전용 시드다.
   const visualSeed = globalThis.crypto?.getRandomValues?.(new Uint32Array(1))[0] ?? 0;
 
   return {
+    preloadCharacters,
+    preloadAll: () => preloadCharacters(characters.map(c => c.id), { background: true, all: true }),
+    gameAssetProgress: ids => loadFile.progress(skinImageFiles(gameManifest(ids))),
     id: manifest.id,
     name: manifest.name,
     branding: manifest.branding ?? {},
@@ -225,6 +252,9 @@ async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
     drawWarningIcon: drawGrassWarning,
     characters: selectableCharacters,
     titleInteractions: manifest.titleArt?.interactions ?? [],
+    get titleEntrance() { return entranceReady() ? manifest.titleEntrance : null; },
+    drawTitlePart,
+    titlePartAspect(key) { const part=titleParts[key]; return part ? part.width/part.height : null; },
     drawMascot: mascot.idle ? (ctx, mood, x, y, size, motion = {}) => {
       const clip = mascot[mood] ?? mascot.idle;
       const sprite = spriteAt(clip, motion.frame, motion.reducedMotion, clip === mascot.idle ? {
@@ -238,6 +268,14 @@ async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
       const sprite=spriteAt(titleArt,motion.frame,motion.reducedMotion);
       const scale=Math.min(width/sprite.width,height/sprite.height)*sprite.scale;
       const box={x:x+(width-sprite.width*scale)/2,y:y+(height-sprite.height*scale)/2,width:sprite.width*scale,height:sprite.height*scale};
+      if (entranceReady()) {
+        for (const layer of [...manifest.titleEntrance.actors, manifest.titleEntrance.lettering]) {
+          const b = layer.box;
+          drawTitlePart(ctx, layer.part, { x: box.x + b.x * box.width, y: box.y + b.y * box.height,
+            width: b.width * box.width, height: b.height * box.height });
+        }
+        return box;
+      }
       drawSprite(ctx,sprite,box.x,box.y,box.width,box.height);
       return box;
     } : undefined,
@@ -249,14 +287,17 @@ async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
     },
     characterRoster: characters.map(({ id, name, selectable, selectionVisible, voiceAvailable }) => ({ id, name, selectable, selectionVisible, voiceAvailable })),
     hasBackground(scene) { return Boolean(backgrounds[scene]); },
-    battleSceneries: (manifest.battleSceneries ?? []).filter(scene => backgrounds[`game:${scene}`]),
+    battleSceneries: (manifest.battleSceneries ?? []).filter(scene => manifest.backgrounds?.[`game:${scene}`]),
     backgroundUrl(scene) {
       const clip = backgrounds[scene] ?? background;
       return clip ? spriteAt(clip).image.src : null;
     },
     drawBackground(ctx, width, height, scene) {
       const sceneBackground = backgrounds[scene] ?? background;
-      if (sceneBackground) {
+      if (sceneBackground && ctx.canvasBackdrop && ctx.pageBackdropUrl === spriteAt(sceneBackground).image.src) {
+        // 같은 이미지를 CSS가 이미 표시한다. 투명 캔버스의 이전 프레임만 지운다.
+        ctx.clearRect(0, 0, width, height);
+      } else if (sceneBackground) {
         drawImageCover(ctx, spriteAt(sceneBackground), width, height);
       } else if (manifest.backgroundStyle === 'festival') {
         drawFestivalBackground(ctx, width, height, scene);
@@ -264,10 +305,12 @@ async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
         drawFestivalBackground(ctx, width, height, scene);
       }
     },
+    drawBlobShadowPass: Boolean(props || grassGarbage),
     blobColor: props?.blobColor ?? (manifest.blobStyle === 'soft' ? softBlobColor : blobColor),
     drawBlob(ctx, color, x, y, size, style = {}) {
+      if (style.shadowOnly && !(color === GARBAGE ? grassGarbage : props)) return;
       if (color === GARBAGE && grassGarbage) {
-        drawGrassGarbage(ctx, x, y, size, style.shape);
+        drawGrassGarbage(ctx, x, y, size, style.shape, style);
         return;
       }
       // 한 도안으로 낙하·착지·연결·소거를 모두 그려 이전 스프라이트와 섞이지 않게 한다.
@@ -299,7 +342,7 @@ async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
     },
     drawCharacter(ctx, charId, mood, x, y, size, motion = {}) {
       const character = characters.find((c) => c.id === charId);
-      if (!character) {
+      if (!character || !Object.keys(character.moods).length) {
         ctx.save();
         ctx.fillStyle = '#9a8b7c';
         ctx.font = `${Math.max(10, Math.min(16, size * .1))}px sans-serif`;
@@ -312,7 +355,7 @@ async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
       const situationFallback = mood === 'leading' ? character.moods.happy : mood === 'trailing' ? character.moods.sad : null;
       const selected = reaction ?? character.moods[mood] ?? situationFallback ?? character.moods.idle ?? Object.values(character.moods)[0];
       const clip = motion.presentation === 'field' ? selected.fieldAction ?? selected : selected;
-      const still = motion.reducedMotion ?? globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+      const still = motion.reducedMotion ?? prefersReducedMotion();
       const instance = motion.instance ?? `${x}:${y}:${size}`;
       const visualFrame = motion.blinkFrame ?? motion.frame ?? 0;
       const seed = blinkSeed(`${charId}/${instance}`, motion.seed ?? visualSeed);
@@ -347,6 +390,9 @@ async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
         boxY + boxSize - h + offsetY + boxSize * travel.y, w, h);
       if (image.flipX) ctx.restore();
       if (motion.silhouette) ctx.restore();
+      return { x: center - w / 2 + offsetX + image.offsetX * w / image.width,
+        y: boxY + boxSize - h + offsetY + boxSize * travel.y + image.offsetY * h / image.height,
+        width: w, height: h };
     },
   };
 }

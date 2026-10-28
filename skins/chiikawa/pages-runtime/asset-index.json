@@ -30,6 +30,12 @@
     "bytes": 1049152
   },
   {
+    "original": "drafts/menu-walk-v1/walk.png",
+    "file": "assets/6b40a5ba62ae7218401d.png",
+    "sha256": "6b40a5ba62ae7218401d0dc71263c7a281390d21c53ab00a5e3e882d84c3d211",
+    "bytes": 1351470
+  },
+  {
     "original": "drafts/animation-v8/hachiware.png",
     "file": "assets/88967ae0dd9b7b8f472f.png",
     "sha256": "88967ae0dd9b7b8f472f2ecb80eac3b3ac05ab9e3f64fa1f533c06935154e2c2",
@@ -376,6 +382,102 @@
     "file": "assets/e8355f50712d16277df1.png",
     "sha256": "e8355f50712d16277df1ffd735715275c612df9e4f35690d041dc3eeb80c385e",
     "bytes": 1453111
+  },
+  {
+    "original": "drafts/title-split-v1/lettering.png",
+    "file": "assets/9007d3f6f168b8ffb3ec.png",
+    "sha256": "9007d3f6f168b8ffb3ec298807a9f846b4dc16c3ff432173e8d8a9f8845c3257",
+    "bytes": 857105
+  },
+  {
+    "original": "drafts/title-split-v1/chiikawa.png",
+    "file": "assets/7d810c571996523b86e7.png",
+    "sha256": "7d810c571996523b86e7d6b96ed63d0c6781f652b136b3f4f621ad49deaa1e5f",
+    "bytes": 903873
+  },
+  {
+    "original": "drafts/title-split-v1/hachiware.png",
+    "file": "assets/9f89911c14975b0a8f7c.png",
+    "sha256": "9f89911c14975b0a8f7c893d76920ea1302d533d85a10003de61619b55e9e913",
+    "bytes": 1020695
+  },
+  {
+    "original": "drafts/title-usagi-match-v1/rest.png",
+    "file": "assets/065aa444cd17457a13db.png",
+    "sha256": "065aa444cd17457a13dbc2a0df8a22825ebf182b7c72893fce187533dcbcda58",
+    "bytes": 772451
+  },
+  {
+    "original": "drafts/title-poses-v1/chiikawa-air.png",
+    "file": "assets/01987b53244392185b0a.png",
+    "sha256": "01987b53244392185b0a21cc15350a44eb1ddb77404d0fac07ab9d8e9441f5a6",
+    "bytes": 753293
+  },
+  {
+    "original": "drafts/title-poses-v1/chiikawa-land.png",
+    "file": "assets/65a6176ed0ab3db1e858.png",
+    "sha256": "65a6176ed0ab3db1e858c4fa74df8f693fbc13df10a07b6e476913471d9576de",
+    "bytes": 717663
+  },
+  {
+    "original": "drafts/title-poses-v1/chiikawa-recover.png",
+    "file": "assets/b0c6eae05fd633f92b2f.png",
+    "sha256": "b0c6eae05fd633f92b2f456e519624c7f14af8dfc43ef26495f78dc859c127e0",
+    "bytes": 696788
+  },
+  {
+    "original": "drafts/title-poses-v1/hachiware-air.png",
+    "file": "assets/0dc4ca99742f4ae7ad97.png",
+    "sha256": "0dc4ca99742f4ae7ad977c7e473315804658b2a60382944bdd99d794d7cd6522",
+    "bytes": 891025
+  },
+  {
+    "original": "drafts/title-poses-v1/hachiware-land.png",
+    "file": "assets/b4d3e81c0d069341a92b.png",
+    "sha256": "b4d3e81c0d069341a92b3b84222d041e067b3342e8d8e120b79b5bd66d9fcc72",
+    "bytes": 901191
+  },
+  {
+    "original": "drafts/title-poses-v1/hachiware-recover.png",
+    "file": "assets/27b5fe32e211a1fcf5c8.png",
+    "sha256": "27b5fe32e211a1fcf5c8c4197ba1c49cccd92361fcc337cf10fe25a3cb1fd3a0",
+    "bytes": 883035
+  },
+  {
+    "original": "drafts/title-usagi-match-v1/air.png",
+    "file": "assets/c21ad2b7ead8165dfb4b.png",
+    "sha256": "c21ad2b7ead8165dfb4b2308ed88e95cfdc7f00159e83868f1dc45ae084a8cb9",
+    "bytes": 707213
+  },
+  {
+    "original": "drafts/title-usagi-match-v1/land.png",
+    "file": "assets/2779a7b5581cb00076b5.png",
+    "sha256": "2779a7b5581cb00076b5cc260db5ec825de2d86e877b2f539c8d8d11fe603950",
+    "bytes": 753130
+  },
+  {
+    "original": "drafts/title-usagi-match-v1/recover.png",
+    "file": "assets/b7dacb34d541df0940d9.png",
+    "sha256": "b7dacb34d541df0940d91331cd923184977ca320f2aa751f2d5372589b969368",
+    "bytes": 746149
+  },
+  {
+    "original": "drafts/title-poses-v1/chiikawa-settle.png",
+    "file": "assets/ceb908d78d7a1d6adc39.png",
+    "sha256": "ceb908d78d7a1d6adc39d4851bfbb1b12c896868eee754039c1c1168017d403d",
+    "bytes": 632483
+  },
+  {
+    "original": "drafts/title-poses-v1/hachiware-settle.png",
+    "file": "assets/5725d1e9abf189ea983b.png",
+    "sha256": "5725d1e9abf189ea983ba317dadd623aeef001094d1135e0510fe8921d680dab",
+    "bytes": 880711
+  },
+  {
+    "original": "drafts/title-usagi-match-v1/settle.png",
+    "file": "assets/6256ece46364fa00d4ef.png",
+    "sha256": "6256ece46364fa00d4efb4b696a404228b6d70288a65cad345bb6e2026f79e15",
+    "bytes": 760113
   },
   {
     "original": "sounds/temporary-bgm-v1/main3.mp3",

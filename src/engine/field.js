@@ -23,6 +23,17 @@ const NEIGHBORS = [
   [0, 1],
   [0, -1],
 ];
+// 보이는 칸의 이웃 순서는 기존 DFS와 같다. 탐색마다 좌표 배열을 만들지 않는다.
+const VISIBLE_NEIGHBORS = Array.from({ length: SIZE }, (_, at) => {
+  const x = at % COLS, y = Math.floor(at / COLS);
+  if (y < HIDDEN_ROWS) return [];
+  const neighbors = [];
+  if (x + 1 < COLS) neighbors.push(at + 1);
+  if (x > 0) neighbors.push(at - 1);
+  if (y + 1 < ROWS) neighbors.push(at + COLS);
+  if (y > HIDDEN_ROWS) neighbors.push(at - COLS);
+  return neighbors;
+});
 
 // 낙하 방식: 0 = 일반(연쇄 뒤), 1 = 분리 낙하, 2 = 방해 블록
 const FALL_NORMAL = 0;
@@ -86,35 +97,28 @@ function isColor(color) {
 
 // 10절. 1~12단(보이는 행)만 연결한다.
 function findGroups(cells) {
-  const seen = new Set();
+  const seen = new Uint8Array(SIZE);
+  const stack = new Uint16Array(SIZE), component = new Uint16Array(SIZE);
   const groups = [];
-  for (let y = HIDDEN_ROWS; y < ROWS; y++) {
-    for (let x = 0; x < COLS; x++) {
-      const color = getCell(cells, x, y);
-      if (!isColor(color) || seen.has(index(x, y))) {
-        continue;
-      }
-      const group = [];
-      const stack = [[x, y]];
-      seen.add(index(x, y));
-      while (stack.length > 0) {
-        const [cx, cy] = stack.pop();
-        group.push({ x: cx, y: cy });
-        for (const [dx, dy] of NEIGHBORS) {
-          const nx = cx + dx;
-          const ny = cy + dy;
-          if (nx < 0 || nx >= COLS || ny < HIDDEN_ROWS || ny >= ROWS || seen.has(index(nx, ny))) {
-            continue;
-          }
-          if (getCell(cells, nx, ny) === color) {
-            seen.add(index(nx, ny));
-            stack.push([nx, ny]);
-          }
+  for (let start = HIDDEN_ROWS * COLS; start < SIZE; start++) {
+    const color = cells[start];
+    if (!isColor(color) || seen[start]) continue;
+    let pending = 1, count = 0;
+    stack[0] = start; seen[start] = 1;
+    while (pending > 0) {
+      const at = stack[--pending];
+      component[count++] = at;
+      for (const neighbor of VISIBLE_NEIGHBORS[at]) {
+        if (!seen[neighbor] && cells[neighbor] === color) {
+          seen[neighbor] = 1;
+          stack[pending++] = neighbor;
         }
       }
-      if (group.length >= MIN_GROUP) {
-        groups.push({ color, cells: group });
-      }
+    }
+    if (count >= MIN_GROUP) {
+      const positions = new Array(count);
+      for (let i = 0; i < count; i++) positions[i] = { x: component[i] % COLS, y: Math.floor(component[i] / COLS) };
+      groups.push({ color, cells: positions });
     }
   }
   return groups;

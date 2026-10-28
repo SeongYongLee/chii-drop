@@ -7,6 +7,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { WebSocketServer } from 'ws';
 import { createRooms } from './rooms.js';
 import { createProfileStore } from './profiles.js';
+import { createNodeProfileStore } from './node-profile-store.js';
 import { createVoiceEditor } from './voice-editor.js';
 import { createMusicEditor } from './music-editor.js';
 import { buildInfo } from '../scripts/build-info.mjs';
@@ -135,12 +136,14 @@ export function createOnlineServer({ origins = [], profiles = createProfileStore
   const matchmaking = setInterval(() => { lobby.sweep(); lobby.matchmake(); }, 1000);
   matchmaking.unref();
   server.on('close', () => clearInterval(matchmaking));
+  // 마지막 소켓의 이탈 정산까지 끝난 뒤 저장소를 닫는다.
+  wss.on('close', () => profiles.close?.());
   return { server, wss, lobby };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const config = runtimeConfig();
-  const { server, wss } = createOnlineServer({ origins: config.origins, serveStatic: config.serveStatic, cloudflareURL: config.cloudflareURL, profiles: createProfileStore({ file: config.file }) });
+  const { server, wss } = createOnlineServer({ origins: config.origins, serveStatic: config.serveStatic, cloudflareURL: config.cloudflareURL, profiles: createNodeProfileStore({ file: config.file }) });
   const { port, host } = config;
   for (const signal of ['SIGTERM', 'SIGINT']) process.once(signal, () => {
     server.close();

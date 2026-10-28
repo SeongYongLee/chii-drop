@@ -26,15 +26,21 @@ function createPropBlobs(art) {
   return {
     blobColor: color => color === GARBAGE ? GRASS_COLOR : (art[color] ?? art[1]).color,
     drawBlob(ctx, color, x, y, size, style = {}) {
-      if (color === GARBAGE) { drawGrassGarbage(ctx,x,y,size,style.shape); return; }
+      if (color === GARBAGE) { drawGrassGarbage(ctx,x,y,size,style.shape,style); return; }
       const entry=art[color]??art[1], shape=style.shape??'normal';
       const [sx,sy]=SCALE[shape]??SCALE.normal, links=(style.links??0)&15;
       const curves=connectedBlobCurves(links,sx,sy);
       const layers=entry.layers.filter(layer=>!(links&(layer.hideLinks??0)));
       ctx.save();ctx.translate(x,y);ctx.scale(size,size);
       ctx.lineJoin='round';ctx.lineCap='round';
+      // 정규화된 좌표로 직접 그려 화면 확대·축소에도 그림자 두께가 유지된다.
+      if (style.shadow !== false && !shape.startsWith('pop')) {
+        ctx.save();ctx.translate(.10,.13);
+        silhouette(ctx,curves);ctx.fillStyle='rgba(65, 49, 40, .28)';ctx.fill();
+        ctx.restore();
+      }
+      if (style.shadowOnly) {ctx.restore();return;}
       if(shape!=='pop1') {
-        // 밖으로 나오는 귀·잎은 연결되지 않은 변에만 그린다.
         ctx.save();ctx.translate(.5,1);ctx.scale(sx/100,sy/100);ctx.translate(-50,-100);
         for(const layer of layers)if(layer.outside)drawLayer(ctx,layer);
         ctx.restore();

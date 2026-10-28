@@ -1,7 +1,7 @@
 const GRASS_COLOR = '#c5a17c';
 
 // 표시 단계만 읽으며 판정과 소거 타이밍은 엔진 상태를 그대로 따른다.
-function drawGrassGarbage(ctx, x, y, size, shape = 'normal') {
+function drawGrassGarbage(ctx, x, y, size, shape = 'normal', style = {}) {
   const stage = { gpop0: 0, gpop1: 1, gpop2: 2 }[shape];
   const scale = [0.85, 0.6, 0.35][stage] ?? 1;
   const s = size * scale;
@@ -12,6 +12,23 @@ function drawGrassGarbage(ctx, x, y, size, shape = 'normal') {
   ctx.scale(s / 32, s / 32);
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
+
+  if (style.shadow !== false && stage === undefined) {
+    ctx.save();ctx.translate(3.2,4.16);ctx.beginPath();
+    ctx.moveTo(3,22);ctx.quadraticCurveTo(3,17,9,18);
+    ctx.quadraticCurveTo(13,15,17,18);ctx.quadraticCurveTo(23,15,26,20);
+    ctx.quadraticCurveTo(30,21,28,26);ctx.quadraticCurveTo(25,30,16,29);
+    ctx.quadraticCurveTo(5,31,3,26);ctx.closePath();
+    for (const [tx,ty,width] of [[5,8,4.2],[18,3.5,4.1],[27,8,4.6],[8,15,3.5],[23,17,3.3]]) {
+      const dx=tx-16,dy=ty-20,length=Math.hypot(dx,dy);
+      const nx=-dy/length*width,ny=dx/length*width;
+      ctx.moveTo(16,20);
+      ctx.quadraticCurveTo(16+dx*.35+nx,20+dy*.35+ny,tx,ty);
+      ctx.quadraticCurveTo(16+dx*.65-nx*.35,20+dy*.65-ny*.35,16,20);ctx.closePath();
+    }
+    ctx.fillStyle='rgba(65, 49, 40, .28)';ctx.fill();ctx.restore();
+  }
+  if (style.shadowOnly) {ctx.restore();return;}
 
   // 둥근 흙덩이와 새싹을 분리해 초록 색떡과 다른 실루엣을 만든다.
   outline(ctx, GRASS_COLOR, () => {

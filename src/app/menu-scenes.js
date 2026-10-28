@@ -1,3 +1,5 @@
+import {menuCompanionsForApp} from './menu-companions.js';
+import { recordSummary } from '../input/records-panel.js';
 import { analytics } from '../analytics/client.js';
 import { analyticsMode } from '../analytics/events.js';
 import { playSfx, unlockSfx } from '../audio/sfx.js';
@@ -56,12 +58,10 @@ function moveCursor(items, index, delta) {
 }
 
 // items(app)는 매 프레임 다시 만들어 현재 설정 값을 표시한다.
-function createListMenu({ title, items, onBack, notice, noticeSummary, columns = 1, compact = false, companions = false, initialIndex = 0, navigationOrder, footer = '↑↓ 선택 · Enter 결정 · Esc 뒤로' }) {
+function createListMenu({ title, items, onBack, notice, noticeSummary, columns = 1, compact = false, initialIndex = 0, navigationOrder, footer = '↑↓ 선택 · Enter 결정 · Esc 뒤로' }) {
   let index = initialIndex;
   let selectionAge = 12;
-  let brandBox, brandReaction, brandReactionAge = 90;
   let itemsLength = -1;
-  const companionReactions = new Map();
   const lifts = [];
   function leave(app) {
     if (index === itemsLength) index = initialIndex;
@@ -75,21 +75,7 @@ function createListMenu({ title, items, onBack, notice, noticeSummary, columns =
     else if (item.change) { playSfx(app.sfx, 'cursor'); item.change(app, delta); }
   }
   return {
-    menuCompanions: companions ? app => (app.skin.characters ?? []).slice(0,3).map((character,i)=>{
-      const frame=app.animationFrame??0;
-      const age=frame-(companionReactions.get(character.id)??-1000);
-      return {id:character.id,name:character.name??character.id,
-        react(){
-          if(age<72)return;
-          companionReactions.set(character.id,app.animationFrame??0);
-          void unlockSfx(app.sfx).then(()=>playCharacterVoice(app.sfx,character.id,'select',{channel:'menu-reaction'}));
-        },
-        draw(ctx,size){
-          app.skin.drawCharacter(ctx,character.id,age<72?'happy':'idle',4,4,size-8,
-            {frame:age<72?age:frame,instance:`menu-companion-${i}`,reducedMotion:reducedUiMotion(),presentation:'selection'});
-        },
-      };
-    }) : undefined,
+    menuCompanions:menuCompanionsForApp,
     back: onBack ? leave : undefined,
     touchLayout: 'list-menu',
     touchHeading: title,
@@ -111,14 +97,6 @@ function createListMenu({ title, items, onBack, notice, noticeSummary, columns =
       return `${title} · ${item?.label ?? ''}${item?.value === undefined ? '' : ` ${item.value}`}`;
     },
     tap(app, { x, y }, viewport) {
-      const hit=findTitleInteraction(app.skin,brandBox,{x,y});
-      if(hit){
-        if(brandReactionAge>=72 || brandReaction?.charId!==hit.charId){
-          brandReaction=hit;brandReactionAge=0;
-          void unlockSfx(app.sfx).then(()=>playCharacterVoice(app.sfx,hit.charId,'select',{channel:'menu-reaction'}));
-        }
-        return true;
-      }
       if (viewport?.portrait || app.mobile?.menuVisible) return true;
       const list = items(app);
       const step = Math.min(49, 254 / Math.max(1, list.length - 1));
@@ -135,7 +113,6 @@ function createListMenu({ title, items, onBack, notice, noticeSummary, columns =
       const navigable = onBack ? [...list, { label: '뒤로', select: leave }] : list;
       if (list[index]?.disabled) index = moveCursor(navigable, index, 1);
       selectionAge += 1;
-      brandReactionAge += 1;
       if (wasPressed(keyboard, MENU_KEYS.up) || wasPressed(keyboard, MENU_KEYS.down)) {
         const direction = wasPressed(keyboard, MENU_KEYS.up) ? -1 : 1;
         const ordered = navigationOrder?.(app);
@@ -174,8 +151,7 @@ function createListMenu({ title, items, onBack, notice, noticeSummary, columns =
       const list = items(app);
       if (list[index]?.disabled) index = moveCursor(list, index, 1);
       if(isPortraitScreen(ctx) || app.mobile?.menuVisible){
-        brandBox=drawMenuBrand(ctx, app, app.animationFrame ?? 0);
-        drawTitleReaction(ctx,brandBox,brandReaction,brandReactionAge,isPortraitScreen(ctx));return;
+        drawPortraitSurface(ctx); return;
       }
       const rowStep = Math.min(49, 254 / Math.max(1, list.length - 1));
       const itemHeight = Math.min(42, rowStep - 4);
@@ -225,10 +201,7 @@ function drawMenuBrand(ctx, app, frame) {
     return;
   }
   const height = screenHeight(ctx);
-  const width = 880;
-  const artHeight = Math.min(620, height - 100);
-  return app.skin.drawTitleArt(ctx, (SCREEN_WIDTH - width) / 2,
-    Math.max(20, (height - artHeight) / 2), width, artHeight, { frame });
+  return app.skin.drawTitleArt(ctx, 0, 0, SCREEN_WIDTH, height, { frame });
 }
 
 function findTitleInteraction(skin,box,point){
@@ -250,10 +223,11 @@ function drawTitleReaction(ctx,box,reaction,age,portrait){
 
 function createTitleScene() {
   let frame = 0;
-  let artBox, reaction, reactionAge = 90;
+  let artBox, artHeight = SCREEN_HEIGHT, reaction, reactionAge = 90;
   return {
     touchTitle: true,
     touchLayout: 'title-menu',
+    touchTitleSource: () => ({ box: artBox, width: SCREEN_WIDTH, height: artHeight }),
     touchLabel: () => '',
     tap(app, point) {
       if (!artBox) return false;
@@ -270,12 +244,13 @@ function createTitleScene() {
       reactionAge += 1;
       if (wasPressed(app.keyboard, MENU_KEYS.confirm)) {
         void unlockSfx(app.sfx).then(() => playSfx(app.sfx, 'confirm'));
-        app.goToMenu();
+        app.goToMenu({ titleBox: artBox });
       }
     },
     draw(ctx, app) {
       if (app.skin.drawTitleArt) {
         const portrait=isPortraitScreen(ctx), height=screenHeight(ctx);
+        artHeight = height;
         if (portrait || app.mobile?.menuVisible) artBox = drawMenuBrand(ctx, app, frame);
         else {
           app.skin.drawBackground(ctx, SCREEN_WIDTH, SCREEN_HEIGHT, 'title');
@@ -379,11 +354,15 @@ function createMatchSetup({ mode = 'cpu', characters: initialCharacters, cpuLeve
     }
     const next = () => createGameScene({ mode, characters: picks, cpuLevel: CPU_LEVELS[levels[1] ?? levels[0]].id,
       cpuLevels: levels.map(index => CPU_LEVELS[index].id), ...(mode === 'watch' ? { onQuit: app => app.setScene(menu) } : {}) });
-    if (mode === 'watch') app.setScene(next());
-    else {
-      picks.forEach((character, side) => { if (mode !== 'cpu' || side === 0) playCharacterVoice(app.sfx, character.id, 'select', { channel: side }); });
-      withControlsGuide(app, { mode, background: menu, next });
-    }
+    const launch = () => {
+      if (mode === 'watch') app.setScene(next());
+      else {
+        picks.forEach((character, side) => { if (mode !== 'cpu' || side === 0) playCharacterVoice(app.sfx, character.id, 'select', { channel: side }); });
+        withControlsGuide(app, { mode, background: menu, next });
+      }
+    };
+    if (app.prepareGame) app.prepareGame(picks, launch, menu);
+    else launch();
   }
   function items(app) {
     initialize(app);
@@ -396,6 +375,7 @@ function createMatchSetup({ mode = 'cpu', characters: initialCharacters, cpuLeve
           let next = cycle(indices[side], delta, pool.length);
           for (let attempt = 0; pool[next].selectable === false && attempt < pool.length; attempt++) next = cycle(next, Math.sign(delta) || 1, pool.length);
           indices[side] = next;
+          app.prioritizeCharacters?.(selectedCharacters(app));
         },
         drawPreview(ctx, size, frame = app.animationFrame ?? 0) {
           if (character?.random) {
@@ -508,20 +488,22 @@ function storyRecordItems() {
 }
 
 function createRecordsMenu() {
-  return createListMenu({
-    title: '기록',
-    footer: 'Esc 뒤로',
-    items: ({ records }) => [
-      ...storyRecordItems(),
-      { label: `연습 최고 점수  ${records.soloBest}`, disabled: true },
-      { label: `연습 최대 연쇄  ${records.soloMaxChain}`, disabled: true },
-      ...CPU_LEVELS.map(({ id, label }) => ({
-        label: `CPU ${label}  ${records.cpu[id].win}승 ${records.cpu[id].lose}패`,
-        disabled: true,
-      })),
-    ],
-    onBack: (app) => app.goToMenu(),
+  const read = app => ({ ...recordSummary(app.records, CPU_LEVELS),
+    story: MODES.story ? storyRecordItems().map(item => item.label) : [] });
+  const menu = createListMenu({
+    title: '기록', footer: '↑↓ 스크롤 · Enter / Esc 뒤로',
+    items: app => {
+      const records = read(app);
+      return [
+        { label: `연습 최고 점수  ${records.best.toLocaleString('ko-KR')}`, disabled: true },
+        { label: `연습 최대 연쇄  ${records.chain}`, disabled: true },
+        ...records.cpu.map(row => ({ label: `CPU ${row.label}  ${row.win}승 ${row.lose}패`, disabled: true })),
+      ];
+    },
+    onBack: app => app.goToMenu(),
   });
+  menu.touchRecords = read;
+  return menu;
 }
 
 function createStoryMenu(app) {
@@ -567,7 +549,6 @@ function createMultiplayerMenu() {
 function createMainMenu() {
   return createListMenu({
     title: '메인 메뉴',
-    companions: true,
     compact: true,
     footer: '↑↓ 선택 · Enter 결정 · Esc 타이틀',
     items: (app) => [

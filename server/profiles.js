@@ -1,6 +1,4 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
-import { dirname } from 'node:path';
 import { INITIAL_RATING, ratingChanges, RATING_VERSION } from './rating.js';
 
 function digest(token) { return createHash('sha256').update(token).digest('hex'); }
@@ -12,17 +10,13 @@ function cleanName(name) {
   return value;
 }
 
-// 소규모 단일 서버용 원자적 파일 교체. 경기 ID와 레이트를 한 번에 저장한다.
-export function createProfileStore({ file, load, save } = {}) {
-  let data = load?.() ?? (file && existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : { version: 1, players: {}, matches: {} });
+// 저장에 성공한 뒤에만 메모리를 갱신한다. 운영 저장소는 결과 이력을 따로 관리한다.
+export function createProfileStore({ repository, load, save } = {}) {
+  let data = repository?.load() ?? load?.() ?? { version: 1, players: {}, matches: {} };
   if (data.version !== 1 || !data.players || !data.matches) throw new Error('invalid profile database');
-  function commit(next) {
+  function commit(next, match) {
+    repository?.save(Object.values(next.players).filter(player => player !== data.players[player.id]), match);
     save?.(next);
-    if (file) {
-      mkdirSync(dirname(file), { recursive: true });
-      writeFileSync(file + '.tmp', JSON.stringify(next), { mode: 0o600 });
-      renameSync(file + '.tmp', file);
-    }
     data = next;
   }
   function authenticate(token) {
@@ -54,7 +48,9 @@ export function createProfileStore({ file, load, save } = {}) {
     return sorted.slice(0, 100).map((p) => ({ ...publicProfile(p), rank: sorted.findIndex((other) => other.rating === p.rating) + 1 }));
   }
   function record({ id, standings, rated, reason = 'played' }) {
-    if (data.matches[id]) return structuredClone(data.matches[id]);
+    if (typeof id !== 'string' || !id.length || id.length > 128) throw new Error('invalid match id');
+    const previous = repository ? repository.getMatch(id) : data.matches[id];
+    if (previous) return structuredClone(previous);
     if (standings.some((s) => !data.players[s.id])) throw new Error('unknown participant');
     const entries = standings.map((s) => ({ ...s, rating: data.players[s.id].rating }));
     const changes = ratingChanges(entries).map((p) => rated ? p : { ...p, delta: 0, after: p.rating });
@@ -64,8 +60,8 @@ export function createProfileStore({ file, load, save } = {}) {
       wins: players[p.id].wins + (p.place === 1 && !standings.every((s) => s.place === 1) ? 1 : 0),
     };
     const result = { id, rated, reason, ratingVersion: RATING_VERSION, standings: changes, at: new Date().toISOString() };
-    commit({ ...data, players, matches: { ...data.matches, [id]: result } });
+    commit({ ...data, players, matches: repository ? {} : { ...data.matches, [id]: result } }, result);
     return structuredClone(result);
   }
-  return { authenticate, rename, get, rankings, record };
+  return { authenticate, rename, get, rankings, record, count: () => Object.keys(data.players).length };
 }

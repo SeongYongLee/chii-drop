@@ -14,12 +14,12 @@ export function characterVoiceGain(buffer) {
   }
   return Math.min(8, .14 / Math.sqrt(energy / count), .85 / peak);
 }
-function configureCharacterVoices(sfx, skin, enabled = true) {
+function configureCharacterVoices(sfx, skin, enabled = true, { preload = true } = {}) {
   if (sfx.characterVoiceBank !== skin?.voices) stopCharacterVoices(sfx);
   sfx.characterVoiceEnabled = enabled;
   sfx.characterVoiceBank = skin?.voices ?? {};
   if (!enabled) stopCharacterVoices(sfx);
-  return preloadCharacterVoices(sfx);
+  return preload ? preloadCharacterVoices(sfx) : Promise.resolve(0);
 }
 
 async function preloadCharacterVoices(sfx) {
