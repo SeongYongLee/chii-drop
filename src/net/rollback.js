@@ -1,6 +1,6 @@
 import { createMatch, stepMatch } from '../engine/match.js';
 
-export const PROTOCOL = 13;
+export const PROTOCOL = 14;
 export const MAX_PREDICTION = 8;
 export const MAX_NETWORK_PREDICTION = 45;
 export const MAX_AHEAD = 120;

@@ -4,7 +4,7 @@ import { dirname } from 'node:path';
 import { INITIAL_RATING, ratingChanges, RATING_VERSION } from './rating.js';
 
 function digest(token) { return createHash('sha256').update(token).digest('hex'); }
-function publicProfile(p) { return { id: p.id, name: p.name, rating: p.rating, games: p.games, wins: p.wins }; }
+function publicProfile(p) { return { id: p.id, name: p.name, rating: p.rating, games: p.games, wins: p.wins, ...(p.charId ? { charId: p.charId } : {}) }; }
 function cleanName(name) {
   if (typeof name !== 'string') throw new Error('닉네임을 입력하세요.');
   const value = name.trim().normalize('NFC');
@@ -39,10 +39,11 @@ export function createProfileStore({ file, load, save } = {}) {
     commit({ ...data, players: { ...data.players, [id]: p } });
     return { profile: publicProfile(p), token: key };
   }
-  function rename(id, name) {
+  function rename(id, name, charId) {
     const value = cleanName(name);
     if (Object.values(data.players).some((p) => p.id !== id && p.name.toLocaleLowerCase() === value.toLocaleLowerCase())) throw new Error('이미 사용 중인 닉네임입니다.');
-    const profile = { ...data.players[id], name: value };
+    if (charId !== undefined && (typeof charId !== 'string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(charId))) throw new Error('캐릭터를 확인하세요.');
+    const profile = { ...data.players[id], name: value, ...(charId !== undefined ? { charId } : {}) };
     commit({ ...data, players: { ...data.players, [id]: profile } });
     return publicProfile(profile);
   }

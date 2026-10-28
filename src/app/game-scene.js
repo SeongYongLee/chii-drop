@@ -1,3 +1,4 @@
+import { createRoundTracker } from '../analytics/round.js';
 import { playSfx } from '../audio/sfx.js';
 import { playBoardSounds } from '../audio/board-sounds.js';
 import { playCharacterEvents, playCharacterVoice } from '../audio/character-voice.js';
@@ -24,6 +25,7 @@ function pauseItems(scene) {
   return [PAUSE_ITEMS[0], PAUSE_ITEMS[1], `${returnMenuLabel(scene)}로`];
 }
 function returnToModeMenu(app, scene) {
+  reportRoundEnd(scene, 'quit');
   if (scene.options.onQuit) scene.options.onQuit(app);
   else if (scene.options.mode === 'versus') app.goToMultiplayer();
   else app.goToSinglePlayer();
@@ -100,7 +102,15 @@ function onMatchOver(app, scene) {
   playSfx(app.sfx, humanWon ? 'win' : 'over');
 }
 
+function reportRoundEnd(scene, reason = 'completed') {
+  const match = scene.session.match;
+  scene.telemetry.end(scene.roundKey, { reason, winner: match.winner, player: match.players[0], playMs: match.timer / 60 * 1000 });
+}
+
 function startRound(scene) {
+  if (scene.session) reportRoundEnd(scene, 'quit');
+  scene.roundKey = {}; // 영구 ID나 게임 난수를 사용하지 않는다.
+
   const { mode, cpuLevel, cpuLevels, boss, story } = scene.options;
   if (scene.tally.some((wins) => wins >= SET_WINS)) {
     scene.tally = [0, 0];
@@ -212,6 +222,11 @@ function updateGame(app, scene) {
     playSfx(app.sfx, 'go');
   }
   scene.session = next;
+  if (session.phase === 'ready' && next.phase === 'playing') {
+    scene.telemetry.begin(scene.roundKey, { mode: scene.options.mode, role: scene.options.mode === 'watch' ? 'spectator' : 'player',
+      cpu_level: scene.options.cpuLevel, char_id: scene.options.characters[0]?.id, opponent_char_id: scene.options.characters[1]?.id,
+      input_method: app.mobile?.touchInput ? 'touch' : 'keyboard' });
+  }
 
   const players = sessionPlayers(next);
   const feverSide = players.findIndex(player => player.events.some(event => event.type === 'feverStart'));
@@ -240,12 +255,14 @@ function updateGame(app, scene) {
   }
 
   if (session.match.phase !== 'over' && next.match.phase === 'over') {
+    reportRoundEnd(scene);
     onMatchOver(app, scene);
   }
   if (next.phase === 'result') {
     scene.resultFrame = 0;
     scene.resultDelay = RESULT_INPUT_DELAY;
     recordResult(app, scene);
+    scene.telemetry.viewed(scene.roundKey);
   }
 }
 
@@ -280,6 +297,7 @@ function resultActions(scene) {
 
 function chooseResult(app, scene, index) {
   if (scene.resultDelay > 0) return;
+  scene.telemetry.action(scene.roundKey, index === 0 ? 'retry' : index === 2 || scene.options.mode === 'watch' ? 'settings' : 'menu');
   playSfx(app.sfx, index ? 'cancel' : 'confirm');
   if (scene.session.mode === 'story') {
     const result = storyResult(scene);
@@ -343,6 +361,8 @@ function updateFeverReady(app, scene) {
 function createGameScene(options) {
   const scene = {
     options,
+    telemetry: createRoundTracker(),
+    roundKey: null,
     session: null,
     effects: [],
     paused: false,
@@ -358,6 +378,7 @@ function createGameScene(options) {
       const scenery = gameScenery(scene, skin);
       return scenery ? `game:${scenery}` : 'game';
     },
+    touchCanPause: () => !scene.reviveDialogue && scene.session.phase !== 'result',
     openPause() { scene.paused = true; scene.pauseIndex = 0; },
     touchPaused: () => scene.paused,
     touchHideBack: () => (scene.session.phase === 'result' || options.mode === 'watch') && !scene.paused,

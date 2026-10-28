@@ -8,7 +8,7 @@ class Button extends EventTarget {
   setAttribute() {}
   setPointerCapture() {}
 }
-function harness() {
+function harness({ menuButton, backNavigationButton, onPause, onBack } = {}) {
   const doc = new EventTarget(), view = new EventTarget(), media = new EventTarget();
   media.matches = true; view.matchMedia = () => media; view.document = doc; doc.defaultView = view;
   const buttons = Object.values(M).map((bit) => new Button(bit));
@@ -16,13 +16,13 @@ function harness() {
   for (const part of Object.values(parts)) { part.dataset = {}; part.replaceChildren = () => {}; }
   const root = new EventTarget(); root.ownerDocument = doc; root.dataset = {};
   root.querySelectorAll = () => buttons;
-  root.querySelector = (selector) => parts[selector.match(/mobile-(\w+)/)[1]];
+  root.querySelector = (selector) => parts[selector.match(/mobile-(\w+)/)?.[1]];
   const canvas = new EventTarget(); canvas.setPointerCapture = () => {};
   canvas.getBoundingClientRect = () => ({ left: 100, top: 10, width: 480, height: 270 });
   let context = { enabled: true, mode: 'menu' }; const taps = [];
   const keyboard = createKeyboard();
   const controller = attachMobileControls({ view, canvas, container: root, keyboard,
-    getContext: () => context, onUnlock() {}, onTap(point) { taps.push(point); return false; } });
+    menuButton, backNavigationButton, onPause, onBack, getContext: () => context, onUnlock() {}, onTap(point) { taps.push(point); return false; } });
   function fire(target, type, values = {}) {
     const event = new Event(type, { cancelable: true });
     Object.assign(event, { pointerId: 1, pointerType: 'touch', button: 0, clientX: 200, clientY: 50, ...values });
@@ -95,4 +95,31 @@ test('세로 경기의 화면 탭은 확장한 논리 높이로 전달한다',()
   h.fire(h.canvas,'pointerdown',{clientX:340,clientY:334.5});
   h.fire(h.canvas,'pointerup',{clientX:340,clientY:334.5});
   assert.deepEqual(h.taps,[{x:480,y:649}]);
+});
+
+test('PC 관전처럼 입력이 메뉴 모드여도 경기 메뉴를 표시하고 일반 메뉴에는 뒤로를 제공한다', () => {
+  const menuButton = new Button(), backNavigationButton = new Button(); let paused = 0, back = 0;
+  const h = harness({ menuButton, backNavigationButton, onPause: () => paused++, onBack: () => back++ });
+  // 터치 미디어가 아닌 PC 환경
+  h.view.matchMedia().matches = false;
+  h.context({ enabled: true, mode: 'menu', gameScreen: true, canPause: true });
+  assert.equal(menuButton.hidden, false); assert.equal(backNavigationButton.hidden, true);
+  h.fire(menuButton, 'click'); assert.equal(paused, 1);
+  h.context({ enabled: true, mode: 'menu', canBack: true, canPause: false });
+  assert.equal(menuButton.hidden, true); assert.equal(backNavigationButton.hidden, false);
+  h.fire(backNavigationButton, 'click'); assert.equal(back, 1);
+  h.context({ enabled: true, mode: 'menu', canBack: false, canPause: false });
+  assert.equal(backNavigationButton.hidden, true);
+  h.context({ enabled: false, mode: 'menu', gameScreen: true, canPause: true });
+  assert.equal(menuButton.hidden, true);
+});
+
+test('PC에서도 공통 메뉴를 표시하지만 입력 안내는 키보드 방식으로 유지한다', () => {
+  const h = harness(); h.view.matchMedia().matches = false;
+  h.context({ enabled: true, mode: 'menu', layout: 'list-menu', items: [] });
+  assert.equal(h.controller.menuVisible, true);
+  assert.equal(h.controller.touchInput, false);
+  assert.equal(h.controller.visible, false);
+  h.context({ enabled: true, mode: 'game', gameScreen: true });
+  assert.equal(h.controller.menuVisible, false);
 });

@@ -319,7 +319,7 @@
           ]
         },
         "chain1": {
-          "file": "assets/71f0a7aaa413929800f8.png",
+          "file": "assets/6c83422f609a28a753e3.png",
           "loop": false,
           "poster": 3,
           "label": "고개 끄덕이기",
@@ -340,33 +340,33 @@
             },
             {
               "rect": {
-                "x": 370,
-                "y": 92,
-                "width": 235,
-                "height": 232
+                "x": 369,
+                "y": 91,
+                "width": 237,
+                "height": 234
               },
-              "scale": 0.8268518518518518,
+              "scale": 0.8338888888888889,
               "offsetX": 0.5,
               "offsetY": -3.548872180451127,
               "duration": 5
             },
             {
               "rect": {
-                "x": 669,
-                "y": 94,
-                "width": 233,
+                "x": 668,
+                "y": 95,
+                "width": 235,
                 "height": 230
               },
-              "scale": 0.8198148148148148,
-              "offsetX": 0.5,
+              "scale": 0.8268518518518518,
+              "offsetX": 1,
               "offsetY": -3.548872180451127,
               "duration": 6
             },
             {
               "rect": {
-                "x": 976,
+                "x": 975,
                 "y": 74,
-                "width": 234,
+                "width": 235,
                 "height": 251
               },
               "scale": 0.8831481481481481,
@@ -376,36 +376,36 @@
             },
             {
               "rect": {
-                "x": 62,
+                "x": 61,
                 "y": 378,
-                "width": 230,
+                "width": 232,
                 "height": 243
               },
               "scale": 0.855,
-              "offsetX": 0.5,
+              "offsetX": 0.3571428571428612,
               "offsetY": -3.548872180451127,
               "duration": 7
             },
             {
               "rect": {
-                "x": 375,
-                "y": 378,
-                "width": 233,
-                "height": 244
+                "x": 374,
+                "y": 377,
+                "width": 235,
+                "height": 246
               },
-              "scale": 0.8585185185185185,
-              "offsetX": 0.5,
+              "scale": 0.8655555555555555,
+              "offsetX": 0.2142857142857224,
               "offsetY": -3.548872180451127,
               "duration": 6
             },
             {
               "rect": {
-                "x": 674,
-                "y": 379,
-                "width": 232,
-                "height": 244
+                "x": 673,
+                "y": 378,
+                "width": 233,
+                "height": 246
               },
-              "scale": 0.8585185185185185,
+              "scale": 0.8655555555555555,
               "offsetX": 0.5,
               "offsetY": -3.548872180451127,
               "duration": 8
@@ -685,7 +685,8 @@
               "x": 0,
               "y": 0
             }
-          ]
+          ],
+          "anatomyReviewed": "two-arms-2026-10-27"
         },
         "chain3": {
           "file": "assets/2a560fb6f579561a2c53.png",
@@ -1057,7 +1058,7 @@
           ]
         },
         "chain5": {
-          "file": "assets/57c99b8a62e17f4670a0.png",
+          "file": "assets/95284245154fb2b4e582.png",
           "loop": false,
           "poster": 3,
           "label": "용기 내기",
@@ -1078,74 +1079,74 @@
             },
             {
               "rect": {
-                "x": 371,
+                "x": 369,
                 "y": 75,
                 "width": 224,
-                "height": 236
+                "height": 234
               },
-              "scale": 0.8792156862745099,
+              "scale": 0.8681171548117155,
               "offsetX": 0.5,
-              "offsetY": -3.240601503759393,
+              "offsetY": -3.262620837808811,
               "duration": 5
             },
             {
               "rect": {
-                "x": 685,
+                "x": 681,
                 "y": 76,
-                "width": 222,
-                "height": 235
+                "width": 223,
+                "height": 234
               },
-              "scale": 0.8754901960784314,
-              "offsetX": 0.6428571428571104,
-              "offsetY": -3.240601503759393,
+              "scale": 0.8681171548117155,
+              "offsetX": 1,
+              "offsetY": -3.262620837808811,
               "duration": 6
             },
             {
               "rect": {
-                "x": 991,
+                "x": 986,
                 "y": 75,
                 "width": 226,
-                "height": 233
+                "height": 234
               },
-              "scale": 0.8680392156862745,
-              "offsetX": 0,
-              "offsetY": -3.240601503759393,
+              "scale": 0.8681171548117155,
+              "offsetX": 1,
+              "offsetY": -3.262620837808811,
               "duration": 8
             },
             {
               "rect": {
-                "x": 62,
-                "y": 377,
+                "x": 61,
+                "y": 376,
                 "width": 223,
-                "height": 235
+                "height": 233
               },
-              "scale": 0.8754901960784314,
-              "offsetX": 1,
-              "offsetY": -3.240601503759393,
+              "scale": 0.8644072524407252,
+              "offsetX": 0.5,
+              "offsetY": -3.262620837808811,
               "duration": 7
             },
             {
               "rect": {
-                "x": 380,
-                "y": 378,
-                "width": 222,
-                "height": 230
+                "x": 378,
+                "y": 377,
+                "width": 221,
+                "height": 229
               },
-              "scale": 0.8568627450980392,
-              "offsetX": 0.3571428571428328,
-              "offsetY": -3.240601503759393,
+              "scale": 0.8495676429567642,
+              "offsetX": 0.14285714285716722,
+              "offsetY": -3.262620837808811,
               "duration": 6
             },
             {
               "rect": {
-                "x": 689,
-                "y": 383,
-                "width": 220,
-                "height": 226
+                "x": 683,
+                "y": 381,
+                "width": 222,
+                "height": 227
               },
-              "scale": 0.8419607843137255,
-              "offsetX": 0,
-              "offsetY": -3.240601503759393,
+              "scale": 0.8421478382147838,
+              "offsetX": 0.5,
+              "offsetY": -3.262620837808811,
               "duration": 8
             },
             {
@@ -1423,7 +1424,8 @@
               "x": 0,
               "y": 0
             }
-          ]
+          ],
+          "anatomyReviewed": "two-arms-2026-10-27"
         },
         "chain7": {
           "file": "assets/2f8a54abc1996730a4fd.png",
@@ -2109,7 +2111,7 @@
           ]
         },
         "chain2": {
-          "file": "assets/71f0a7aaa413929800f8.png",
+          "file": "assets/6c83422f609a28a753e3.png",
           "loop": false,
           "poster": 3,
           "label": "기쁜 앞발짓",
@@ -2130,72 +2132,72 @@
             },
             {
               "rect": {
-                "x": 371,
-                "y": 671,
-                "width": 232,
-                "height": 248
+                "x": 370,
+                "y": 669,
+                "width": 235,
+                "height": 249
               },
-              "scale": 0.8725925925925926,
+              "scale": 0.8761111111111111,
               "offsetX": 0.5,
               "offsetY": -3.548872180451127,
               "duration": 5
             },
             {
               "rect": {
-                "x": 672,
-                "y": 670,
-                "width": 233,
-                "height": 249
+                "x": 671,
+                "y": 669,
+                "width": 234,
+                "height": 250
               },
-              "scale": 0.8761111111111111,
+              "scale": 0.8796296296296297,
               "offsetX": 0.5,
               "offsetY": -3.548872180451127,
               "duration": 6
             },
             {
               "rect": {
-                "x": 977,
+                "x": 975,
                 "y": 665,
-                "width": 230,
-                "height": 253
+                "width": 233,
+                "height": 251
               },
-              "scale": 0.8901851851851852,
-              "offsetX": 0.5,
+              "scale": 0.8831481481481481,
+              "offsetX": 1,
               "offsetY": -3.548872180451127,
               "duration": 8
             },
             {
               "rect": {
-                "x": 60,
+                "x": 58,
                 "y": 953,
-                "width": 233,
+                "width": 235,
                 "height": 252
               },
               "scale": 0.8866666666666666,
-              "offsetX": 0.7857142857142776,
+              "offsetX": 0.3571428571428612,
               "offsetY": -3.548872180451127,
               "duration": 7
             },
             {
               "rect": {
-                "x": 371,
-                "y": 960,
-                "width": 232,
+                "x": 370,
+                "y": 961,
+                "width": 236,
                 "height": 245
               },
               "scale": 0.862037037037037,
-              "offsetX": 0,
+              "offsetX": 1,
               "offsetY": -3.548872180451127,
               "duration": 6
             },
             {
               "rect": {
-                "x": 674,
+                "x": 672,
                 "y": 961,
-                "width": 230,
-                "height": 245
+                "width": 233,
+                "height": 246
               },
-              "scale": 0.862037037037037,
+              "scale": 0.8655555555555555,
               "offsetX": 0.5,
               "offsetY": -3.548872180451127,
               "duration": 8
@@ -2475,7 +2477,8 @@
               "x": 0,
               "y": 0
             }
-          ]
+          ],
+          "anatomyReviewed": "two-arms-2026-10-27"
         },
         "chain4": {
           "file": "assets/2a560fb6f579561a2c53.png",
@@ -2847,7 +2850,7 @@
           ]
         },
         "chain6": {
-          "file": "assets/57c99b8a62e17f4670a0.png",
+          "file": "assets/95284245154fb2b4e582.png",
           "loop": false,
           "poster": 3,
           "label": "사스마타 준비",
@@ -2868,74 +2871,74 @@
             },
             {
               "rect": {
-                "x": 362,
+                "x": 358,
                 "y": 686,
-                "width": 277,
+                "width": 281,
                 "height": 225
               },
-              "scale": 1.0319607843137255,
-              "offsetX": 2.5,
-              "offsetY": -3.240601503759393,
+              "scale": 1.0424825662482566,
+              "offsetX": 20.214285714285722,
+              "offsetY": -3.262620837808811,
               "duration": 5
             },
             {
               "rect": {
-                "x": 671,
-                "y": 676,
-                "width": 272,
-                "height": 238
+                "x": 668,
+                "y": 672,
+                "width": 276,
+                "height": 242
               },
-              "scale": 1.0133333333333334,
-              "offsetX": 20.428571428571445,
-              "offsetY": -3.240601503759393,
+              "scale": 1.0239330543933054,
+              "offsetX": 2.428571428571445,
+              "offsetY": -3.262620837808811,
               "duration": 6
             },
             {
               "rect": {
-                "x": 976,
-                "y": 649,
-                "width": 273,
+                "x": 970,
+                "y": 650,
+                "width": 281,
                 "height": 261
               },
-              "scale": 1.0170588235294118,
-              "offsetX": 13.71428571428578,
-              "offsetY": -3.240601503759393,
+              "scale": 1.0424825662482566,
+              "offsetX": 33.92857142857133,
+              "offsetY": -3.262620837808811,
               "duration": 8
             },
             {
               "rect": {
-                "x": 58,
-                "y": 958,
-                "width": 253,
-                "height": 244
+                "x": 54,
+                "y": 960,
+                "width": 258,
+                "height": 243
               },
-              "scale": 0.9425490196078431,
-              "offsetX": 26.428571428571416,
-              "offsetY": -3.240601503759393,
+              "scale": 0.9571548117154811,
+              "offsetX": 23.214285714285722,
+              "offsetY": -3.262620837808811,
               "duration": 7
             },
             {
               "rect": {
-                "x": 357,
-                "y": 952,
-                "width": 271,
-                "height": 250
+                "x": 355,
+                "y": 954,
+                "width": 276,
+                "height": 249
               },
-              "scale": 1.0096078431372548,
-              "offsetX": -11.928571428571445,
-              "offsetY": -3.240601503759393,
+              "scale": 1.0239330543933054,
+              "offsetX": 27.214285714285722,
+              "offsetY": -3.262620837808811,
               "duration": 6
             },
             {
               "rect": {
-                "x": 673,
-                "y": 988,
-                "width": 282,
-                "height": 220
+                "x": 671,
+                "y": 986,
+                "width": 284,
+                "height": 223
               },
-              "scale": 1.0505882352941176,
-              "offsetX": 33.358974358974365,
-              "offsetY": -3.240601503759393,
+              "scale": 1.0536122733612272,
+              "offsetX": 31.071428571428555,
+              "offsetY": -3.262620837808811,
               "duration": 8
             },
             {
@@ -3213,7 +3216,8 @@
               "x": 0,
               "y": 0
             }
-          ]
+          ],
+          "anatomyReviewed": "two-arms-2026-10-27"
         }
       },
       "selectable": true,
@@ -6811,7 +6815,7 @@
           ]
         },
         "chain1": {
-          "file": "assets/0b22592b188f30976b94.png",
+          "file": "assets/34079fea5d4f63d49d72.png",
           "loop": false,
           "poster": 3,
           "label": "짧게 외치기",
@@ -6832,74 +6836,74 @@
             },
             {
               "rect": {
-                "x": 418,
+                "x": 417,
                 "y": 15,
-                "width": 201,
-                "height": 271
+                "width": 202,
+                "height": 273
               },
-              "scale": 0.8619977678571429,
-              "offsetX": 1,
-              "offsetY": -4.138011695906414,
+              "scale": 0.8636655405405406,
+              "offsetX": 0.28571428571433444,
+              "offsetY": -4.171370455123281,
               "duration": 5
             },
             {
               "rect": {
-                "x": 763,
-                "y": 15,
-                "width": 200,
-                "height": 271
+                "x": 757,
+                "y": 14,
+                "width": 202,
+                "height": 273
               },
-              "scale": 0.8619977678571429,
+              "scale": 0.8636655405405406,
               "offsetX": 0.5,
-              "offsetY": -4.138011695906414,
+              "offsetY": -4.171370455123281,
               "duration": 6
             },
             {
               "rect": {
-                "x": 1109,
-                "y": 15,
-                "width": 201,
-                "height": 271
+                "x": 1103,
+                "y": 14,
+                "width": 204,
+                "height": 273
               },
-              "scale": 0.8619977678571429,
+              "scale": 0.8636655405405406,
               "offsetX": 0.5,
-              "offsetY": -4.138011695906414,
+              "offsetY": -4.171370455123281,
               "duration": 8
             },
             {
               "rect": {
-                "x": 69,
+                "x": 66,
                 "y": 295,
-                "width": 199,
-                "height": 271
+                "width": 203,
+                "height": 272
               },
-              "scale": 0.8619977678571429,
+              "scale": 0.8605019305019305,
               "offsetX": 0.5,
-              "offsetY": -4.138011695906414,
+              "offsetY": -4.171370455123281,
               "duration": 7
             },
             {
               "rect": {
-                "x": 418,
-                "y": 296,
-                "width": 201,
-                "height": 270
+                "x": 414,
+                "y": 295,
+                "width": 205,
+                "height": 272
               },
-              "scale": 0.8588169642857143,
-              "offsetX": 0.5714285714285552,
-              "offsetY": -4.138011695906414,
+              "scale": 0.8605019305019305,
+              "offsetX": 0.5,
+              "offsetY": -4.171370455123281,
               "duration": 6
             },
             {
               "rect": {
-                "x": 763,
-                "y": 296,
-                "width": 201,
-                "height": 271
+                "x": 756,
+                "y": 295,
+                "width": 203,
+                "height": 272
               },
-              "scale": 0.8619977678571429,
-              "offsetX": 1,
-              "offsetY": -4.138011695906414,
+              "scale": 0.8605019305019305,
+              "offsetX": 0.5,
+              "offsetY": -4.171370455123281,
               "duration": 8
             },
             {
@@ -6917,7 +6921,7 @@
             }
           ],
           "fieldAction": {
-            "file": "assets/0b22592b188f30976b94.png",
+            "file": "assets/34079fea5d4f63d49d72.png",
             "frames": [
               {
                 "rect": {
@@ -6976,74 +6980,74 @@
               },
               {
                 "rect": {
-                  "x": 418,
+                  "x": 417,
                   "y": 15,
-                  "width": 201,
-                  "height": 271
+                  "width": 202,
+                  "height": 273
                 },
-                "scale": 0.8619977678571429,
-                "offsetX": 1,
-                "offsetY": -4.138011695906414,
+                "scale": 0.8636655405405406,
+                "offsetX": 0.28571428571433444,
+                "offsetY": -4.171370455123281,
                 "duration": 5
               },
               {
                 "rect": {
-                  "x": 763,
-                  "y": 15,
-                  "width": 200,
-                  "height": 271
+                  "x": 757,
+                  "y": 14,
+                  "width": 202,
+                  "height": 273
                 },
-                "scale": 0.8619977678571429,
+                "scale": 0.8636655405405406,
                 "offsetX": 0.5,
-                "offsetY": -4.138011695906414,
+                "offsetY": -4.171370455123281,
                 "duration": 6
               },
               {
                 "rect": {
-                  "x": 1109,
-                  "y": 15,
-                  "width": 201,
-                  "height": 271
+                  "x": 1103,
+                  "y": 14,
+                  "width": 204,
+                  "height": 273
                 },
-                "scale": 0.8619977678571429,
+                "scale": 0.8636655405405406,
                 "offsetX": 0.5,
-                "offsetY": -4.138011695906414,
+                "offsetY": -4.171370455123281,
                 "duration": 8
               },
               {
                 "rect": {
-                  "x": 69,
+                  "x": 66,
                   "y": 295,
-                  "width": 199,
-                  "height": 271
+                  "width": 203,
+                  "height": 272
                 },
-                "scale": 0.8619977678571429,
+                "scale": 0.8605019305019305,
                 "offsetX": 0.5,
-                "offsetY": -4.138011695906414,
+                "offsetY": -4.171370455123281,
                 "duration": 7
               },
               {
                 "rect": {
-                  "x": 418,
-                  "y": 296,
-                  "width": 201,
-                  "height": 270
+                  "x": 414,
+                  "y": 295,
+                  "width": 205,
+                  "height": 272
                 },
-                "scale": 0.8588169642857143,
-                "offsetX": 0.5714285714285552,
-                "offsetY": -4.138011695906414,
+                "scale": 0.8605019305019305,
+                "offsetX": 0.5,
+                "offsetY": -4.171370455123281,
                 "duration": 6
               },
               {
                 "rect": {
-                  "x": 763,
-                  "y": 296,
-                  "width": 201,
-                  "height": 271
+                  "x": 756,
+                  "y": 295,
+                  "width": 203,
+                  "height": 272
                 },
-                "scale": 0.8619977678571429,
-                "offsetX": 1,
-                "offsetY": -4.138011695906414,
+                "scale": 0.8605019305019305,
+                "offsetX": 0.5,
+                "offsetY": -4.171370455123281,
                 "duration": 8
               },
               {
@@ -7162,7 +7166,8 @@
               49
             ],
             "label": "달려가서 멈춘 뒤 짧게 외치기"
-          }
+          },
+          "anatomyReviewed": "two-arms-2026-10-27"
         },
         "chain3": {
           "file": "assets/fbcab9b77a4a95e2bc36.png",
@@ -9171,7 +9176,7 @@
           ]
         },
         "chain2": {
-          "file": "assets/0b22592b188f30976b94.png",
+          "file": "assets/34079fea5d4f63d49d72.png",
           "loop": false,
           "poster": 3,
           "label": "앞발 떨기",
@@ -9192,74 +9197,74 @@
             },
             {
               "rect": {
-                "x": 415,
+                "x": 413,
                 "y": 579,
-                "width": 203,
-                "height": 271
+                "width": 205,
+                "height": 272
               },
-              "scale": 0.8619977678571429,
+              "scale": 0.8605019305019305,
               "offsetX": 0.5,
-              "offsetY": -4.138011695906414,
+              "offsetY": -4.171370455123281,
               "duration": 5
             },
             {
               "rect": {
-                "x": 761,
-                "y": 579,
-                "width": 203,
-                "height": 271
+                "x": 755,
+                "y": 578,
+                "width": 206,
+                "height": 273
               },
-              "scale": 0.8619977678571429,
-              "offsetX": 1,
-              "offsetY": -4.138011695906414,
+              "scale": 0.8636655405405406,
+              "offsetX": 0.5,
+              "offsetY": -4.171370455123281,
               "duration": 6
             },
             {
               "rect": {
-                "x": 1107,
+                "x": 1100,
                 "y": 579,
-                "width": 202,
-                "height": 271
+                "width": 206,
+                "height": 272
               },
-              "scale": 0.8619977678571429,
+              "scale": 0.8605019305019305,
               "offsetX": 0,
-              "offsetY": -4.138011695906414,
+              "offsetY": -4.171370455123281,
               "duration": 8
             },
             {
               "rect": {
-                "x": 67,
+                "x": 66,
                 "y": 858,
-                "width": 203,
-                "height": 269
+                "width": 204,
+                "height": 270
               },
-              "scale": 0.8556361607142857,
-              "offsetX": 0.3571428571428612,
-              "offsetY": -4.138011695906414,
+              "scale": 0.8541747104247104,
+              "offsetX": 1,
+              "offsetY": -4.171370455123281,
               "duration": 7
             },
             {
               "rect": {
-                "x": 416,
+                "x": 414,
                 "y": 859,
                 "width": 204,
                 "height": 269
               },
-              "scale": 0.8556361607142857,
-              "offsetX": 0.5,
-              "offsetY": -4.138011695906414,
+              "scale": 0.8510111003861004,
+              "offsetX": 0.7142857142856656,
+              "offsetY": -4.171370455123281,
               "duration": 6
             },
             {
               "rect": {
-                "x": 761,
+                "x": 756,
                 "y": 859,
                 "width": 204,
-                "height": 269
+                "height": 270
               },
-              "scale": 0.8556361607142857,
-              "offsetX": 0.5,
-              "offsetY": -4.138011695906414,
+              "scale": 0.8541747104247104,
+              "offsetX": 0.6428571428571104,
+              "offsetY": -4.171370455123281,
               "duration": 8
             },
             {
@@ -9277,7 +9282,7 @@
             }
           ],
           "fieldAction": {
-            "file": "assets/0b22592b188f30976b94.png",
+            "file": "assets/34079fea5d4f63d49d72.png",
             "frames": [
               {
                 "rect": {
@@ -9378,74 +9383,74 @@
               },
               {
                 "rect": {
-                  "x": 415,
+                  "x": 413,
                   "y": 579,
-                  "width": 203,
-                  "height": 271
+                  "width": 205,
+                  "height": 272
                 },
-                "scale": 0.8619977678571429,
+                "scale": 0.8605019305019305,
                 "offsetX": 0.5,
-                "offsetY": -4.138011695906414,
+                "offsetY": -4.171370455123281,
                 "duration": 5
               },
               {
                 "rect": {
-                  "x": 761,
-                  "y": 579,
-                  "width": 203,
-                  "height": 271
+                  "x": 755,
+                  "y": 578,
+                  "width": 206,
+                  "height": 273
                 },
-                "scale": 0.8619977678571429,
-                "offsetX": 1,
-                "offsetY": -4.138011695906414,
+                "scale": 0.8636655405405406,
+                "offsetX": 0.5,
+                "offsetY": -4.171370455123281,
                 "duration": 6
               },
               {
                 "rect": {
-                  "x": 1107,
+                  "x": 1100,
                   "y": 579,
-                  "width": 202,
-                  "height": 271
+                  "width": 206,
+                  "height": 272
                 },
-                "scale": 0.8619977678571429,
+                "scale": 0.8605019305019305,
                 "offsetX": 0,
-                "offsetY": -4.138011695906414,
+                "offsetY": -4.171370455123281,
                 "duration": 8
               },
               {
                 "rect": {
-                  "x": 67,
+                  "x": 66,
                   "y": 858,
-                  "width": 203,
-                  "height": 269
+                  "width": 204,
+                  "height": 270
                 },
-                "scale": 0.8556361607142857,
-                "offsetX": 0.3571428571428612,
-                "offsetY": -4.138011695906414,
+                "scale": 0.8541747104247104,
+                "offsetX": 1,
+                "offsetY": -4.171370455123281,
                 "duration": 7
               },
               {
                 "rect": {
-                  "x": 416,
+                  "x": 414,
                   "y": 859,
                   "width": 204,
                   "height": 269
                 },
-                "scale": 0.8556361607142857,
-                "offsetX": 0.5,
-                "offsetY": -4.138011695906414,
+                "scale": 0.8510111003861004,
+                "offsetX": 0.7142857142856656,
+                "offsetY": -4.171370455123281,
                 "duration": 6
               },
               {
                 "rect": {
-                  "x": 761,
+                  "x": 756,
                   "y": 859,
                   "width": 204,
-                  "height": 269
+                  "height": 270
                 },
-                "scale": 0.8556361607142857,
-                "offsetX": 0.5,
-                "offsetY": -4.138011695906414,
+                "scale": 0.8541747104247104,
+                "offsetX": 0.6428571428571104,
+                "offsetY": -4.171370455123281,
                 "duration": 8
               },
               {
@@ -9579,7 +9584,8 @@
               55
             ],
             "label": "달려가서 멈춘 뒤 앞발 떨기"
-          }
+          },
+          "anatomyReviewed": "two-arms-2026-10-27"
         },
         "chain4": {
           "file": "assets/fbcab9b77a4a95e2bc36.png",
@@ -10842,58 +10848,105 @@
           ]
         },
         "lose": {
-          "file": "assets/e3e6440417b1f6a03c2d.png",
-          "loop": true,
-          "loopFrom": 2,
-          "poster": 2,
+          "file": "assets/e57cc562cedb7cca6f3d.png",
+          "loop": false,
+          "poster": 7,
           "frames": [
             {
               "rect": {
-                "x": 54,
-                "y": 46,
-                "width": 271,
-                "height": 318
+                "x": 85,
+                "y": 45,
+                "width": 351,
+                "height": 386
               },
-              "scale": 0.9238532110091743,
+              "scale": 0.8623583651692183,
               "offsetX": 0.5,
-              "offsetY": -4.720300751879677,
+              "offsetY": -6.739047222800082,
               "duration": 8
             },
             {
               "rect": {
-                "x": 52,
-                "y": 1103,
-                "width": 276,
-                "height": 318
+                "x": 506,
+                "y": 45,
+                "width": 353,
+                "height": 386
               },
-              "scale": 0.9238532110091743,
+              "scale": 0.8623583651692183,
               "offsetX": 0.5,
-              "offsetY": -4.720300751879677,
+              "offsetY": -6.739047222800082,
+              "duration": 10
+            },
+            {
+              "rect": {
+                "x": 913,
+                "y": 44,
+                "width": 355,
+                "height": 387
+              },
+              "scale": 0.864592454198154,
+              "offsetX": 0,
+              "offsetY": -6.739047222800082,
+              "duration": 12
+            },
+            {
+              "rect": {
+                "x": 1337,
+                "y": 44,
+                "width": 353,
+                "height": 387
+              },
+              "scale": 0.864592454198154,
+              "offsetX": 0.5,
+              "offsetY": -6.739047222800082,
               "duration": 14
             },
             {
               "rect": {
-                "x": 416,
-                "y": 1123,
-                "width": 267,
-                "height": 283
+                "x": 85,
+                "y": 455,
+                "width": 351,
+                "height": 383
               },
-              "scale": 0.8221712538226299,
-              "offsetX": 0,
-              "offsetY": -4.720300751879677,
-              "duration": 24
+              "scale": 0.8556560980824108,
+              "offsetX": 0.5,
+              "offsetY": -6.739047222800082,
+              "duration": 16
             },
             {
               "rect": {
-                "x": 777,
-                "y": 1126,
-                "width": 266,
-                "height": 283
+                "x": 506,
+                "y": 455,
+                "width": 352,
+                "height": 383
               },
-              "scale": 0.8221712538226299,
-              "offsetX": 0.3571428571428896,
-              "offsetY": -4.720300751879677,
-              "duration": 24
+              "scale": 0.8556560980824108,
+              "offsetX": 0.5,
+              "offsetY": -6.739047222800082,
+              "duration": 18
+            },
+            {
+              "rect": {
+                "x": 915,
+                "y": 455,
+                "width": 352,
+                "height": 383
+              },
+              "scale": 0.8556560980824108,
+              "offsetX": 0.4285714285713311,
+              "offsetY": -6.739047222800082,
+              "duration": 22
+            },
+            {
+              "rect": {
+                "x": 1338,
+                "y": 454,
+                "width": 352,
+                "height": 384
+              },
+              "scale": 0.8578901871113467,
+              "offsetX": 0.5,
+              "offsetY": -6.739047222800082,
+              "duration": 60
             }
           ]
         },
@@ -11268,7 +11321,7 @@
           "bodyProportionStable": true
         },
         "chain3": {
-          "file": "assets/585ad498681c8adc50d3.png",
+          "file": "assets/14cd2fa5d54623256255.png",
           "loop": false,
           "poster": 3,
           "label": "꼬치 한입",
@@ -11292,9 +11345,9 @@
                 "x": 315,
                 "y": 667,
                 "width": 235,
-                "height": 295
+                "height": 291
               },
-              "scale": 1.0038403273303884,
+              "scale": 0.990228933061502,
               "offsetX": 0.5,
               "offsetY": -3.737489969984267,
               "duration": 5
@@ -11304,57 +11357,57 @@
                 "x": 594,
                 "y": 667,
                 "width": 235,
-                "height": 295
+                "height": 291
               },
-              "scale": 1.0038403273303884,
-              "offsetX": 1,
+              "scale": 0.990228933061502,
+              "offsetX": 0.5,
               "offsetY": -3.737489969984267,
               "duration": 5
             },
             {
               "rect": {
                 "x": 875,
-                "y": 667,
+                "y": 666,
                 "width": 235,
-                "height": 295
+                "height": 292
               },
-              "scale": 1.0038403273303884,
+              "scale": 0.9936317816287237,
               "offsetX": 0.5,
               "offsetY": -3.737489969984267,
               "duration": 7
             },
             {
               "rect": {
-                "x": 37,
-                "y": 983,
+                "x": 38,
+                "y": 981,
                 "width": 234,
-                "height": 295
+                "height": 294
               },
-              "scale": 1.0038403273303884,
-              "offsetX": 0.5,
+              "scale": 1.000437478763167,
+              "offsetX": 1,
               "offsetY": -3.737489969984267,
               "duration": 6
             },
             {
               "rect": {
-                "x": 315,
-                "y": 982,
-                "width": 235,
-                "height": 296
+                "x": 316,
+                "y": 981,
+                "width": 234,
+                "height": 294
               },
-              "scale": 1.0072431758976101,
-              "offsetX": 0.5,
+              "scale": 1.000437478763167,
+              "offsetX": 1,
               "offsetY": -3.737489969984267,
               "duration": 7
             },
             {
               "rect": {
                 "x": 594,
-                "y": 983,
-                "width": 234,
-                "height": 295
+                "y": 981,
+                "width": 235,
+                "height": 294
               },
-              "scale": 1.0038403273303884,
+              "scale": 1.000437478763167,
               "offsetX": 0.5,
               "offsetY": -3.737489969984267,
               "duration": 10
@@ -11635,7 +11688,8 @@
               "y": 0
             }
           ],
-          "bodyProportionStable": true
+          "bodyProportionStable": true,
+          "anatomyReviewed": "two-arms-2026-10-27"
         },
         "chain5": {
           "file": "assets/3034c8163a21fe6df518.png",
@@ -12917,7 +12971,7 @@
           ]
         },
         "chain2": {
-          "file": "assets/585ad498681c8adc50d3.png",
+          "file": "assets/14cd2fa5d54623256255.png",
           "loop": false,
           "poster": 3,
           "label": "빵 우물우물",
@@ -12938,13 +12992,13 @@
             },
             {
               "rect": {
-                "x": 315,
+                "x": 316,
                 "y": 29,
-                "width": 235,
+                "width": 233,
                 "height": 294
               },
               "scale": 1.000437478763167,
-              "offsetX": 0.5,
+              "offsetX": 1,
               "offsetY": -3.737489969984267,
               "duration": 5
             },
@@ -12956,15 +13010,15 @@
                 "height": 294
               },
               "scale": 1.000437478763167,
-              "offsetX": 0.5,
+              "offsetX": 0.8571428571428896,
               "offsetY": -3.737489969984267,
               "duration": 5
             },
             {
               "rect": {
-                "x": 875,
+                "x": 876,
                 "y": 29,
-                "width": 234,
+                "width": 232,
                 "height": 294
               },
               "scale": 1.000437478763167,
@@ -12974,36 +13028,36 @@
             },
             {
               "rect": {
-                "x": 37,
-                "y": 346,
-                "width": 234,
-                "height": 301
+                "x": 38,
+                "y": 345,
+                "width": 233,
+                "height": 300
               },
-              "scale": 1.0242574187337183,
+              "scale": 1.0208545701664968,
               "offsetX": 0.5,
               "offsetY": -3.737489969984267,
               "duration": 6
             },
             {
               "rect": {
-                "x": 315,
+                "x": 316,
                 "y": 346,
-                "width": 235,
-                "height": 301
+                "width": 234,
+                "height": 299
               },
-              "scale": 1.0242574187337183,
-              "offsetX": 0.5,
+              "scale": 1.0174517215992753,
+              "offsetX": 1,
               "offsetY": -3.737489969984267,
               "duration": 7
             },
             {
               "rect": {
                 "x": 594,
-                "y": 346,
-                "width": 235,
-                "height": 301
+                "y": 345,
+                "width": 236,
+                "height": 300
               },
-              "scale": 1.0242574187337183,
+              "scale": 1.0208545701664968,
               "offsetX": 0.5,
               "offsetY": -3.737489969984267,
               "duration": 10
@@ -13284,7 +13338,8 @@
               "y": 0
             }
           ],
-          "bodyProportionStable": true
+          "bodyProportionStable": true,
+          "anatomyReviewed": "two-arms-2026-10-27"
         },
         "chain4": {
           "file": "assets/4e2af6f10ef4dba4d359.png",
@@ -45820,5 +45875,37 @@
         ]
       }
     }
+  },
+  "titleArt": {
+    "file": "assets/e8355f50712d16277df1.png",
+    "interactions": [
+      {
+        "charId": "chiikawa",
+        "bounds": {
+          "x": 0.11,
+          "y": 0.16,
+          "width": 0.28,
+          "height": 0.48
+        }
+      },
+      {
+        "charId": "hachiware",
+        "bounds": {
+          "x": 0.4,
+          "y": 0.14,
+          "width": 0.23,
+          "height": 0.48
+        }
+      },
+      {
+        "charId": "usagi",
+        "bounds": {
+          "x": 0.64,
+          "y": 0.01,
+          "width": 0.28,
+          "height": 0.61
+        }
+      }
+    ]
   }
 }

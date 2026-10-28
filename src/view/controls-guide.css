@@ -11,8 +11,8 @@
 .controls-guide button { min-height: 48px; border: 1px solid #c9b9a5; border-radius: 10px; padding: 7px 12px; color: var(--fg, var(--ink)); background: #fffdf5; font: 700 14px system-ui, sans-serif; touch-action: manipulation; }
 .game-guide-tabs, .game-guide-actions { display: flex; gap: 8px; }
 .game-guide-tabs button, .game-guide-actions button { flex: 1; min-width: 0; }
-.game-guide-tabs [aria-pressed=true], .game-guide-actions button:last-child { background: #f4c9d2; border-color: #bd7c88; }
-.game-guide-actions button:last-child { flex: 2; font-size: 16px; }
+.game-guide-tabs [aria-pressed=true], .game-guide-actions .game-guide-primary { background: #f4c9d2; border-color: #bd7c88; }
+.game-guide-actions .game-guide-primary { flex: 2; font-size: 16px; }
 .game-guide-rules { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .game-guide-rules section { padding: 12px; border-radius: 12px; background: #eee9db; }
 .controls-guide .game-guide-rules h3 { font-size: 15px; }

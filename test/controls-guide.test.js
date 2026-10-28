@@ -88,7 +88,19 @@ test('안내는 자동으로 닫히지 않고 선택 키 해제 후 새 확인 �
     groups.dispatchEvent(new Event('click'));
     assert.equal(reopened.children[3].children.length, 2); // 메인 메뉴에서는 로컬 2인 키도 확인한다.
     key('keydown', 'Escape');
-    assert.equal(started, 3); assert.equal(reopened.open, false);
+    assert.equal(started, 3); assert.equal(reopened.open, false); key('keyup', 'Escape');
+    const settings = { draw() {} };
+    withControlsGuide(app, { mode: 'versus', background: settings, next: () => { started++; return {}; } });
+    app.scene.update();
+    const cancelled = body.children.at(-1);
+    const cancel = cancelled.children.at(-1).children.at(-1);
+    assert.equal(cancel.textContent, '설정으로');
+    cancel.dispatchEvent(new Event('click'));
+    assert.equal(app.scene, settings); assert.equal(cancelled.open, false); assert.equal(started, 3);
+    assert.equal(hasSeenGuide(view.localStorage, 'versus:keyboard'), false);
+    withControlsGuide(app, { mode: 'versus', background: settings, next: () => { started++; return {}; } });
+    app.scene.update(); key('keydown', 'Escape'); key('keyup', 'Escape');
+    assert.equal(app.scene, settings); assert.equal(started, 3);
   } finally { globalThis.window = previous; }
 });
 

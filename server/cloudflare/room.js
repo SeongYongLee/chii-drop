@@ -1,3 +1,4 @@
+import { createDiagnostics } from './diagnostics.js';
 import { DurableObject } from 'cloudflare:workers';
 import { createRooms } from '../rooms.js';
 import { createProfileStore } from '../profiles.js';
@@ -11,6 +12,7 @@ const characters = manifest.characters.filter(c => c.selectable !== false && c.s
 export class GameRoom extends DurableObject {
   constructor(ctx, env) {
     super(ctx, env); setupStorage(ctx);
+    this.logDiagnostic = createDiagnostics('room');
     this.tasks = []; this.draining = false; this.deliveries = []; this.dirty = false; this.publishDirty = false;
     this.volatile = false; this.checkpointTimer = null;
     this.load();
@@ -32,7 +34,8 @@ export class GameRoom extends DurableObject {
         return result;
       },
     };
-    this.lobby = createRooms({ profiles, characters, reconnectGrace: Number(this.env.RECONNECT_GRACE_MS ?? 30000) });
+    this.lobby = createRooms({ profiles, characters, reconnectGrace: Number(this.env.RECONNECT_GRACE_MS ?? 30000),
+      allowBatchExperiments: this.env.INPUT_BATCH_EXPERIMENT === 'true' });
     this.lobby.restore(saved.rooms ?? [], meta => this.makePeer(this.ctx.getWebSockets().find(ws =>
       ws.readyState === 1 && ws.deserializeAttachment()?.profileId === meta.profileId)));
     // 호스트 재시작 후 연결이 사라졌다면 저장된 경기에서 유예를 시작한다.
@@ -48,7 +51,8 @@ export class GameRoom extends DurableObject {
     const room = this.room();
     return room ? { code: room.code, name: room.name, rated: room.rated, locked: !!room.password, mode: 'duel', capacity: PLAYER_CAPACITY, memberCapacity: ROOM_CAPACITY,
       spectators: room.spectators.length, spectatorCapacity: SPECTATOR_CAPACITY, spectatorIds: room.spectators.map(p => p.profileId),
-      phase: room.state ? 'playing' : room.selectionId ? 'selecting' : 'waiting', selectionId: room.selectionId ?? null, players: room.peers.map(p => ({ ...this.profileCache[p.profileId], side: p.side, charId: p.charId, ready: room.ready.has(p.side), confirmed: room.confirmed?.has(p.side) ?? false })) } : null;
+      phase: room.state ? 'playing' : room.selectionId ? 'selecting' : 'waiting', selectionId: room.selectionId ?? null, finished: !!room.finished,
+      players: room.peers.map(p => ({ ...this.profileCache[p.profileId], side: p.side, charId: p.charId, connected: !p.disconnected, ready: room.ready.has(p.side), confirmed: room.confirmed?.has(p.side) ?? false, rematch: room.rematch?.has(p.side) ?? false })) } : null;
   }
   makePeer(ws) {
     const peer = { ws, send: msg => this.emit(peer, msg) };
@@ -56,6 +60,7 @@ export class GameRoom extends DurableObject {
   }
   emit(peer, msg) {
     if (peer.silent) return;
+    if (msg.type === 'error') this.logDiagnostic('request_failed', msg.reason, 'message');
     if (msg.type === 'lobby') { this.publishDirty = true; return; }
     if (['profile', 'rankings', 'settlement'].includes(msg.type)) return;
     if (['checksum', 'result', 'finished'].includes(msg.type)) this.dirty = true;
@@ -89,7 +94,7 @@ export class GameRoom extends DurableObject {
       const before = JSON.stringify(this.view());
       for (const task of tasks) {
         try { outcomes.push({ task, value: await task.action() }); }
-        catch (error) { outcomes.push({ task, error }); }
+        catch (error) { this.logDiagnostic('server_error', null, 'flush'); outcomes.push({ task, error }); }
       }
       if (before !== JSON.stringify(this.view())) this.publishDirty = true;
       if (this.dirty) {
@@ -130,6 +135,7 @@ export class GameRoom extends DurableObject {
         }, 1000);
       }
     } catch (error) {
+      this.logDiagnostic('server_error', null, 'flush');
       this.deliveries = [];
       for (const task of tasks) task.reject(error);
       for (const ws of this.ctx.getWebSockets()) ws.close(1011, 'State unavailable');
@@ -143,6 +149,8 @@ export class GameRoom extends DurableObject {
     const room = this.room();
     let desired = Object.keys(this.pending).length ? Date.now() + 2000 : null;
     if (room) desired = Math.min(desired ?? Infinity, room.paused ? room.deadline : room.state && !room.finished ? Date.now() + 10000 : this.expires);
+    if (room?.rematchAt != null) desired = Math.min(desired ?? Infinity, room.rematchAt);
+    for (const p of room?.peers ?? []) if (p.disconnected && p.deadline != null) desired = Math.min(desired ?? Infinity, p.deadline);
     for (const p of room?.spectators ?? []) if (p.disconnected) desired = Math.min(desired ?? Infinity, p.deadline);
     const current = await this.ctx.storage.getAlarm();
     if (desired !== null && (current === null || desired < current)) await this.ctx.storage.setAlarm(desired);
@@ -165,7 +173,7 @@ export class GameRoom extends DurableObject {
         this.lobby.rooms.delete(peer.room.code); peer.room.code = this.code; this.lobby.rooms.set(this.code, peer.room);
       }
       peer.disconnected = true; this.lobby.peers.delete(peer);
-      if (peer.spectator) peer.deadline = Date.now() + Number(this.env.RECONNECT_GRACE_MS ?? 30000);
+      peer.deadline = Date.now() + Number(this.env.RECONNECT_GRACE_MS ?? 30000);
       this.dirty = true;
       return this.view();
     });
@@ -176,7 +184,7 @@ export class GameRoom extends DurableObject {
         const meta = rateLimit(ws), msg = parseMessage(data);
         if (msg.type === 'ping') { this.deliveries.push([ws, { type: 'pong', time: msg.time }]); return; }
         if (msg.type === 'hello') {
-          try { checkVersion(msg); } catch (error) { this.deliveries.push([ws, { type: 'incompatible', reason: error.message }]); return; }
+          try { checkVersion(msg); } catch (error) { this.logDiagnostic('protocol_mismatch', null, 'hello'); this.deliveries.push([ws, { type: 'incompatible', reason: error.message }]); return; }
           if (meta.profileId || typeof msg.token !== 'string') throw new Error('authentication required');
           const identity = await this.env.DIRECTORY.getByName('lobby').identify(msg.token);
           const members = [...(this.room()?.peers ?? []), ...(this.room()?.spectators ?? [])];
@@ -198,6 +206,7 @@ export class GameRoom extends DurableObject {
         if (!peer) throw new Error('먼저 방에 접속해 주세요.');
         const wasFinished = !!this.room().finished;
         const wasPlaying = !!this.room().state;
+        if (msg.type === 'resync') this.logDiagnostic('state_resync', null, 'resync');
         this.lobby.handle(peer, msg);
         if (['input', 'inputBatch'].includes(msg.type)) {
           this.meter.inputMessages++; this.meter.inputFrames += msg.type === 'inputBatch' ? msg.inputs.length : 1;
@@ -205,8 +214,8 @@ export class GameRoom extends DurableObject {
         this.actions[peer.profileId] = Date.now();
         if (['input', 'inputBatch'].includes(msg.type)) this.volatile = true;
         else this.dirty = true;
-        if ((wasPlaying && !this.room()?.state) || ['leave', 'takeSeat', 'watchInstead'].includes(msg.type) || (wasFinished && msg.type === 'returnRoom') || (!wasFinished && this.room()?.finished)) this.expires = Date.now() + 600000;
-      } catch (error) { this.deliveries.push([ws, { type: 'error', reason: error.message }]); }
+        if ((wasPlaying && !this.room()?.state) || ['leave', 'takeSeat', 'watchInstead', 'chat'].includes(msg.type) || (wasFinished && msg.type === 'returnRoom') || (!wasFinished && this.room()?.finished)) this.expires = Date.now() + 600000;
+      } catch (error) { this.logDiagnostic('request_failed', error.message, 'message'); this.deliveries.push([ws, { type: 'error', reason: error.message }]); }
     });
   }
   webSocketClose(ws) {
@@ -228,6 +237,7 @@ export class GameRoom extends DurableObject {
         }
       }
       const wasPlaying = !!room.state;
+      if (room.state && room.paused && room.deadline <= Date.now()) this.logDiagnostic('reconnect_expired', null, 'alarm');
       this.lobby.sweep();
       if (wasPlaying && this.room() && !this.room().state) this.expires = Date.now() + 600000;
       if (this.room() && (!room.state || room.finished) && Date.now() >= this.expires) {

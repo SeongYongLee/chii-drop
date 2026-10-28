@@ -1,13 +1,16 @@
+import { createDiagnostics } from './diagnostics.js';
 import { DurableObject } from 'cloudflare:workers';
 import { randomBytes } from 'node:crypto';
 import { ROOM_CAPACITY, roomHeadcount } from '../../src/net/room-capacity.js';
 import { createProfileStore } from '../profiles.js';
+import manifest from '../../skins/chiikawa/pages-runtime/manifest.json';
 import { accept, checkVersion, closeUnauthenticated, parseMessage, rateLimit, readState, send, setupStorage, writeState } from './shared.js';
 
 // 로비/신원/레이트만 직렬화한다. 프레임 입력은 이 객체를 통과하지 않는다.
 export class Directory extends DurableObject {
   constructor(ctx, env) {
     super(ctx, env); setupStorage(ctx);
+    this.logDiagnostic = createDiagnostics('directory');
     const saved = readState(ctx) ?? {};
     this.data = saved.profiles;
     this.rooms = saved.rooms ?? {};
@@ -22,7 +25,7 @@ export class Directory extends DurableObject {
   persist(profiles = this.data) { writeState(this.ctx, { profiles, rooms: this.rooms, revisions: this.revisions, claims: this.claims, queue: this.queue }); }
   serial(action) {
     const result = this.chain.then(action);
-    this.chain = result.catch(() => {});
+    this.chain = result.catch(() => { this.logDiagnostic('server_error', null, 'message'); });
     return result;
   }
   identify(token) {
@@ -106,11 +109,13 @@ export class Directory extends DurableObject {
   }
   webSocketMessage(ws, data) {
     return this.serial(async () => {
+      let operation = 'message';
       try {
         const meta = rateLimit(ws), msg = parseMessage(data);
+        operation = msg.type;
         if (msg.type === 'ping') { send(ws, { type: 'pong', time: msg.time }); return; }
         if (msg.type === 'hello') {
-          try { checkVersion(msg); } catch (e) { send(ws, { type: 'incompatible', reason: e.message }); return; }
+          try { checkVersion(msg); } catch (e) { this.logDiagnostic('protocol_mismatch', null, 'hello'); send(ws, { type: 'incompatible', reason: e.message }); return; }
           if (meta.profileId) throw new Error('이미 인증된 연결입니다.');
           if (!msg.token && Object.keys(this.data?.players ?? {}).length >= 2000) throw new Error('새 플레이어 등록이 가득 찼습니다.');
           const identity = this.profiles.authenticate(msg.token);
@@ -127,7 +132,8 @@ export class Directory extends DurableObject {
         if (msg.type === 'list') { send(ws, this.lobbyMessage()); send(ws, { type: 'rankings', rankings: this.profiles.rankings() }); }
         else if (msg.type === 'rename') {
           if (this.claims[profile.id] || this.queue[profile.id]) throw new Error('로비에서 닉네임을 변경하세요.');
-          send(ws, { type: 'profile', profile: this.profiles.rename(profile.id, msg.name) });
+          if (msg.charId !== undefined && !manifest.characters.some(c => c.id === msg.charId && c.selectable !== false && c.selectionVisible !== false)) throw new Error('선택할 수 없는 캐릭터입니다.');
+          send(ws, { type: 'profile', profile: this.profiles.rename(profile.id, msg.name, msg.charId) });
         } else if (msg.type === 'create' || msg.type === 'join' || msg.type === 'watch') {
           if (msg.mode && msg.mode !== 'duel') throw new Error('현재 1대1만 지원합니다.');
           if (this.queue[profile.id]) throw new Error('매칭을 취소해 주세요.');
@@ -139,7 +145,7 @@ export class Directory extends DurableObject {
         } else if (msg.type === 'cancelQueue' || msg.type === 'leave') {
           delete this.queue[profile.id]; this.persist(); send(ws, { type: 'queued', active: false });
         } else throw new Error('로비에서 사용할 수 없는 요청입니다.');
-      } catch (e) { send(ws, { type: 'error', reason: e.message }); }
+      } catch (e) { this.logDiagnostic('request_failed', e.message, operation); send(ws, { type: 'error', reason: e.message }); }
     });
   }
   webSocketClose(ws) {

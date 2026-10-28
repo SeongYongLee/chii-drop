@@ -1,3 +1,6 @@
+import { analytics } from '../analytics/client.js';
+const analyticsBootAt = performance.now();
+
 import { setupAssetCache, retainMedia } from './asset-cache.js';
 import { createSfx, prepareSfx, setSfxOptions, unlockSfx } from '../audio/sfx.js';
 import { configureCharacterVoices } from '../audio/character-voice.js';
@@ -100,20 +103,30 @@ const loadingScreen = createLoadingScreen(document);
 const loading = createLoadingProgress(state => loadingScreen.update(state));
 app.sfx.onLoadProgress = (id, ok) => loading.complete(id, ok);
 void fetch('version.json', { cache: 'no-store' }).then(response => response.ok ? response.json() : null).then(info => {
+  analytics.start(info ?? {});
   if (typeof info?.version === 'string') app.versionLabel = `v${info.version} · ${info.commit?.slice(0, 7) ?? '소스 패키지'}${info.dirty ? ' · 개발 중' : ''}`;
-}).catch(() => {});
+}).catch(() => analytics.disable());
 attachKeyboard(app.keyboard, window);
 app.keySettings = createKeySettings({ view: window, keyboard: app.keyboard,
   onOpen: () => app.mobile?.clear(), onClose: () => app.mobile?.clear() });
 app.mobile = attachMobileControls({ view: window, canvas, container: document.getElementById('mobile-controls'),
   keyboard: app.keyboard, onUnlock: () => unlockSfx(app.sfx),
   menuButton: document.getElementById('game-menu-toggle'),
+  backNavigationButton: document.getElementById('screen-back'),
+  onBack: () => app.scene?.back?.(app),
   onPause: () => app.scene?.openPause?.(),
   getContext: () => ({ enabled: Boolean(app.scene) && !app.onlineActive,
     mode: app.scene?.touchMode?.() ?? 'menu', player: app.scene?.touchPlayer?.() ?? null,
     gameScreen: app.scene?.touchGame?.() ?? false,
+    canPause: app.scene?.touchCanPause?.() ?? false,
+    canBack: typeof app.scene?.back === 'function',
     layout: app.scene?.touchLayout,
+    heading: app.scene?.touchHeading,
+    backSelected: app.scene?.touchBackSelected?.(),
+    fanNotice: app.skin?.branding?.fanNotice,
+    versionLabel: app.versionLabel,
     animationFrame: app.animationFrame,
+    companions: app.scene?.menuCompanions?.(app),
     setup: app.scene?.touchSetup,
     paused: app.scene?.touchPaused?.() ?? false,
     hideBack: app.scene?.touchHideBack?.() ?? false,
@@ -164,9 +177,11 @@ if (skin && script) {
   if (storyTest) startStoryTest(app, storyTest);
   else app.setScene(createTitleScene());
   loadingScreen.hide();
+  analytics.track('game_ready', { load_ms: performance.now() - analyticsBootAt });
   retainMedia(assetWorker, loadedManifest, SKIN_DIR);
   clearPressed(app.keyboard);
 } else {
+  analytics.track('game_load_failed', { error_code: 'startup_assets_failed', asset_kind: 'startup' });
   loadingScreen.fail();
   drawBanner(ctx, '게임 자료를 불러오지 못했습니다', '이미지·캐릭터 정보 파일을 확인하고 새로고침해 주세요.');
 }

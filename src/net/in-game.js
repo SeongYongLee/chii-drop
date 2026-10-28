@@ -1,3 +1,4 @@
+import { analytics } from '../analytics/client.js';
 import { MODES } from '../app/modes.js';
 import { AUTOMATIC_MATCHMAKING } from './features.js';
 import { onlineTemplate } from './template.js';
@@ -8,11 +9,19 @@ export function createOnlineView(app, canvas) {
   const host = document.createElement('section');
   host.id = 'online-mode'; host.hidden = true; host.setAttribute('aria-label', '온라인 모드');
   const root = host.attachShadow({ mode: 'open' });
+  const styles = [];
   for (const file of ['online.css', 'src/view/online-menu.css']) {
     const link = document.createElement('link'); link.rel = 'stylesheet';
     link.href = new URL(file, document.baseURI).href + new URL(import.meta.url).search;
+    styles.push(new Promise((resolve, reject) => {
+      link.onload = resolve;
+      link.onerror = () => reject(new Error(`온라인 화면 스타일을 불러오지 못했습니다: ${file}`));
+    }));
     root.append(link);
   }
+  // Shadow DOM의 stylesheet는 첫 화면 표시를 막지 않으므로 직접 준비를 기다린다.
+  const stylesReady = Promise.all(styles);
+  void stylesReady.catch(() => {});
   const shell = document.createElement('div'); shell.className = 'online-shell';
   Object.assign(shell.dataset, { inRoom: 'false', playing: 'false', connected: 'false', matchmaking: String(AUTOMATIC_MATCHMAKING) });
   shell.innerHTML = onlineTemplate; root.append(shell); document.body.append(host);
@@ -36,19 +45,21 @@ export function createOnlineView(app, canvas) {
   }
   return async function open() {
     if (!MODES.multiplayer || app.onlineActive) return;
+    analytics.track('mode_selected', { mode: 'online' });
     app.onlineActive = true; document.body.dataset.onlineActive = 'true'; app.keyboard.enabled = false;
     app.keyboard.held.clear(); app.keyboard.pressed.clear(); app.mobile.clear(); app.mobile.sync();
-    canvas.parentElement.hidden = true; host.hidden = false; fitLobby();
     app.sfx.musicAudio?.pause();
     if (!['#play', '#new-room', '#leaderboard', '#controls'].includes(location.hash)) history.replaceState(null, '', '#online');
     try {
-      loading ??= import('./browser.js').then(module => module.createOnlineSession({ root, shell, skin: app.skin, sfx: app.sfx, onExit: exit }));
+      loading ??= Promise.all([stylesReady, import('./browser.js')]).then(([, module]) => module.createOnlineSession({ root, shell, skin: app.skin, sfx: app.sfx, onExit: exit }));
       session = await loading;
+      // 스타일·이벤트·초기 패널이 준비된 뒤 실제 프레임을 측정하고 한 번에 전환한다.
+      canvas.parentElement.hidden = true; host.hidden = false; fitLobby();
       session.open();
     } catch (error) {
+      analytics.track('game_load_failed', { error_code: 'online_assets_failed', asset_kind: 'online' });
       console.error('온라인 모드 준비 실패', error); loading = null;
-      shell.querySelector('#connection').textContent = '온라인 모드를 열지 못했습니다';
-      shell.querySelector('[data-online-exit]').onclick = event => { event.preventDefault(); exit(); };
+      exit();
     }
   };
 }

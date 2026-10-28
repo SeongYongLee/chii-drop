@@ -99,7 +99,7 @@ test('a completed room can rematch with fresh match ID and ignores frames from t
     for (const p of [a, b]) lobby.handle(p, { type: 'input', matchId: oldId, frame, input: 4 });
   }
   assert.ok(room.finished); assert.equal(lobby.profiles.get(a.profileId).games, 1);
-  lobby.handle(a, { type: 'returnRoom' });
+  lobby.handle(a, { type: 'returnRoom', matchId: oldId });
   lobby.handle(b, { type: 'input', matchId: oldId, frame: 5000, input: 0 }); assert.equal(room.state, null);
   start(lobby, a, b); assert.notEqual(room.matchId, oldId);
   lobby.handle(b, { type: 'input', matchId: oldId, frame: 0, input: 0 }); assert.equal(room.next[1], 0);

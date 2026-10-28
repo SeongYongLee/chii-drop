@@ -202,3 +202,33 @@ test('CPU 대전의 기본은 입문이며 관전 기본과 명시한 기존 난
   assert.equal(createMatchSetup({ mode: 'watch' }).touchItems(h.app)[2].value, '보통');
   assert.equal(createMatchSetup({ mode: 'cpu', cpuLevel: 'expert' }).touchItems(h.app)[2].value, '어려움');
 });
+
+
+test('방향키 선택에 뒤로를 포함하고 Enter로 복귀한다', () => {
+  const h = harness();
+  h.press('ArrowUp');
+  assert.equal(h.app.main.touchBackSelected(), true);
+  assert.ok(h.app.main.touchItems(h.app).every(item => !item.selected));
+  h.press('ArrowDown');
+  assert.equal(h.app.main.touchBackSelected(), false);
+  assert.equal(h.app.main.touchItems(h.app)[0].selected, true);
+  h.press('Enter');
+  assert.equal(h.app.scene, h.app.single);
+  h.press('ArrowUp');
+  assert.equal(h.app.single.touchBackSelected(), true);
+  h.press('Enter');
+  assert.equal(h.app.scene, h.app.main);
+});
+
+test('대전 설정도 시작 다음의 뒤로를 방향키로 선택한다', () => {
+  const h = harness();
+  const setup = createMatchSetup({ mode: 'cpu' });
+  h.app.scene = setup;
+  setup.touchItems(h.app);
+  h.press('ArrowUp');
+  assert.equal(setup.touchBackSelected(), true);
+  h.press('ArrowLeft');
+  assert.equal(setup.touchBackSelected(), true);
+  h.press('Enter');
+  assert.equal(h.app.scene, h.app.single);
+});

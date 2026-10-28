@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createInputBatcher } from '../src/net/input-batch.js';
+import { createInputBatcher, validInputBatch } from '../src/net/input-batch.js';
 import { PROTOCOL, RollbackMatch, stateHash } from '../src/net/rollback.js';
 import { RULES_VERSION } from '../src/engine/rules.js';
 import { createMatch, stepMatch } from '../src/engine/match.js';
@@ -8,6 +8,57 @@ import { createRooms } from '../server/rooms.js';
 
 const hello = { type: 'hello', protocol: PROTOCOL, rulesVersion: RULES_VERSION };
 const input = (frame, side) => (frame % 41 < 15 ? (side ? 1 : 2) : 0) | (frame % 53 === 0 ? 8 : 0);
+test('experimental batching preserves every frame and sends every input change and release immediately', () => {
+  for (const options of [{}, { maxBatch: 4 }, { maxBatch: 6, adaptive: true }]) {
+    const batcher = createInputBatcher(options), packets = [], values = [];
+    for (let frame = 0; frame < 600; frame++) {
+      const value = frame < 160 ? 2 : frame < 310 ? 0 : input(frame, 0);
+      values.push(value);
+      const packet = batcher.push(frame, value);
+      if (packet) packets.push(packet);
+      if (frame === 0 || value !== values[frame - 1]) {
+        assert.ok(packet); assert.equal(packet.frame + packet.inputs.length - 1, frame);
+      }
+    }
+    const tail = batcher.flush(); if (tail) packets.push(tail);
+    assert.deepEqual(packets.flatMap(p => p.inputs), values);
+    for (const p of packets) assert.ok(validInputBatch(p, options.maxBatch ?? 3));
+  }
+});
+test('adaptive batches grow only after a stable input and return to three frames under pressure; defaults do not change', () => {
+  const batcher = createInputBatcher({ maxBatch: 6, adaptive: true });
+  const sizes = [];
+  for (let f = 0; f < 48; f++) { const p = batcher.push(f, 2); if (p) sizes.push(p.inputs.length); }
+  assert.ok(sizes.includes(6));
+  batcher.flush(); batcher.setPressure(true);
+  const pressureSizes = [];
+  for (let f = 48; f < 72; f++) { const p = batcher.push(f, 2); if (p) pressureSizes.push(p.inputs.length); }
+  assert.deepEqual(pressureSizes, Array(8).fill(3));
+  batcher.reset(); batcher.configure(3);
+  assert.deepEqual(batcher.push(120, 8).inputs, [8]);
+  assert.equal(validInputBatch({ frame: 0, inputs: [0, 0, 0, 0] }), false);
+  assert.equal(validInputBatch({ frame: 0, inputs: [0, 0, 0, 0] }, 4), true);
+  assert.throws(() => createInputBatcher({ maxBatch: 99 }));
+});
+test('larger batches require explicit server negotiation and survive restore only when the experiment remains enabled', () => {
+  for (const allowed of [false, true]) {
+    const lobby = createRooms({ allowBatchExperiments: allowed });
+    const a = { messages: [], send(m) { this.messages.push(structuredClone(m)); } };
+    lobby.handle(a, { ...hello, inputBatchLimit: 6 });
+    assert.equal(a.inputBatchLimit, allowed ? 6 : 3);
+    lobby.handle(a, { type: 'create' });
+    const base = { type: 'inputBatch', frame: 0, inputs: [0, 0, 0, 0, 0, 0] };
+    const restored = createRooms({ profiles: lobby.profiles, allowBatchExperiments: false });
+    restored.restore(structuredClone(lobby.snapshot()), () => ({ send() {} }));
+    assert.equal(restored.rooms.get(a.room.code).peers[0].inputBatchLimit, 3);
+    // 경기 시작 후에도 서버가 협상한 상한만 허용한다.
+    const b = { send() {} }; lobby.handle(b, hello); lobby.handle(b, { type: 'join', code: a.room.code });
+    for (const p of [a, b]) lobby.handle(p, { type: 'ready' });
+    for (const p of [a, b]) lobby.handle(p, { type: 'confirmCharacter', selectionId: a.room.selectionId });
+    if (allowed) { lobby.handle(a, { ...base, matchId: a.room.matchId, epoch: 0 }); assert.equal(a.room.next[0], 6); }
+    else assert.throws(() => lobby.handle(a, { ...base, matchId: a.room.matchId, epoch: 0 }));
+  }
+});
 function setup(options = {}) {
   const lobby = createRooms(options);
   const peers = [0, 1].map(() => ({ messages: [], send(m) { this.messages.push(structuredClone(m)); } }));

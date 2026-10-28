@@ -17,5 +17,5 @@ export function buildInfo(root = resolve(dirname(fileURLToPath(import.meta.url))
       return entry.isDirectory() ? modulesAt(file) : entry.isFile() && file.endsWith('.js') ? [file] : [];
     }).sort();
   }
-  return { version, commit, dirty, modules: modulesAt() };
+  return { version, commit, dirty, deployment: process.env.ANALYTICS_ENV === 'production' ? 'production' : 'development', modules: modulesAt() };
 }

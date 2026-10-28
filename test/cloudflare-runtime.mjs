@@ -13,6 +13,7 @@ import { createMatch, stepMatch } from '../src/engine/match.js';
 import { createInputBatcher } from '../src/net/input-batch.js';
 import { createOnlineServer } from '../server/index.js';
 import { SpectatorMatch } from '../src/net/spectator.js';
+import manifest from '../skins/chiikawa/pages-runtime/manifest.json' with { type: 'json' };
 
 const delay = ms => new Promise(r => setTimeout(r, ms));
 const reserved = createServer(); reserved.listen(0, '127.0.0.1'); await once(reserved, 'listening');
@@ -75,11 +76,16 @@ try {
   const old = await client(undefined, undefined, PROTOCOL - 1); await take(old, 'incompatible'); old.ws.close(); checks++;
   let a = await client(), b = await client();
   await identity(a); await identity(b);
+  const avatarId = manifest.characters.find(c => c.selectable !== false && c.selectionVisible !== false).id;
+  a.send({ type: 'rename', name: '통합검사', charId: avatarId });
+  assert.equal((await take(a, 'profile')).profile.charId, avatarId); checks++;
   a.send({ type: 'create', rated: true, password: 'test', name: '로컬 검증' });
   const { code } = await take(a, 'route');
   b.send({ type: 'join', code, password: 'wrong' }); await take(b, 'error');
   b.send({ type: 'join', code, password: 'test' }); assert.equal((await take(b, 'route')).code, code); checks++;
   a = await goRoom(a, code); b = await goRoom(b, code);
+  a.send({ type: 'chat', text: '방 기록 유지 검사' });
+  assert.equal((await take(b, 'chat')).message.text, '방 기록 유지 검사'); checks++;
   a.send({ type: 'heartbeat' }); await take(a, 'heartbeatAck'); checks++;
   a.send({ type: 'ready' }); b.send({ type: 'ready' }); await confirmSelection(a, b);
   const startMsg = await take(a, 'start'); await take(b, 'start');
@@ -92,6 +98,12 @@ try {
   observer.send({ type: 'watch', code, password: 'wrong' }); await take(observer, 'error');
   observer.send({ type: 'watch', code, password: 'test' }); await take(observer, 'route');
   observer = await goRoom(observer, code);
+  assert.equal((await take(observer, 'chatHistory')).messages[0].text, '방 기록 유지 검사');
+  observer.send({ type: 'chat', text: '관전 중 응원' });
+  assert.equal((await take(a, 'chat')).message.text, '방 기록 유지 검사');
+  assert.equal((await take(a, 'chat')).message.text, '관전 중 응원');
+  a.send({ type: 'chat', text: '경기 중 플레이어 전송' });
+  assert.match((await take(a, 'chatError')).reason, /읽기만/); checks++;
   const observerToken = observer.token;
   const watchSnapshot = await take(observer, 'spectatorSnapshot');
   assert.equal(watchSnapshot.hash, stateHash(expected)); assert.equal(watchSnapshot.paused, false);
@@ -124,6 +136,7 @@ try {
   await stop(); await start();
   a = await client(tokenA); await identity(a); assert.equal((await take(a, 'route')).code, code);
   a = await goRoom(a, code);
+  assert.deepEqual((await take(a, 'chatHistory')).messages.map(m => m.text), ['방 기록 유지 검사', '관전 중 응원']); checks++;
   b = await client(tokenB, code); await identity(b); await take(b, 'joined');
   const restored = await take(b, 'snapshot'); assert.equal(restored.hash, stateHash(expected));
   // 첫 복귀자의 snapshot은 두 번째 복귀 때 epoch가 갱신된다.
@@ -251,13 +264,45 @@ try {
   }
   await take(fullA, 'finished'); await take(viewers[0], 'finished');
   viewers[0].send({ type: 'returnRoom' }); assert.match((await take(viewers[0], 'error')).reason, /관전/);
+  fullB.send({ type: 'rematch', matchId: finalStart.matchId, ready: true });
+  let requestedRoom;
+  do { requestedRoom = (await take(fullB, 'room')).room; } while (!requestedRoom.players.some(p => p.rematch));
+  assert.equal(requestedRoom.players.filter(p => p.rematch).length, 1);
   for (const c of [fullA, fullB, ...viewers]) c.messages = c.messages.filter(m => m.type !== 'room');
-  fullA.send({ type: 'returnRoom' });
+  fullA.send({ type: 'returnRoom', matchId: finalStart.matchId });
   for (const c of [fullA, fullB, ...viewers]) {
     await take(c, 'reset'); const returnedRoom = (await take(c, 'room')).room;
     assert.equal(returnedRoom.code, fullCode); assert.equal(returnedRoom.phase, 'waiting');
     assert.equal(returnedRoom.spectatorList.length, 4);
+    assert.ok(returnedRoom.players.every(p => !p.rematch));
     assert.ok(returnedRoom.spectatorList.every(p => p.name && p.connected));
+  }
+  checks++;
+  // 실제 SQLite·알람에서도 양쪽 동의만으로 같은 캐릭터·관전자를 유지해 재대전한다.
+  for (const c of [fullA, fullB, ...viewers]) c.messages = [];
+  fullA.send({ type: 'ready' }); fullB.send({ type: 'ready' }); await confirmSelection(fullA, fullB);
+  const replayStart = await take(fullA, 'start'); await take(fullB, 'start');
+  for (let frame = 0; frame < 3600 && !fullA.messages.some(m => m.type === 'finished' && m.matchId === replayStart.matchId); frame += 3) {
+    for (const c of [fullA, fullB]) c.send({ type: 'inputBatch', matchId: replayStart.matchId, epoch: 0, frame, inputs: [4, 4, 4] });
+    await delay(50);
+  }
+  await take(fullA, 'finished'); await take(fullB, 'finished');
+  for (const c of viewers) c.messages = c.messages.filter(m => m.type !== 'spectatorSnapshot');
+  for (const c of [fullA, fullB]) c.send({ type: 'rematch', matchId: replayStart.matchId, ready: true });
+  const nextStart = await take(fullA, 'start'); await take(fullB, 'start');
+  assert.notEqual(nextStart.matchId, replayStart.matchId);
+  assert.deepEqual(nextStart.players.map(p => p.charId), replayStart.players.map(p => p.charId));
+  for (const c of viewers) {
+    const snapshot = await take(c, 'spectatorSnapshot');
+    assert.equal(snapshot.matchId, nextStart.matchId); assert.equal(snapshot.state.frame, 0);
+  }
+  for (const c of [fullA, fullB]) c.messages = c.messages.filter(m => m.type !== 'checksum' || m.matchId === nextStart.matchId);
+  inputs(fullA, nextStart.matchId, 0, 0, 60); inputs(fullB, nextStart.matchId, 0, 0, 60);
+  let replayExpected = createMatch({ seed: nextStart.seed });
+  for (let frame = 0; frame < 60; frame++) replayExpected = stepMatch(replayExpected, [0, 0]);
+  for (const c of [fullA, fullB]) {
+    const checksum = await take(c, 'checksum');
+    assert.equal(checksum.matchId, nextStart.matchId); assert.equal(checksum.hash, stateHash(replayExpected));
   }
   checks++;
   for (const c of [...viewers, fullA, fullB]) { c.send({ type: 'leave' }); await take(c, 'route'); c.ws.close(); }

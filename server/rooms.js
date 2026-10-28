@@ -6,6 +6,11 @@ import { MAX_AHEAD, PROTOCOL, stateHash, validInput } from '../src/net/rollback.
 import { createProfileStore } from './profiles.js';
 import { validInputBatch } from '../src/net/input-batch.js';
 import { ROOM_CAPACITY, PLAYER_CAPACITY, SPECTATOR_CAPACITY, roomHeadcount } from '../src/net/room-capacity.js';
+import { STATE_INTERVAL, importantState, statePacket } from '../src/net/state-stream.js';
+
+export const REMATCH_START_DELAY = 350;
+export const CHAT_HISTORY_LIMIT = 100;
+export const CHAT_TEXT_LIMIT = 160;
 
 function passwordHash(salt, password) { return createHash('sha256').update(salt).update(password).digest(); }
 function passwordValue(value) {
@@ -18,19 +23,23 @@ function defaultCharacters() {
     .filter(character => character.selectable !== false && character.selectionVisible !== false).map(character => character.id); }
   catch { return ['actor-0', 'actor-1']; }
 }
-export function createRooms({ profiles = createProfileStore(), now = Date.now, characters = defaultCharacters(), reconnectGrace = 30000 } = {}) {
+export function createRooms({ profiles = createProfileStore(), now = Date.now, characters = defaultCharacters(), reconnectGrace = 30000, allowStatePrototype = false, allowBatchExperiments = false, onFrame } = {}) {
   if (!characters.length) throw new Error('No playable characters');
   const availableCharacters = new Set(characters);
   const rooms = new Map(), peers = new Set(), queue = new Map();
   const send = (peer, message) => { if (!peer.disconnected) peer.send(message); };
   const broadcast = (room, message) => [...room.peers, ...room.spectators].forEach((p) => send(p, message));
   const error = (peer, reason) => send(peer, { type: 'error', reason });
+  function chatHistory(room, peer) { send(peer, { type: 'chatHistory', code: room.code, messages: room.chat ?? [] }); }
   function roomView(room, includeSpectators = false) {
     return { code: room.code, name: room.name, rated: room.rated, locked: !!room.password,
       mode: 'duel', capacity: PLAYER_CAPACITY, memberCapacity: ROOM_CAPACITY,
       spectators: room.spectators.length, spectatorCapacity: SPECTATOR_CAPACITY, phase: room.state ? 'playing' : room.selectionId ? 'selecting' : 'waiting', selectionId: room.selectionId ?? null,
       ...(includeSpectators ? { spectatorList: room.spectators.map(p => ({ id: p.profileId, name: profiles.get(p.profileId).name, connected: !p.disconnected })) } : {}),
-      players: room.peers.map((p) => ({ ...profiles.get(p.profileId), side: p.side, charId: p.charId, ready: room.ready.has(p.side), confirmed: room.confirmed?.has(p.side) ?? false })) };
+      finished: !!room.finished,
+      players: room.peers.map((p) => ({ ...profiles.get(p.profileId), side: p.side, charId: p.charId,
+        ...(p.inputBatchLimit > 3 ? { inputBatchLimit: p.inputBatchLimit } : {}),
+        connected: !p.disconnected, ready: room.ready.has(p.side), confirmed: room.confirmed?.has(p.side) ?? false, rematch: room.rematch?.has(p.side) ?? false })) };
   }
   function updateRoom(room) { broadcast(room, { type: 'room', room: roomView(room, true) }); }
   function updateLobby() {
@@ -54,8 +63,19 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
   function clearMatch(room) {
     room.state = null; room.matchId = null; room.ready.clear(); room.settlement = null;
     room.selectionId = null; room.confirmed = new Set();
+    room.rematch = new Set(); room.rematchAt = null;
     room.spectatorInputs = [];
     for (const key of ['started', 'epoch', 'paused', 'deadline', 'syncing', 'acks', 'next', 'inputs', 'finished', 'resultSent', 'resultFrame']) delete room[key];
+  }
+  function beginMatch(room) {
+    const seed = randomBytes(4).readUInt32LE();
+    room.state = createMatch({ seed }); room.started = now(); room.matchId = randomUUID();
+    room.epoch = 0; room.paused = false; room.deadline = null; room.syncing = false;
+    room.next = [0, 0]; room.inputs = [new Map(), new Map()];
+    room.spectatorInputs = []; room.rematch = new Set(); room.rematchAt = null;
+    for (const p of room.peers) { p.state15Base = room.state; send(p, { type: 'start', seed, matchId: room.matchId, players: roomView(room).players }); }
+    for (const p of room.spectators) spectatorSnapshot(room, p);
+    updateRoom(room); updateLobby();
   }
   function removeRoomPeers(room, removed, reason, retained = null) {
     const remaining = room.peers.filter(p => !removed.includes(p) && !p.disconnected);
@@ -64,6 +84,7 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
       send(p, { type: 'ended', reason: '방을 나왔습니다. 로비에서 다시 참가하세요.' });
     }
     room.peers = remaining;
+    for (const p of removed) if (room.chatTimes) delete room.chatTimes[p.profileId];
     if (!remaining.length && !room.spectators.some(p => !p.disconnected)) {
       for (const p of room.spectators) { p.room = null; send(p, { type: 'ended', reason: '대전 참가자가 모두 나가 방을 종료했습니다.' }); }
       room.spectators = []; rooms.delete(room.code); updateLobby(); return;
@@ -82,6 +103,7 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
     if (!room) return;
     if (peer.spectator) {
       room.spectators = room.spectators.filter(p => p !== peer); peer.room = null;
+      if (room.chatTimes) delete room.chatTimes[peer.profileId];
       if (!room.peers.length && !room.spectators.length) rooms.delete(room.code);
       send(peer, { type: 'ended', reason: '관전을 종료했습니다.' }); updateRoom(room); updateLobby(); return;
     }
@@ -106,12 +128,33 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
     if (room && peer.spectator) {
       peer.disconnected = true; peer.deadline = now() + reconnectGrace; updateRoom(room); updateLobby(); return;
     }
-    if (!room?.state || room.finished) { exitRoom(peer); updateLobby(); return; }
+    if (!room) { updateLobby(); return; }
+    if (!room.state) {
+      peer.disconnected = true; peer.deadline = now() + reconnectGrace;
+      if (room.selectionId) {
+        clearMatch(room);
+        broadcast(room, { type: 'reset', reason: '플레이어가 재접속 중입니다. 복귀하면 다시 준비해 주세요.' });
+      } else room.ready.delete(peer.side);
+      updateRoom(room); updateLobby(); return;
+    }
+    if (room.finished) {
+      peer.disconnected = true; peer.deadline = now() + reconnectGrace;
+      room.rematch?.delete(peer.side); room.rematchAt = null;
+      updateRoom(room); updateLobby(); return;
+    }
     peer.disconnected = true;
     pause(room); updateLobby();
   }
   function sweep() {
     for (const room of rooms.values()) for (const p of [...room.spectators]) if (p.disconnected && now() >= p.deadline) exitRoom(p);
+    for (const room of rooms.values()) if (!room.state || room.finished) {
+      const missing = room.peers.filter(p => p.disconnected && now() >= p.deadline);
+      if (missing.length) { removeRoomPeers(room, missing, '상대의 재접속 유예가 끝났습니다. 대기실에서 새 상대를 기다려 주세요.'); continue; }
+      if (room.rematchAt != null && now() >= room.rematchAt && room.rematch?.size === 2
+        && room.peers.length === 2 && room.peers.every(p => !p.disconnected)) {
+        clearMatch(room); beginMatch(room);
+      }
+    }
     for (const room of rooms.values()) if (room.paused && now() >= room.deadline) {
       const missing = room.peers.filter(p => p.disconnected || (room.syncing && !room.acks?.has(p.side)));
       if (!room.settlement) settle(room, missing.length === 1 ? 1 - missing[0].side : -1, 'forfeit');
@@ -125,14 +168,14 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
     room.spectatorInputs = [];
     const snapshot = { type: 'snapshot', matchId: room.matchId, epoch: room.epoch,
       remaining: Math.max(0, room.deadline - now()), state: room.state, hash: stateHash(room.state), players: roomView(room).players };
-    for (const p of room.peers) send(p, snapshot);
+    for (const p of room.peers) { p.state15Base = room.state; send(p, snapshot); }
     for (const p of room.spectators) spectatorSnapshot(room, p);
   }
   function spectatorSnapshot(room, peer) {
     if (!room.state) return;
     send(peer, { type: 'spectatorSnapshot', matchId: room.matchId, epoch: room.epoch,
       state: room.state, hash: stateHash(room.state), players: roomView(room).players,
-      paused: !!room.paused, remaining: Math.max(0, (room.deadline ?? now()) - now()), finished: !!room.finished });
+      paused: !!room.paused, remaining: Math.max(0, (room.deadline ?? now()) - now()), finished: !!room.finished, settlement: room.settlement });
   }
   function makeRoom({ name = '함께 대전해요', rated = false, password = '' } = {}) {
     if (rooms.size >= 100) throw new Error('서버의 방이 가득 찼습니다.');
@@ -141,7 +184,8 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
     let code;
     do { code = randomBytes(4).toString('hex').toUpperCase(); } while (rooms.has(code));
     const room = { code, name: name.trim(), rated, salt, password: pass ? passwordHash(salt, pass) : null,
-      peers: [], spectators: [], spectatorInputs: [], ready: new Set(), state: null };
+      peers: [], spectators: [], spectatorInputs: [], ready: new Set(), rematch: new Set(), rematchAt: null, state: null,
+      chat: [], chatSequence: 0, chatTimes: {} };
     rooms.set(code, room); return room;
   }
   function seat(room, peer) {
@@ -149,12 +193,14 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
     if (!availableCharacters.has(peer.charId)) peer.charId = characters[peer.side % characters.length];
     peer.room = room; room.peers.push(peer);
     send(peer, { type: 'joined', code: room.code, side: peer.side });
+    chatHistory(room, peer);
     updateRoom(room); updateLobby();
   }
   function watch(room, peer) {
     if (!room.spectators.length) room.spectatorInputs = [];
     queue.delete(peer); peer.spectator = true; peer.side = null; peer.room = room; room.spectators.push(peer);
     send(peer, { type: 'joined', code: room.code, role: 'spectator', side: null });
+    chatHistory(room, peer);
     updateRoom(room); spectatorSnapshot(room, peer); updateLobby();
   }
   function matchmake() {
@@ -184,7 +230,10 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
         const identity = profiles.authenticate(msg.token);
         if ([...peers].some((p) => p.profileId === identity.profile.id)) { send(peer, { type: 'error', retryable: true, reason: '이미 연결된 세션을 확인하고 있습니다. 잠시 후 다시 접속합니다.' }); return; }
         peer.profileId = identity.profile.id; peers.add(peer);
-        send(peer, { type: 'welcome', ...identity });
+        peer.transport = allowStatePrototype && msg.transport === 'state15' ? 'state15' : 'inputs';
+        peer.inputBatchLimit = allowBatchExperiments && [4, 6].includes(msg.inputBatchLimit) ? msg.inputBatchLimit : 3;
+        if (availableCharacters.has(identity.profile.charId)) peer.charId = identity.profile.charId;
+        send(peer, { type: 'welcome', ...identity, transport: peer.transport, inputBatchLimit: peer.inputBatchLimit });
         send(peer, { type: 'rankings', rankings: profiles.rankings() });
         const reserved = [...rooms.values()].flatMap(r => [...r.peers, ...r.spectators]).find(p => p.disconnected && p.profileId === peer.profileId);
         if (reserved) {
@@ -194,7 +243,13 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
           else room.peers[peer.side] = peer;
           reserved.room = null;
           send(peer, { type: 'joined', code: room.code, side: peer.side, role: peer.spectator ? 'spectator' : 'player' }); updateRoom(room);
-          if (room.state) { if (peer.spectator) spectatorSnapshot(room, peer); else synchronize(room); }
+          chatHistory(room, peer);
+          if (room.state) {
+            if (peer.spectator) spectatorSnapshot(room, peer);
+            else if (room.finished) { peer.state15Base = room.state; send(peer, { type: 'snapshot', matchId: room.matchId, epoch: room.epoch,
+              state: room.state, hash: stateHash(room.state), players: roomView(room).players, finished: true, settlement: room.settlement }); }
+            else synchronize(room);
+          }
         }
         updateLobby();
       } catch (e) { error(peer, e.message); }
@@ -203,7 +258,12 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
     if (!peers.has(peer)) throw new Error('authentication required');
     if (msg.type === 'rename') {
       if (peer.room || queue.has(peer)) { error(peer, '로비에서 닉네임을 변경하세요.'); return; }
-      try { send(peer, { type: 'profile', profile: profiles.rename(peer.profileId, msg.name) }); updateRankings(); } catch (e) { error(peer, e.message); }
+      try {
+        if (msg.charId !== undefined && !availableCharacters.has(msg.charId)) throw new Error('선택할 수 없는 캐릭터입니다.');
+        const profile = profiles.rename(peer.profileId, msg.name, msg.charId);
+        if (profile.charId) peer.charId = profile.charId;
+        send(peer, { type: 'profile', profile }); updateRankings();
+      } catch (e) { error(peer, e.message); }
       return;
     }
     if (msg.type === 'list') { updateLobby(); send(peer, { type: 'rankings', rankings: profiles.rankings() }); return; }
@@ -232,10 +292,34 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
     }
     const room = peer.room;
     if (!room) throw new Error('not in room');
+    if (msg.type === 'chat') {
+      const reject = reason => send(peer, { type: 'chatError', reason });
+      if (room.state && !room.finished && !peer.spectator) { reject('경기 중에는 읽기만 가능해요.'); return; }
+      if (typeof msg.text !== 'string') { reject('메시지를 입력해 주세요.'); return; }
+      const value = msg.text.trim().normalize('NFC');
+      if (!value || value.length > CHAT_TEXT_LIMIT || /[\p{Cc}\p{Cf}]/u.test(value)) { reject(`메시지는 줄바꿈 없이 ${CHAT_TEXT_LIMIT}자까지 입력해 주세요.`); return; }
+      room.chatTimes ??= {};
+      const recent = (room.chatTimes[peer.profileId] ?? []).filter(at => now() - at < 5000);
+      if (recent.length >= 3) { reject('잠시 기다린 뒤 보내 주세요. (5초에 3개)'); return; }
+      recent.push(now()); room.chatTimes[peer.profileId] = recent;
+      const message = { id: (room.chatSequence ?? 0) + 1, playerId: peer.profileId, name: profiles.get(peer.profileId).name, text: value, at: now() };
+      room.chatSequence = message.id; room.chat = [...(room.chat ?? []), message].slice(-CHAT_HISTORY_LIMIT);
+      broadcast(room, { type: 'chat', code: room.code, message }); return;
+    }
     if (msg.type === 'returnRoom' && !peer.spectator) {
+      if (msg.matchId !== room.matchId) return;
       if (!room.finished) { error(peer, '경기가 끝난 뒤 대기실로 돌아갈 수 있습니다.'); return; }
       clearMatch(room);
-      broadcast(room, { type: 'reset' }); updateRoom(room); updateLobby(); return;
+      broadcast(room, { type: 'reset', reason: '플레이어가 대기실로 이동했습니다. 다시 준비해 주세요.' }); updateRoom(room); updateLobby(); return;
+    }
+    if (msg.type === 'rematch' && !peer.spectator) {
+      if (msg.matchId !== room.matchId) return;
+      if (!room.finished || room.peers.length !== 2 || room.peers.some(p => p.disconnected)) { error(peer, '두 플레이어가 연결된 경기 종료 화면에서 선택해 주세요.'); return; }
+      if (typeof msg.ready !== 'boolean') throw new Error('invalid rematch choice');
+      room.rematch ??= new Set();
+      if (msg.ready) room.rematch.add(peer.side); else room.rematch.delete(peer.side);
+      room.rematchAt = room.rematch.size === 2 ? room.rematchAt ?? now() + REMATCH_START_DELAY : null;
+      updateRoom(room); return;
     }
     if (peer.spectator) {
       if (msg.type === 'takeSeat') {
@@ -264,7 +348,7 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
       peer.charId = msg.charId; updateRoom(room); return;
     }
     if (msg.type === 'ready') {
-      if (room.state || room.selectionId || room.peers.length !== 2) { error(peer, '상대가 참가한 후 준비할 수 있습니다.'); return; }
+      if (room.state || room.selectionId || room.peers.length !== 2 || room.peers.some(p => p.disconnected)) { error(peer, '상대가 참가한 후 준비할 수 있습니다.'); return; }
       if (msg.ready === false) room.ready.delete(peer.side); else room.ready.add(peer.side);
       updateRoom(room);
       if (room.ready.size === 2) {
@@ -283,14 +367,7 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
       if (room.state || !room.selectionId || msg.selectionId !== room.selectionId || room.peers.length !== 2) { error(peer, '진행 중인 캐릭터 선택을 확인해 주세요.'); return; }
       room.confirmed.add(peer.side); updateRoom(room);
       if (room.confirmed.size === 2) {
-        const seed = randomBytes(4).readUInt32LE();
-        room.state = createMatch({ seed }); room.started = now(); room.matchId = randomUUID();
-        room.epoch = 0; room.paused = false; room.deadline = null; room.syncing = false;
-        room.next = [0, 0]; room.inputs = [new Map(), new Map()];
-        room.spectatorInputs = [];
-        for (const p of room.peers) send(p, { type: 'start', seed, matchId: room.matchId, players: roomView(room).players });
-        for (const p of room.spectators) spectatorSnapshot(room, p);
-        updateLobby();
+        beginMatch(room);
       }
       return;
     }
@@ -313,10 +390,10 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
     if (msg.type === 'inputBatch') {
       if (!room.state || msg.matchId !== room.matchId || room.finished || room.paused || (msg.epoch ?? 0) !== room.epoch) return;
       // 전체를 검사한 뒤 중계한다. 잘못된 마지막 입력 때문에 앞부분만 확정되지 않게 한다.
-      if (!validInputBatch(msg) || msg.frame !== room.next[peer.side]
+      if (!validInputBatch(msg, peer.inputBatchLimit ?? 3) || msg.frame !== room.next[peer.side]
         || msg.frame + msg.inputs.length - 1 > room.state.frame + MAX_AHEAD
         || msg.frame + msg.inputs.length - 1 > (now() - room.started) * .06 + MAX_AHEAD) throw new Error('invalid input batch');
-      send(room.peers[1 - peer.side], { type: 'inputBatch', matchId: room.matchId, epoch: room.epoch, side: peer.side, frame: msg.frame, inputs: msg.inputs });
+      if (room.peers[1 - peer.side].transport !== 'state15') send(room.peers[1 - peer.side], { type: 'inputBatch', matchId: room.matchId, epoch: room.epoch, side: peer.side, frame: msg.frame, inputs: msg.inputs });
       for (let i = 0; i < msg.inputs.length && !room.finished; i++) handle(peer, {
         type: 'input', matchId: room.matchId, epoch: room.epoch, frame: msg.frame + i, input: msg.inputs[i],
       }, false);
@@ -330,11 +407,21 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
     if (!Number.isInteger(frame) || frame !== room.next[peer.side] || !validInput(input)
       || frame > room.state.frame + MAX_AHEAD || frame > (now() - room.started) * 0.06 + MAX_AHEAD) throw new Error('invalid frame');
     room.next[peer.side]++; room.inputs[peer.side].set(frame, input);
-    if (relay) send(room.peers[1 - peer.side], { type: 'input', matchId: room.matchId, epoch: room.epoch, side: peer.side, frame, input });
+    if (relay && room.peers[1 - peer.side].transport !== 'state15') send(room.peers[1 - peer.side], { type: 'input', matchId: room.matchId, epoch: room.epoch, side: peer.side, frame, input });
     while (room.inputs.every((map) => map.has(room.state.frame))) {
       const f = room.state.frame;
       const pair = room.inputs.map((map) => map.get(f));
+      const before = room.state;
       room.state = stepMatch(room.state, pair);
+      onFrame?.(room.state, room);
+      const receivers = room.peers.filter(p => p.transport === 'state15');
+      if (receivers.length) {
+        const critical = importantState(before, room.state);
+        if (critical || room.state.frame % STATE_INTERVAL === 0) for (const p of receivers) {
+          send(p, { ...statePacket(p.state15Base ?? before, room.state, critical), matchId: room.matchId, epoch: room.epoch });
+          p.state15Base = room.state;
+        }
+      }
       if (room.spectators.length) {
         room.spectatorInputs.push(pair);
         if (room.spectatorInputs.length >= 6 || room.state.phase === 'over') {
@@ -350,7 +437,7 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
         broadcast(room, { type: 'result', matchId: room.matchId, epoch: room.epoch, frame: room.state.frame, winner: room.state.winner, hash: stateHash(room.state) });
       }
       if (room.resultSent && room.state.frame >= room.resultFrame + 180) {
-        room.finished = true; broadcast(room, { type: 'finished', matchId: room.matchId }); break;
+        room.finished = true; updateRoom(room); broadcast(room, { type: 'finished', matchId: room.matchId }); break;
       }
     }
   }
@@ -358,9 +445,9 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
   function snapshot() {
     return [...rooms.values()].map(room => ({ ...room,
       password: room.password?.toString('hex') ?? null,
-      peers: room.peers.map(p => ({ profileId: p.profileId, side: p.side, charId: p.charId, disconnected: !!p.disconnected })),
+      peers: room.peers.map(p => ({ profileId: p.profileId, side: p.side, charId: p.charId, inputBatchLimit: p.inputBatchLimit ?? 3, disconnected: !!p.disconnected, deadline: p.deadline })),
       spectators: room.spectators.map(p => ({ profileId: p.profileId, side: null, spectator: true, disconnected: !!p.disconnected, deadline: p.deadline })),
-      ready: [...room.ready], confirmed: [...(room.confirmed ?? [])], acks: room.acks ? [...room.acks] : undefined,
+      ready: [...room.ready], confirmed: [...(room.confirmed ?? [])], rematch: [...(room.rematch ?? [])], acks: room.acks ? [...room.acks] : undefined,
       inputs: room.inputs?.map(map => [...map]),
     }));
   }
@@ -368,10 +455,11 @@ export function createRooms({ profiles = createProfileStore(), now = Date.now, c
     rooms.clear(); peers.clear(); queue.clear();
     for (const value of saved) {
       const room = { ...value, password: value.password ? Buffer.from(value.password, 'hex') : null,
-        ready: new Set(value.ready), confirmed: new Set(value.confirmed ?? []), acks: value.acks ? new Set(value.acks) : undefined,
+        ready: new Set(value.ready), confirmed: new Set(value.confirmed ?? []), rematch: new Set(value.rematch ?? []), acks: value.acks ? new Set(value.acks) : undefined,
         inputs: value.inputs?.map(entries => new Map(entries)) };
       room.peers = value.peers.map(meta => {
-        const peer = Object.assign(makePeer(meta), meta, { room });
+        const peer = Object.assign(makePeer(meta), meta, { room,
+          inputBatchLimit: allowBatchExperiments && [4, 6].includes(meta.inputBatchLimit) ? meta.inputBatchLimit : 3 });
         if (!peer.disconnected) peers.add(peer);
         return peer;
       });

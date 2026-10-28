@@ -1,3 +1,5 @@
+import { createDiagnostics } from './diagnostics.js';
+const logDiagnostic = createDiagnostics('worker');
 import { PROTOCOL } from '../../src/net/rollback.js';
 import { RULES_VERSION } from '../../src/engine/rules.js';
 export { Directory } from './directory.js';
@@ -18,6 +20,7 @@ export default {
       const target = code ? env.ROOMS.getByName(code, { locationHint: 'apac' }) : env.DIRECTORY.getByName('lobby', { locationHint: 'apac' });
       return await target.fetch(request);
     } catch {
+      logDiagnostic('server_error', null, 'fetch');
       return new Response('온라인 서버를 잠시 사용할 수 없습니다.', { status: 503 });
     }
   },

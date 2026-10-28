@@ -6,10 +6,10 @@
     "bytes": 1291333
   },
   {
-    "original": "drafts/chain-quality-v4/chiikawa-1-2.png",
-    "file": "assets/71f0a7aaa413929800f8.png",
-    "sha256": "71f0a7aaa413929800f8c52940636483b11750a8ca3f9371cf0d9783dce7d4c2",
-    "bytes": 1199459
+    "original": "drafts/arm-audit-v1/chiikawa-1-2.png",
+    "file": "assets/6c83422f609a28a753e3.png",
+    "sha256": "6c83422f609a28a753e37ee6e7057ae58b760be0eb6a008389882f6229e9e52a",
+    "bytes": 1230576
   },
   {
     "original": "drafts/chain-quality-v4/chiikawa-3-4.png",
@@ -18,10 +18,10 @@
     "bytes": 1109760
   },
   {
-    "original": "drafts/chain-quality-v4/chiikawa-5-6.png",
-    "file": "assets/57c99b8a62e17f4670a0.png",
-    "sha256": "57c99b8a62e17f4670a05f5e07eef3146b5235df593dcb991d3184c690d1d930",
-    "bytes": 1221889
+    "original": "drafts/arm-audit-v1/chiikawa-5-6.png",
+    "file": "assets/95284245154fb2b4e582.png",
+    "sha256": "95284245154fb2b4e58222e62fb10804832f8080f5c1cd40c9efa02466c506eb",
+    "bytes": 1240487
   },
   {
     "original": "drafts/chain-quality-v4/chiikawa-7.png",
@@ -72,10 +72,10 @@
     "bytes": 1115108
   },
   {
-    "original": "drafts/chain-quality-v4/usagi-1-2.png",
-    "file": "assets/0b22592b188f30976b94.png",
-    "sha256": "0b22592b188f30976b949fb22d95e39b0363c88afa76cb0ff50e2b0266984a38",
-    "bytes": 1167877
+    "original": "drafts/arm-audit-v1/usagi-1-2.png",
+    "file": "assets/34079fea5d4f63d49d72.png",
+    "sha256": "34079fea5d4f63d49d7244ae3f39019732c979597b3091141d1929947b71247b",
+    "bytes": 1165712
   },
   {
     "original": "drafts/chain-quality-v4/usagi-7.png",
@@ -102,16 +102,22 @@
     "bytes": 1310512
   },
   {
+    "original": "drafts/kurimanju-lose-v2/kurimanju.png",
+    "file": "assets/e57cc562cedb7cca6f3d.png",
+    "sha256": "e57cc562cedb7cca6f3df64bf58b3d61855b107649a25f685a5ea0114e36a8e0",
+    "bytes": 1250736
+  },
+  {
     "original": "drafts/body-proportion-v1/kurimanju-1-4.png",
     "file": "assets/4e2af6f10ef4dba4d359.png",
     "sha256": "4e2af6f10ef4dba4d3599a4f397446669a95a03e1c0b6595b63adeb9a72ff6a2",
     "bytes": 1373598
   },
   {
-    "original": "drafts/body-proportion-v1/kurimanju-2-3.png",
-    "file": "assets/585ad498681c8adc50d3.png",
-    "sha256": "585ad498681c8adc50d3c3da3d1459bca38a6b5352b05e28147009f5de2fa314",
-    "bytes": 1422489
+    "original": "drafts/arm-audit-v1/kurimanju-2-3.png",
+    "file": "assets/14cd2fa5d54623256255.png",
+    "sha256": "14cd2fa5d5462325625570f26deded2dd01885cceccecf9fd1ae7a960ee07d8a",
+    "bytes": 1409403
   },
   {
     "original": "drafts/body-proportion-v1/kurimanju-5-6.png",
@@ -364,6 +370,12 @@
     "file": "assets/7f9fdc900333516d0fdf.png",
     "sha256": "7f9fdc900333516d0fdff46c3d6b78cb007dec2285e206bc51792865edc4336e",
     "bytes": 1174297
+  },
+  {
+    "original": "drafts/title-emblem-v1/title.png",
+    "file": "assets/e8355f50712d16277df1.png",
+    "sha256": "e8355f50712d16277df1ffd735715275c612df9e4f35690d041dc3eeb80c385e",
+    "bytes": 1453111
   },
   {
     "original": "sounds/temporary-bgm-v1/main3.mp3",

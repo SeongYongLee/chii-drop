@@ -2,6 +2,7 @@ import { attachTouchControls } from '../net/touch.js';
 import { setTouchKeys, MENU_KEYS } from './keyboard.js';
 import { createTouchLayoutEditor } from './touch-layout.js';
 import { createPauseDialog } from './pause-dialog.js';
+import { createMenuCompanions } from './menu-companions.js';
 import { renderSetupCards, updateSetupSelection, animateSetupCards, createSetupPicker } from './setup-cards.js';
 
 export const MOBILE_INPUT = Object.freeze({ left: 1, right: 2, down: 4, cw: 8, ccw: 16,
@@ -22,21 +23,24 @@ export function mobileKeyCodes(input, { mode = 'menu', player = null, backPlayer
   return Object.entries(keys).filter(([name]) => input & MOBILE_INPUT[name]).map(([, code]) => code);
 }
 
-export function attachMobileControls({ view, canvas, container, keyboard, getContext, onTap, onUnlock, menuButton, onPause }) {
+export function attachMobileControls({ view, canvas, container, keyboard, getContext, onTap, onUnlock, menuButton, onPause, backNavigationButton, onBack }) {
   // 초기화 테스트·자료 없는 화면에서는 터치 DOM을 요구하지 않는다.
   if (!container?.querySelectorAll || !canvas.addEventListener) return { read() {}, sync() {}, clear() {}, visible: false };
   const touch = attachTouchControls(container);
   const menu = container.querySelector('[data-mobile-menu]');
   const game = container.querySelector('[data-mobile-game]');
   const label = container.querySelector('[data-mobile-label]');
+  const heading = container.querySelector('[data-menu-heading]');
+  const fanNotice = view.document.getElementById?.('fan-notice');
   const playerButton = container.querySelector('[data-mobile-player]');
   const nativeItems = container.querySelector('[data-mobile-items]');
   const confirmButton = container.querySelector('[data-mobile-confirm]');
   const notice = container.querySelector('[data-mobile-notice]');
   const backButton = menu.querySelector?.('[data-input="128"]');
+  const companions = createMenuCompanions(view.document, container, onUnlock);
   const media = view.matchMedia('(pointer: coarse), (max-width: 760px), (max-height: 500px) and (max-width: 960px)');
   let context = {}, key = '', queued = 0, localPlayer = 0, start = null, enabled = false, itemsKey = '';
-  let setupItemsKey = '', noticeKey = '';
+  let setupItemsKey = '', noticeKey = '', backWasSelected = false;
   const pauseDialog=createPauseDialog(view,{
     opened:()=>clearEditorInput(),
     choose:index=>{onUnlock();context.items?.[index]?.activate();sync()},
@@ -125,11 +129,12 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
     if (context.local) context = { ...context, player: localPlayer };
     const nextKey = `${context.enabled}:${context.mode}:${context.player}:${context.paused}`;
     if (nextKey !== key) { clear(); key = nextKey; }
-    const active = Boolean(context.enabled && (media.matches || context.layout === 'match-setup') && !editor?.editing);
+    const active = Boolean(context.enabled && (media.matches || ['match-setup', 'list-menu', 'title-menu'].includes(context.layout)) && !editor?.editing);
     if (enabled !== active) { enabled = active; touch.setEnabled(enabled); }
     const modalPause=Boolean(context.enabled && context.paused && pauseDialog);
-    if (menuButton) menuButton.hidden = !context.enabled || media.matches || context.mode !== 'game' || Boolean(context.paused);
-    container.hidden = (!media.matches && context.layout !== 'match-setup') || modalPause;
+    if (menuButton) menuButton.hidden = !context.enabled || media.matches || !(context.canPause ?? context.mode === 'game') || Boolean(context.paused);
+    if (backNavigationButton) backNavigationButton.hidden = !context.enabled || media.matches || !context.canBack || ['match-setup', 'list-menu', 'title-menu'].includes(context.layout) || Boolean(context.gameScreen);
+    container.hidden = (!media.matches && !['match-setup', 'list-menu', 'title-menu'].includes(context.layout)) || modalPause;
     container.dataset.menuLayout = context.layout ?? '';
     if (view.document.body) view.document.body.dataset.menuLayout = active ? (context.layout ?? '') : '';
     menu.hidden = context.mode === 'game'; game.hidden = context.mode !== 'game';
@@ -154,7 +159,25 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
         } else notice.textContent = context.notice ?? '';
       }
     }
+    if (heading) {
+      heading.hidden = !context.heading || context.layout === 'match-setup';
+      if (heading.textContent !== (context.heading ?? '')) heading.textContent = context.heading ?? '';
+    }
+    if (fanNotice) {
+      fanNotice.hidden = !['list-menu', 'title-menu', 'match-setup'].includes(context.layout);
+      const text = [context.fanNotice, context.versionLabel].filter(Boolean).join('\n');
+      if (fanNotice.textContent !== text) fanNotice.textContent = text;
+    }
+    if (backButton) {
+      if (context.backSelected) {
+        backButton.setAttribute('aria-current', 'true');
+        if (!backWasSelected) backButton.scrollIntoView?.({ block: 'nearest' });
+      }
+      else backButton.removeAttribute('aria-current');
+      backWasSelected = Boolean(context.backSelected);
+    }
     renderItems();
+    companions.sync(enabled && context.layout === 'list-menu' ? context.companions : []);
     if (context.layout === 'match-setup') animateSetupCards(nativeItems, context.items ?? [], context.animationFrame ?? 0);
     pauseDialog?.sync(context.items??[],modalPause);
     const text = context.label ?? (context.enabled ? '메뉴 선택' : '불러오는 중…');
@@ -165,25 +188,34 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
     if (playerButton.textContent !== playerText) playerButton.textContent = playerText;
   }
   view.addEventListener('keydown', event => {
-    if (setupPicker?.isOpen || context.layout !== 'match-setup' || !['Enter', 'Space'].includes(event.code)) return;
+    if (event.target?.closest?.('.menu-companion')) return;
+    if (['ArrowUp', 'ArrowDown', 'KeyW', 'KeyS'].includes(event.code) && event.target === backButton) backButton.blur?.();
+    if (setupPicker?.isOpen || !['match-setup', 'list-menu', 'title-menu'].includes(context.layout) || !['Enter', 'Space'].includes(event.code)) return;
     if (event.target === backButton) {
       event.preventDefault(); event.stopImmediatePropagation();
       onUnlock(); queued |= MOBILE_INPUT.back;
       return;
     }
+    if (context.backSelected) {
+      event.preventDefault(); event.stopImmediatePropagation();
+      onUnlock(); queued |= MOBILE_INPUT.back; return;
+    }
+    if (context.layout !== 'match-setup') return;
     const selected = nativeItems.querySelector?.('[data-setup-choice][aria-current="true"], select[aria-current="true"]');
     if (!selected || selected.disabled) return;
     event.preventDefault(); event.stopImmediatePropagation();
     selected.focus({ preventScroll: true });
     try { if (setupPicker) setupPicker.open(Number(selected.dataset.setupField), context.items?.[Number(selected.dataset.setupField)]); else selected.showPicker?.(); } catch { /* 지원하지 않는 환경에서도 선택 항목의 포커스는 유지한다. */ }
   }, true);
+  backNavigationButton?.addEventListener?.('click', () => { onUnlock(); clearEditorInput(); onBack?.(); sync(); });
+  for (const type of ['keydown', 'keyup']) backNavigationButton?.addEventListener?.(type, event => event.stopPropagation());
   menuButton?.addEventListener?.('click', () => { onUnlock(); clearEditorInput(); onPause?.(); sync(); });
   for (const type of ['keydown', 'keyup']) menuButton?.addEventListener?.(type, event => event.stopPropagation());
   playerButton.addEventListener('click', () => { localPlayer = 1 - localPlayer; clear(); sync(); });
   // 포커스된 터치 버튼의 Enter가 전역 키보드 입력으로 한 번 더 들어가지 않게 한다.
   for (const event of ['keydown', 'keyup']) container.addEventListener(event, (e) => {
     if (context.layout === 'match-setup' && e.target?.tagName === 'SELECT' && (e.code === 'Enter' || e.code === 'Space')) { e.stopPropagation(); return; }
-    if (context.layout === 'match-setup' && Object.values(MENU_KEYS).some(codes => codes.includes(e.code))) {
+    if (['match-setup', 'list-menu', 'title-menu'].includes(context.layout) && Object.values(MENU_KEYS).some(codes => codes.includes(e.code))) {
       e.preventDefault(); // select 자체의 값 변경·버튼 클릭과 게임의 프레임 입력이 중복되지 않게 한다.
     } else e.stopPropagation();
   });
@@ -217,6 +249,8 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
   return {
     clear, sync, editLayout() { editor?.open(); }, get visible() { return media.matches; },
     get pauseDialogOpen(){return Boolean(pauseDialog?.open)},
+    get touchInput(){return media.matches},
+    get menuVisible(){return enabled && ['list-menu', 'title-menu', 'match-setup'].includes(context.layout)},
     read() {
       sync();
       const input = touch.read() | queued; queued = 0;

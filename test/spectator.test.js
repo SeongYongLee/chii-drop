@@ -231,7 +231,7 @@ test('경기 종료 후 플레이어의 대기실 복귀를 관전자도 따라�
   assert.equal(f.room.finished, true); assert.ok(last(p, 'finished'));
   const code = f.room.code, previous = f.room.matchId;
   f.lobby.handle(p, { type: 'returnRoom' }); assert.match(last(p, 'error').reason, /관전/); assert.equal(f.room.matchId, previous);
-  f.lobby.handle(f.a, { type: 'returnRoom' });
+  f.lobby.handle(f.a, { type: 'returnRoom', matchId: previous });
   assert.equal(f.room.code, code); assert.equal(f.room.state, null); assert.equal(f.room.ready.size, 0);
   for (const member of [f.a, f.b, p]) { assert.ok(last(member, 'reset')); assert.equal(member.room, f.room); }
   assert.equal(p.spectator, true); assert.equal(last(p, 'room').room.spectatorList[0].id, p.profileId);

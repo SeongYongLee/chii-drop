@@ -1,3 +1,5 @@
+import { analytics } from '../analytics/client.js';
+import { analyticsMode } from '../analytics/events.js';
 import { playSfx, unlockSfx } from '../audio/sfx.js';
 import { playCharacterVoice } from '../audio/character-voice.js';
 import { CPU_LEVELS } from '../cpu/cpu.js';
@@ -10,8 +12,8 @@ import { withControlsGuide } from './controls-guide.js';
 import { MODES } from './modes.js';
 import { createGameScene } from './game-scene.js';
 import { createStoryFlow } from './story-mode.js';
-import { SCREEN_HEIGHT, SCREEN_WIDTH, isPortraitScreen } from './screen.js';
-import { drawPortraitHero } from '../view/portrait-ui.js';
+import { SCREEN_HEIGHT, SCREEN_WIDTH, isPortraitScreen, screenHeight } from './screen.js';
+import { drawPortraitHero, drawPortraitSurface } from '../view/portrait-ui.js';
 import { setupBoxes, drawSetupMenu } from '../view/setup-menu.js';
 import { loadStory, saveSettings } from './storage.js';
 
@@ -54,10 +56,17 @@ function moveCursor(items, index, delta) {
 }
 
 // items(app)는 매 프레임 다시 만들어 현재 설정 값을 표시한다.
-function createListMenu({ title, items, onBack, notice, noticeSummary, columns = 1, compact = false, initialIndex = 0, navigationOrder, footer = '↑↓ 선택 · Enter 결정 · Esc 뒤로' }) {
+function createListMenu({ title, items, onBack, notice, noticeSummary, columns = 1, compact = false, companions = false, initialIndex = 0, navigationOrder, footer = '↑↓ 선택 · Enter 결정 · Esc 뒤로' }) {
   let index = initialIndex;
   let selectionAge = 12;
+  let brandBox, brandReaction, brandReactionAge = 90;
+  let itemsLength = -1;
+  const companionReactions = new Map();
   const lifts = [];
+  function leave(app) {
+    if (index === itemsLength) index = initialIndex;
+    onBack?.(app);
+  }
   function activate(app, picked, delta = 1) {
     const item = items(app)[picked];
     if (!item || item.disabled) return;
@@ -66,24 +75,51 @@ function createListMenu({ title, items, onBack, notice, noticeSummary, columns =
     else if (item.change) { playSfx(app.sfx, 'cursor'); item.change(app, delta); }
   }
   return {
+    menuCompanions: companions ? app => (app.skin.characters ?? []).slice(0,3).map((character,i)=>{
+      const frame=app.animationFrame??0;
+      const age=frame-(companionReactions.get(character.id)??-1000);
+      return {id:character.id,name:character.name??character.id,
+        react(){
+          if(age<72)return;
+          companionReactions.set(character.id,app.animationFrame??0);
+          void unlockSfx(app.sfx).then(()=>playCharacterVoice(app.sfx,character.id,'select',{channel:'menu-reaction'}));
+        },
+        draw(ctx,size){
+          app.skin.drawCharacter(ctx,character.id,age<72?'happy':'idle',4,4,size-8,
+            {frame:age<72?age:frame,instance:`menu-companion-${i}`,reducedMotion:reducedUiMotion(),presentation:'selection'});
+        },
+      };
+    }) : undefined,
+    back: onBack ? leave : undefined,
+    touchLayout: 'list-menu',
+    touchHeading: title,
+    touchBackSelected: () => Boolean(onBack && index === itemsLength),
     touchDirect: true,
     touchColumns: columns,
     touchNotice: (app) => notice?.(app),
     touchNoticeSummary: app => noticeSummary?.(app),
-    touchItems: (app) => items(app).map((item, i) => ({ label: item.label,
+    touchItems: (app) => { const list = items(app); itemsLength = list.length; return list.map((item, i) => ({ label: item.label,
       compactLabel: item.compactLabel,
       sectionLabel: item.sectionLabel,
       value: item.value, disabled: Boolean(item.disabled), selected: index === i,
       adjustable: Boolean(item.change && (typeof item.value === 'number' || item.adjustable)),
       focus: () => { index = i; selectionAge = 0; },
-      activate: (delta = 1) => activate(app, i, delta) })),
+      activate: (delta = 1) => activate(app, i, delta) })); },
     touchLabel(app) {
       if (app.portraitScreen) return '';
       const item = items(app)[index];
       return `${title} · ${item?.label ?? ''}${item?.value === undefined ? '' : ` ${item.value}`}`;
     },
     tap(app, { x, y }, viewport) {
-      if (viewport?.portrait) return true;
+      const hit=findTitleInteraction(app.skin,brandBox,{x,y});
+      if(hit){
+        if(brandReactionAge>=72 || brandReaction?.charId!==hit.charId){
+          brandReaction=hit;brandReactionAge=0;
+          void unlockSfx(app.sfx).then(()=>playCharacterVoice(app.sfx,hit.charId,'select',{channel:'menu-reaction'}));
+        }
+        return true;
+      }
+      if (viewport?.portrait || app.mobile?.menuVisible) return true;
       const list = items(app);
       const step = Math.min(49, 254 / Math.max(1, list.length - 1));
       const picked = Math.round((y - 148) / step);
@@ -95,23 +131,27 @@ function createListMenu({ title, items, onBack, notice, noticeSummary, columns =
     update(app) {
       const { keyboard, sfx } = app;
       const list = items(app);
-      if (list[index]?.disabled) index = moveCursor(list, index, 1);
+      itemsLength = list.length;
+      const navigable = onBack ? [...list, { label: '뒤로', select: leave }] : list;
+      if (list[index]?.disabled) index = moveCursor(navigable, index, 1);
       selectionAge += 1;
+      brandReactionAge += 1;
       if (wasPressed(keyboard, MENU_KEYS.up) || wasPressed(keyboard, MENU_KEYS.down)) {
         const direction = wasPressed(keyboard, MENU_KEYS.up) ? -1 : 1;
-        const order = navigationOrder?.(app);
-        index = order ? order[moveCursor(order.map(i => list[i]), order.indexOf(index), direction)] : moveCursor(list, index, direction);
+        const ordered = navigationOrder?.(app);
+        const order = ordered && (onBack ? [...ordered, list.length] : ordered);
+        index = order ? order[moveCursor(order.map(i => navigable[i]), order.indexOf(index), direction)] : moveCursor(navigable, index, direction);
         selectionAge = 0;
         playSfx(sfx, 'cursor');
       } else if (wasPressed(keyboard, MENU_KEYS.left) || wasPressed(keyboard, MENU_KEYS.right)) {
-        const change = list[index].change;
+        const change = navigable[index]?.change;
         if (change) {
           change(app, wasPressed(keyboard, MENU_KEYS.left) ? -1 : 1);
           selectionAge = 0;
           playSfx(sfx, 'cursor');
         }
       } else if (wasPressed(keyboard, MENU_KEYS.confirm)) {
-        const item = list[index];
+        const item = navigable[index];
         if (item.disabled) return;
         if (item.select) {
           playSfx(sfx, 'confirm');
@@ -123,7 +163,7 @@ function createListMenu({ title, items, onBack, notice, noticeSummary, columns =
         }
       } else if (wasPressed(keyboard, MENU_KEYS.back) && onBack) {
         playSfx(sfx, 'cancel');
-        onBack(app);
+        leave(app);
       }
       list.forEach((item, i) => {
         const target = i === index && !item.disabled && !reducedUiMotion() ? 4 : 0;
@@ -133,8 +173,9 @@ function createListMenu({ title, items, onBack, notice, noticeSummary, columns =
     draw(ctx, app) {
       const list = items(app);
       if (list[index]?.disabled) index = moveCursor(list, index, 1);
-      if(isPortraitScreen(ctx)){
-        drawPortraitHero(ctx,app,title);return;
+      if(isPortraitScreen(ctx) || app.mobile?.menuVisible){
+        brandBox=drawMenuBrand(ctx, app, app.animationFrame ?? 0);
+        drawTitleReaction(ctx,brandBox,brandReaction,brandReactionAge,isPortraitScreen(ctx));return;
       }
       const rowStep = Math.min(49, 254 / Math.max(1, list.length - 1));
       const itemHeight = Math.min(42, rowStep - 4);
@@ -175,31 +216,93 @@ function createListMenu({ title, items, onBack, notice, noticeSummary, columns =
   };
 }
 
+function drawMenuBrand(ctx, app, frame) {
+  drawPortraitSurface(ctx);
+  if (!app.skin.drawTitleArt) {
+    drawPortraitHero(ctx, app, app.skin.branding?.title ?? '퍼즐 대전', {
+      characters: app.skin.characters?.slice(0, 3), frame,
+    });
+    return;
+  }
+  const height = screenHeight(ctx);
+  const width = 880;
+  const artHeight = Math.min(620, height - 100);
+  return app.skin.drawTitleArt(ctx, (SCREEN_WIDTH - width) / 2,
+    Math.max(20, (height - artHeight) / 2), width, artHeight, { frame });
+}
+
+function findTitleInteraction(skin,box,point){
+  return box && skin.titleInteractions?.find(({bounds:b})=>b &&
+    point.x>=box.x+b.x*box.width && point.x<=box.x+(b.x+b.width)*box.width &&
+    point.y>=box.y+b.y*box.height && point.y<=box.y+(b.y+b.height)*box.height);
+}
+function drawTitleReaction(ctx,box,reaction,age,portrait){
+  if(!box || !reaction || age>=72)return;
+  const b=reaction.bounds,t=age/72,still=reducedUiMotion();
+  const cx=box.x+(b.x+b.width/2)*box.width,cy=box.y+(b.y+.12)*box.height;
+  ctx.save();ctx.globalAlpha=still?1:Math.min(1,(1-t)*4);
+  ctx.fillStyle='#d95c87';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.font=`bold ${portrait?44:30}px ${FONT}`;
+  for(const [dx,dy] of [[-.11,0],[.09,-.05],[.01,-.12]])
+    ctx.fillText('♥',cx+dx*box.width,cy+dy*box.height-(still?0:t*34));
+  ctx.restore();
+}
+
 function createTitleScene() {
   let frame = 0;
+  let artBox, reaction, reactionAge = 90;
   return {
     touchTitle: true,
-    touchLabel: app => app.portraitScreen ? '' : '화면을 누르거나 결정 버튼으로 시작하세요',
+    touchLayout: 'title-menu',
+    touchLabel: () => '',
+    tap(app, point) {
+      if (!artBox) return false;
+      const hit = findTitleInteraction(app.skin,artBox,point);
+      if (!hit) return false;
+      // Consume repeated taps without restarting the reaction or stacking voices.
+      if (reactionAge < 72 && reaction?.charId === hit.charId) return true;
+      reaction = hit; reactionAge = 0;
+      void unlockSfx(app.sfx).then(() => playCharacterVoice(app.sfx, hit.charId, 'select', {channel:'menu-reaction'}));
+      return true;
+    },
     update(app) {
       frame += 1;
+      reactionAge += 1;
       if (wasPressed(app.keyboard, MENU_KEYS.confirm)) {
         void unlockSfx(app.sfx).then(() => playSfx(app.sfx, 'confirm'));
         app.goToMenu();
       }
     },
     draw(ctx, app) {
+      if (app.skin.drawTitleArt) {
+        const portrait=isPortraitScreen(ctx), height=screenHeight(ctx);
+        if (portrait || app.mobile?.menuVisible) artBox = drawMenuBrand(ctx, app, frame);
+        else {
+          app.skin.drawBackground(ctx, SCREEN_WIDTH, SCREEN_HEIGHT, 'title');
+          artBox = app.skin.drawTitleArt(ctx, 100, 48, 760, 360, { frame });
+        }
+        drawTitleReaction(ctx,artBox,reaction,reactionAge,portrait);
+        ctx.fillStyle=INK;ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`${portrait?28:17}px ${FONT}`;
+        if (!app.mobile?.menuVisible) ctx.fillText(app.skin.branding?.subtitle??'',480,424,820);
+        if(!portrait && !app.mobile?.menuVisible){
+          paper(ctx,355,453,250,44,{fill:PALETTE.cream,radius:22});
+          ctx.font=`bold 18px ${FONT}`;
+          ctx.fillText(app.mobile?.visible?'화면을 눌러 시작':'Enter를 눌러 시작',480,475);
+        }
+        return;
+      }
+      const cast=app.skin.characters.slice(0,3);
       if(isPortraitScreen(ctx)){
         drawPortraitHero(ctx,app,app.skin.branding?.title??'퍼즐 대전',{
-          characters:app.skin.characters.slice(0,3),frame,
+          characters:cast,frame,
         });return;
       }
       app.skin.drawBackground(ctx, SCREEN_WIDTH, SCREEN_HEIGHT, 'title');
       paper(ctx, 160, 80, 640, 136, { fill: '#fffdf5', radius: 24 });
       flower(ctx, 192, 148, 12); flower(ctx, 768, 148, 12, PALETTE.blue);
-      const { characters } = app.skin;
       const size = 166;
-      characters.slice(0, 3).forEach((character, i) => {
-        const x = SCREEN_WIDTH / 2 - (size * 3 + 40) / 2 + i * (size + 20);
+      cast.forEach((character, i) => {
+        const x = SCREEN_WIDTH / 2 - (size * cast.length + 20 * (cast.length-1)) / 2 + i * (size + 20);
         app.skin.drawCharacter(ctx, character.id, 'idle', x, 263, size, { frame, instance: `title-${i}` });
       });
       ctx.fillStyle = INK;
@@ -229,7 +332,7 @@ function createTitleScene() {
         ctx.fillText(tagline, -width / 2 + prefixWidth, 0);
         ctx.restore();
       } else ctx.fillText(subtitle, 480, 187, 534);
-      {
+      if (!app.mobile?.menuVisible) {
         paper(ctx, 355, 453, 250, 44, { fill: PALETTE.cream, radius: 22 });
         ctx.fillStyle = INK; ctx.font = `bold 18px ${FONT}`;
         ctx.fillText(app.mobile?.visible ? '화면을 눌러 시작' : 'Enter를 눌러 시작', SCREEN_WIDTH / 2, 475);
@@ -244,6 +347,7 @@ function selectionCharacters(skin) {
 
 // 캐릭터·CPU 난이도는 모든 모드에서 같은 선수 카드로 설정한다.
 function createMatchSetup({ mode = 'cpu', characters: initialCharacters, cpuLevel, cpuLevels, onBack } = {}) {
+  analytics.track('mode_selected', { mode: analyticsMode(mode) });
   const labels = mode === 'watch' ? ['CPU 1', 'CPU 2'] : mode === 'cpu' ? ['1P', 'CPU'] : mode === 'versus' ? ['1P', '2P'] : ['1P'];
   const title = { cpu: 'CPU 대전', watch: 'CPU 관전', versus: '로컬 대전', solo: '연습' }[mode];
   const players = labels.map((label, side) => ({ label, characterIndex: side,
@@ -463,9 +567,8 @@ function createMultiplayerMenu() {
 function createMainMenu() {
   return createListMenu({
     title: '메인 메뉴',
+    companions: true,
     compact: true,
-    noticeSummary: app => app.portraitScreen ? '비공식 팬게임 · 제작·권리 안내' : null,
-    notice: (app) => [app.skin.branding?.fanNotice, app.versionLabel].filter(Boolean).join('\n'),
     footer: '↑↓ 선택 · Enter 결정 · Esc 타이틀',
     items: (app) => [
       { label: '싱글플레이', select: () => app.goToSinglePlayer() },

@@ -1,3 +1,5 @@
+import { analytics } from '../analytics/client.js';
+import { analyticsMode } from '../analytics/events.js';
 import { defaultKeyBindings, keyLabel } from '../input/key-settings.js';
 
 export const CONTROLS_GUIDE_KEY = 'chii-drop:controls-guide:v2';
@@ -20,7 +22,7 @@ export function guideRows(bindings = defaultKeyBindings(), group = 'solo') {
 
 // 다음 장면은 확인 이후에 생성한다. 안내 중에는 경기 시간과 난수가 진행되지 않는다.
 export function withControlsGuide(app, { mode = 'solo', next, background, force = false, stamps = [] }) {
-  const view = window, touch = app.mobile?.visible === true, context = guideContext(mode, touch);
+  const view = window, touch = app.mobile?.touchInput ?? (app.mobile?.visible === true), context = guideContext(mode, touch);
   let storage;
   try { storage = view.localStorage; } catch { /* 메모리 내에서도 안내를 기억한다. */ }
   app.controlsGuidesSeen ??= new Set();
@@ -33,6 +35,7 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
     update() {
       if (opened) return;
       opened = true;
+      analytics.track('controls_guide', { mode: analyticsMode(mode), action: 'shown', input_method: touch ? 'touch' : 'keyboard' });
       const openingKeys = new Set(app.keyboard.held);
       const doc = view.document, dialog = doc.createElement('dialog');
       dialog.className = 'controls-guide'; dialog.setAttribute('aria-labelledby', 'controls-guide-title');
@@ -90,7 +93,10 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
         groupButton.textContent = local ? '1인 조작 보기' : '로컬 2인 조작 보기';
       });
       groupButton.textContent = local ? '1인 조작 보기' : '로컬 2인 조작 보기';
-      actions.append(previous, groupButton, button);
+      const cancel = doc.createElement('button'); cancel.type = 'button'; cancel.textContent = '설정으로'; cancel.hidden = force;
+      cancel.addEventListener('click', () => finish(undefined, true));
+      button.className = 'game-guide-primary';
+      actions.append(previous, groupButton, button, cancel);
       function showPage(value) {
         page = value; const controls = page === 'controls';
         rules.hidden = warning.hidden = controls; cards.hidden = note.hidden = !controls;
@@ -102,7 +108,7 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
       rulesTab.addEventListener('click', () => showPage('rules')); controlsTab.addEventListener('click', () => showPage('controls'));
       previous.addEventListener('click', () => { if (force && page === 'rules') finish(); else showPage('rules'); });
       function clear() { app.mobile?.clear(); for (const name of ['held', 'pressed', 'touchHeld', 'touchPressed']) app.keyboard[name]?.clear(); }
-      function finish(code) {
+      function finish(code, cancelled = false) {
         if (!dialog.open || openingKeys.size) return;
         view.removeEventListener('keydown', onKey, { capture: true });
         view.removeEventListener('keyup', onRelease, { capture: true });
@@ -114,9 +120,10 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
           const cleanup = () => { view.removeEventListener('keydown', block, { capture: true }); view.removeEventListener('keyup', release, { capture: true }); view.removeEventListener('blur', cleanup); };
           view.addEventListener('keydown', block, { capture: true }); view.addEventListener('keyup', release, { capture: true }); view.addEventListener('blur', cleanup);
         }
+        analytics.track('controls_guide', { mode: analyticsMode(mode), action: cancelled ? 'cancelled' : 'completed', input_method: touch ? 'touch' : 'keyboard' });
         dialog.close(); dialog.remove(); clear();
-        if (!force) { app.controlsGuidesSeen.add(context); rememberGuide(storage, context); }
-        app.setScene(next());
+        if (!force && !cancelled) { app.controlsGuidesSeen.add(context); rememberGuide(storage, context); }
+        app.setScene(cancelled ? background : next());
       }
       function advance(code) {
         if (openingKeys.size) return;
@@ -128,10 +135,10 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
         if (event.repeat || openingKeys.size) return;
         if (event.code === 'ArrowLeft') showPage('rules');
         else if (event.code === 'ArrowRight') showPage('controls');
-        else if (event.code === 'Escape') { if (force) finish(event.code); else showPage('rules'); }
+        else if (event.code === 'Escape') finish(event.code, !force);
         else if (['Enter', 'Space'].includes(event.code)) {
           const target = event.target;
-          if ([rulesTab, controlsTab, previous, groupButton].includes(target)) target.click();
+          if ([rulesTab, controlsTab, previous, groupButton, cancel].includes(target)) target.click();
           else advance(event.code);
         }
       }
@@ -143,7 +150,7 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
       view.addEventListener('keyup', onRelease, { capture: true });
       view.addEventListener('keydown', onKey, { capture: true });
       button.addEventListener('click', () => advance());
-      dialog.addEventListener('cancel', (event) => event.preventDefault());
+      dialog.addEventListener('cancel', event => { event.preventDefault(); finish(undefined, !force); });
       showPage('rules');
       dialog.append(header, rules, warning, cards, note, actions); doc.body.append(dialog); clear(); dialog.showModal();
       // 선택에 쓴 Space를 놓을 때 확인 버튼의 기본 클릭이 발생하는 것을 막는다.

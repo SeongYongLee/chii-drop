@@ -72,11 +72,13 @@ test('경기 중 기권은 한 번만 정산하고 새 경기에는 이전 입�
   assert.equal(lobby.rooms.size, 0);
 });
 
-test('대기실 연결 종료는 남은 방을 유지하고 마지막 사람이 나가면 방을 삭제한다', () => {
-  const { lobby, a, b, room } = fixture();
+test('대기실 연결 종료는 재접속 유예 동안 방을 유지하고 모두 만료되면 삭제한다', () => {
+  const { lobby, a, b, room, advance } = fixture();
   lobby.disconnect(a);
   assert.equal(b.room, room); assert.equal(room.state, null);
   lobby.disconnect(b);
+  assert.equal(lobby.rooms.size, 1);
+  advance(30000);
   assert.equal(lobby.rooms.size, 0);
   assert.equal(lobby.profiles.get(a.profileId).games, 0);
 });

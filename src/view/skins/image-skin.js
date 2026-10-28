@@ -113,7 +113,7 @@ function spriteAt(clip, frame = 0, still = false, blink = null) {
 }
 
 export function skinImageFiles(manifest) {
-  const entries = [...Object.values(manifest.blobs ?? {}), manifest.background, ...Object.values(manifest.backgrounds ?? {}),
+  const entries = [...Object.values(manifest.blobs ?? {}), manifest.background, manifest.titleArt, ...Object.values(manifest.backgrounds ?? {}),
     ...(manifest.characters ?? []).flatMap(character => MOODS.map(mood => character.moods?.[mood]))];
   const files = entry => !entry ? [] : typeof entry === 'string' ? [entry]
     : [...(entry.file ? [entry.file] : []), ...(entry.frames ?? []).map(part => part?.file).filter(Boolean), ...files(entry.fieldAction)];
@@ -178,6 +178,7 @@ async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
   const blobs = await loadImageMap(baseUrl, Object.entries(manifest.blobs ?? {}), pending, onImage);
   const [background] = Object.values(await loadImageMap(baseUrl, [['background', manifest.background]], pending, onImage));
   const backgrounds = await loadImageMap(baseUrl, Object.entries(manifest.backgrounds ?? {}), pending, onImage);
+  const [titleArt] = Object.values(await loadImageMap(baseUrl, [['titleArt', manifest.titleArt]], pending, onImage));
   const mascot = await loadImageMap(baseUrl, Object.entries(manifest.mascot?.moods ?? {}), pending, onImage);
   const characters = [];
   for (const character of manifest.characters ?? []) {
@@ -199,7 +200,7 @@ async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
 
   const grassGarbage = manifest.garbageStyle === 'grass';
   const props = createPropBlobs(manifest.blobArt);
-  if (Object.keys(blobs).length === 0 && !background && Object.keys(backgrounds).length === 0 && characters.length === 0 && !grassGarbage && !props) {
+  if (Object.keys(blobs).length === 0 && !background && Object.keys(backgrounds).length === 0 && characters.length === 0 && !grassGarbage && !props && !titleArt) {
     return null;
   }
 
@@ -223,6 +224,7 @@ async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
       : undefined,
     drawWarningIcon: drawGrassWarning,
     characters: selectableCharacters,
+    titleInteractions: manifest.titleArt?.interactions ?? [],
     drawMascot: mascot.idle ? (ctx, mood, x, y, size, motion = {}) => {
       const clip = mascot[mood] ?? mascot.idle;
       const sprite = spriteAt(clip, motion.frame, motion.reducedMotion, clip === mascot.idle ? {
@@ -231,6 +233,13 @@ async function loadImageSkin(baseUrl, { onManifest, onImage } = {}) {
       const scale = size / Math.max(sprite.width, sprite.height) * sprite.scale;
       const w = sprite.width * scale, h = sprite.height * scale;
       drawSprite(ctx, sprite, x + (size-w)/2, y + size-h, w, h);
+    } : undefined,
+    drawTitleArt: titleArt ? (ctx,x,y,width,height,motion={}) => {
+      const sprite=spriteAt(titleArt,motion.frame,motion.reducedMotion);
+      const scale=Math.min(width/sprite.width,height/sprite.height)*sprite.scale;
+      const box={x:x+(width-sprite.width*scale)/2,y:y+(height-sprite.height*scale)/2,width:sprite.width*scale,height:sprite.height*scale};
+      drawSprite(ctx,sprite,box.x,box.y,box.width,box.height);
+      return box;
     } : undefined,
     fieldChainCharacters: (manifest.characters ?? []).filter(c => c.fieldChainReaction === true).map(c => c.id),
     fieldChainFrames(id, chain) {

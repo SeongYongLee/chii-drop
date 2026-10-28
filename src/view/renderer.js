@@ -193,8 +193,10 @@ function drawPiece(ctx, skin, x, player, showGhost) {
   if (!piece || player.phase !== 'control') {
     return;
   }
-  const px = x + piece.x * CELL - piece.moveDir * 16 * piece.moveFrames;
-  const py = FIELD_BOTTOM - CELL - piece.h;
+  // 온라인 시제품의 보간은 그리기에만 사용한다. 착지 표시는 확정된 정수 좌표를 쓴다.
+  const display = player.displayPiece ?? piece;
+  const px = x + display.x * CELL - display.moveDir * 16 * display.moveFrames;
+  const py = FIELD_BOTTOM - CELL - display.h;
 
   if (showGhost) {
     let row = rowOf(piece.h);

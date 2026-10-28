@@ -712,3 +712,185 @@
 :host .online-shell[data-matchmaking=false][data-short=true][data-compact=true][data-in-room=false] #lobby-view { grid-template-columns:minmax(0,1fr); grid-template-rows:44px minmax(0,1fr); }
 :host .online-shell[data-matchmaking=false][data-short=true][data-compact=true] #panel-play:not([hidden]) { grid-column:1; grid-row:2; }
 :host .online-shell[data-matchmaking=false][data-short=true][data-compact=true] .lobby-tabs { grid-column:1; grid-row:1; }
+
+.online-shell #invite-choice-dialog h2 { margin:6px 0 14px; }
+.online-shell #invite-choice-name { display:block; overflow-wrap:anywhere; }
+.online-shell #invite-choice-message { margin:12px 0; line-height:1.5; }
+.online-shell .invite-choice-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:18px; }
+.online-shell .invite-choice-actions button { min-height:44px; padding:10px 8px; }
+
+/* 온라인 메뉴 전체에서 공유하는 종이 패널·글자·조작 기준. */
+.online-shell { --panel-paper:#fffaf0; --panel-line:#b9aa90; --panel-radius:18px; --control-radius:12px; --panel-space:14px; --section-title:22px; }
+.online-shell[data-compact=true] { --panel-space:8px; --panel-radius:14px; --section-title:18px; }
+:host .online-shell :is(.rooms-card,.create-card,.room-guide,.ranking,.room-arena,.room-spectators,.character-select-view) { border:2px solid var(--panel-line); border-radius:var(--panel-radius); background:var(--panel-paper); box-shadow:0 3px 0 #8b775b20; }
+:host .online-shell :is(.create-card,.room-guide) { padding:var(--panel-space); }
+:host .online-shell :is(.page-heading h2,#room-title,.selection-header h2) { font-size:var(--section-title); font-weight:800; line-height:1.3; margin:0; text-wrap:balance; }
+:host .online-shell :is(.section-head h3,.panel-heading h3,.room-zone-heading h3,.room-spectators h3) { font-size:17px; font-weight:800; line-height:1.3; margin:0; }
+:host .online-shell :is(.panel-heading,.room-zone-heading,.spectator-panel-heading) { display:flex; align-items:center; gap:8px; min-height:32px; padding-bottom:8px; border-bottom:1px solid #ded3c1; }
+:host .online-shell .room-guide { display:flex; flex-direction:column; justify-content:flex-start; gap:14px; }
+:host .online-shell .room-guide h3 { text-align:left; }
+:host .online-shell .room-guide p { margin:0; line-height:1.5; }
+:host .online-shell .room-guide .audience-mark { width:28px; height:28px; font-size:17px; background:#efd3df; color:#8b586e; }
+:host .online-shell .create-layout { gap:12px; min-height:0; }
+:host .online-shell .create-card { justify-content:flex-start; overflow:auto; overscroll-behavior:contain; }
+:host .online-shell .create-form { gap:12px; max-width:none; margin:0; }
+:host .online-shell .form-actions { display:grid; grid-template-columns:minmax(80px,.7fr) minmax(0,1.3fr); gap:10px; grid-column:1/-1; }
+:host .online-shell .form-actions>* { width:100%; }
+:host .online-shell #panel-rankings { grid-template-rows:36px minmax(0,1fr); }
+:host .online-shell .ranking { display:grid; grid-template-rows:auto minmax(0,1fr); padding:var(--panel-space); overflow:hidden; }
+:host .online-shell #rankings { min-height:0; overflow:auto; overscroll-behavior:contain; }
+:host .online-shell .my-standing { margin:0 0 10px; padding:10px 12px; border:1px solid #ddcda9; border-radius:var(--control-radius); background:#f9edcb; }
+:host .online-shell .ranking-note { color:var(--muted); font-size:12px; }
+:host .online-shell :is(.rooms-card>.section-head,.room-header) { border-bottom:1px solid #ded3c1; }
+:host .online-shell .room-header { padding-bottom:10px; }
+:host .online-shell .room-bottom { padding:10px var(--panel-space); border:2px solid var(--panel-line); border-radius:var(--panel-radius); background:var(--panel-paper); box-shadow:none; }
+:host .online-shell :is(button:not(.touch-controls button):not(.touch-preview button),.button,input:not([type=range]),select) { border-radius:var(--control-radius); }
+:host .online-shell :is(button:not(.touch-controls button):not(.touch-preview button),.button) { min-height:44px; font-weight:750; touch-action:manipulation; }
+:host .online-shell .secondary { background:#f5f0e5; color:var(--ink); border-color:var(--panel-line); box-shadow:0 3px 0 #8b775b20; }
+:host .online-shell .primary { background:#f0cbd5; color:var(--ink); border-color:#bc8191; box-shadow:0 3px 0 #bc819133; }
+:host .online-shell :is(.count,.spectator-total,.room-code-badge,.profile-score,td) { font-variant-numeric:tabular-nums; }
+:host .online-shell dialog { border:2px solid var(--panel-line); border-radius:var(--panel-radius); background:var(--paper); }
+:host .online-shell :focus-visible { outline:3px solid #a97793; outline-offset:3px; }
+:host .online-shell .topbar { min-height:50px; }
+:host .online-shell[data-compact=true] :is(#panel-create,#panel-rankings) { grid-template-rows:28px minmax(0,1fr); gap:8px; }
+:host .online-shell[data-compact=true] :is(#panel-create,#panel-rankings)>.page-heading { display:flex; }
+:host .online-shell[data-compact=true] :is(.section-head h3,.panel-heading h3,.room-zone-heading h3,.room-spectators h3) { font-size:14px; }
+:host .online-shell[data-compact=true] .create-form { gap:8px 12px; }
+:host .online-shell[data-compact=true] :is(.room-header,.room-zone-heading,.spectator-panel-heading) { padding-bottom:4px; }
+:host .online-shell[data-compact=true] .my-standing { padding:6px 10px; font-size:12px; }
+:host .online-shell[data-compact=true] .room-bottom { padding:6px 8px; }
+@media (max-width:900px) { :host .online-shell .room-guide { display:none; } }
+@media (max-width:680px) and (orientation:portrait) {
+  .online-shell { --panel-space:10px; --section-title:20px; }
+  :host .online-shell .ranking-note { max-width:150px; text-align:right; font-size:10px; }
+}
+:host .online-shell[data-matchmaking=false] #panel-play:not([hidden]) { grid-template-rows:36px minmax(0,1fr); gap:12px; }
+:host .online-shell #panel-play>.page-heading { display:flex; grid-row:1; }
+:host .online-shell[data-matchmaking=false] #panel-play>.rooms-card { grid-row:2; }
+:host .online-shell[data-matchmaking=false][data-compact=true] #panel-play:not([hidden]) { grid-template-rows:28px minmax(0,1fr); gap:8px; }
+:host .online-shell .spectator-empty { grid-column:1/-1; width:100%; }
+/* 낮은 가로 화면에서도 44px 버튼과 패널 안쪽 여백을 함께 확보한다. */
+:host .online-shell[data-compact=true]:not([data-playing=true]) #room-view { grid-template-rows:52px minmax(0,1fr) 60px; }
+:host .online-shell :is(#ready,#take-seat,#create,#confirm-character),:host .online-shell .lobby-tabs a { min-height:44px; }
+:host .online-shell :is(#ready,#take-seat,#create,#confirm-character) { font-size:14px; }
+
+.online-shell .online-result:has(#rematch-status:not([hidden])) { display:grid; gap:8px; width:min(460px,calc(100% - 24px)); }
+.online-shell #rematch-status { font-size:12px; color:var(--muted); line-height:1.4; }
+.online-shell .result-actions { display:none; }
+.online-shell .result-actions:has(>button:not([hidden])) { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.online-shell .result-actions button { min-width:0; min-height:44px; padding:8px 10px; font-size:14px; }
+@media (orientation:landscape) and (max-height:560px) { .online-shell .online-result { bottom:8px; padding:8px 12px; } }
+
+/* 프로필은 입력·캐릭터·닫기를 한 창에서 다룬다. */
+:host .online-shell .profile-popover { position:fixed; inset:50% auto auto 50%; transform:translate(-50%,-50%); width:min(400px,calc(100% - 24px)); max-height:calc(100% - 24px); overflow:auto; text-align:left; z-index:20; }
+.online-shell #name-form { display:grid; gap:10px; }
+.online-shell .profile-characters { min-width:0; padding:8px; border:1px solid var(--line); border-radius:12px; }
+.online-shell .profile-characters legend { font-size:13px; font-weight:700; }
+.online-shell #profile-character-options { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
+:host .online-shell .profile-character { min-width:0; padding:6px 2px; flex-direction:column; gap:4px; font-size:11px; }
+.online-shell .profile-character canvas { width:48px; height:48px; }
+.online-shell .profile-character[aria-pressed=true] { background:#f0cbd5; border-color:#bc8191; }
+
+/* 채팅은 경기 상태와 독립된 방 패널이다. 대기실에서는 자리를 확보한다. */
+:host .online-shell[data-in-room=true]:not([data-playing=true]) main { display:grid; grid-template-columns:minmax(0,1fr) 260px; grid-template-rows:minmax(0,1fr) 24px; gap:10px; }
+:host .online-shell[data-in-room=true]:not([data-playing=true]) :is(#room-view,#character-select-view) { grid-column:1; grid-row:1; min-width:0; min-height:0; }
+:host .online-shell[data-in-room=true]:not([data-playing=true]) .status-bar { grid-column:1/-1; grid-row:2; }
+.online-shell .room-chat { display:flex; flex-direction:column; grid-column:2; grid-row:1; min-width:0; min-height:0; padding:10px; border:2px solid var(--panel-line); border-radius:var(--panel-radius); background:var(--panel-paper); gap:6px; overflow:hidden; }
+.online-shell .chat-heading { display:flex; align-items:center; justify-content:space-between; flex:none; gap:6px; border-bottom:1px solid #ded3c1; }
+.online-shell .chat-heading h3 { font-size:15px; }
+.online-shell .chat-heading button { padding:4px 8px; font-size:12px; }
+.online-shell .chat-body { display:flex; flex-direction:column; min-height:0; flex:1; overflow:hidden; }
+.online-shell .chat-log { display:flex; flex-direction:column; gap:7px; min-height:0; overflow:auto; overscroll-behavior:contain; margin:0; padding:4px 0; list-style:none; font-size:13px; }
+.online-shell .chat-log li { flex:none; overflow-wrap:anywhere; line-height:1.4; }
+.online-shell .chat-log strong { display:block; color:#87586b; font-size:11px; }
+.online-shell .chat-log .is-self strong { color:#526843; }
+.online-shell .chat-form { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px; flex:none; }
+.online-shell .chat-form input { font-size:16px; min-height:44px; padding:6px; }
+.online-shell .chat-form button { font-size:12px; padding:6px 8px; }
+.online-shell #chat-status { font-size:11px; flex:none; }
+.online-shell #chat-status:empty { display:none; }
+.online-shell #chat-empty { margin:auto; text-align:center; }
+.online-shell[data-chat-expanded=false] .chat-body { max-height:52px; }
+
+/* 경기판 크기는 유지하고 접을 수 있는 채팅을 겹쳐 표시한다. */
+:host .online-shell[data-playing=true] .room-chat { position:absolute; z-index:6; top:58px; left:50%; transform:translateX(-50%); width:min(300px,calc(100% - 24px)); height:200px; max-height:calc(100% - 210px); background:#fffaf0ed; }
+:host .online-shell[data-playing=true][data-chat-expanded=false] .room-chat { width:min(240px,calc(100% - 24px)); height:auto; max-height:120px; background:#fffaf0c9; }
+.online-shell[data-playing=true] .chat-heading h3 { font-size:12px; }
+.online-shell[data-playing=true] .chat-log { font-size:12px; }
+.online-shell[data-playing=true][data-chat-expanded=false] .chat-log strong { display:inline; margin-right:5px; }
+.online-shell[data-playing=true][data-chat-expanded=false] #chat-empty { display:none; }
+@media (max-width:680px) and (orientation:portrait) {
+  :host .online-shell[data-in-room=true]:not([data-playing=true]) main { grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) 175px 20px; gap:8px; padding:10px; }
+  :host .online-shell[data-in-room=true]:not([data-playing=true]) .room-chat { grid-column:1; grid-row:2; }
+  :host .online-shell[data-in-room=true]:not([data-playing=true]) .status-bar { grid-row:3; }
+  :host .online-shell[data-in-room=true]:not([data-playing=true]) #room-view { grid-template-rows:auto minmax(130px,1fr) minmax(60px,90px) auto; gap:8px; }
+  :host .online-shell[data-in-room=true] .room-header { padding-bottom:6px; }
+  :host .online-shell[data-in-room=true] .room-meta .eyebrow { display:none; }
+  :host .online-shell[data-in-room=true] #room-title { font-size:18px; }
+  :host .online-shell[data-in-room=true] .room-invite { display:flex; flex-wrap:nowrap; gap:5px; }
+  :host .online-shell[data-in-room=true] .room-code-badge { flex:1; min-width:0; width:auto; padding:4px; }
+  :host .online-shell[data-in-room=true] .room-code-badge>span { display:none; }
+  :host .online-shell[data-in-room=true] #room-code { font-size:19px; }
+  :host .online-shell[data-in-room=true] .room-invite button { width:auto; min-width:0; font-size:10px; padding:4px 6px; }
+  :host .online-shell[data-in-room=true] .room-spectators { padding:8px; gap:4px; }
+  :host .online-shell[data-in-room=true] .room-spectators .spectator-hint { display:none; }
+  :host .online-shell[data-in-room=true] .room-bottom { padding:8px; gap:6px; }
+  :host .online-shell[data-in-room=true] .room-bottom>p { font-size:10px; }
+}
+@media (orientation:landscape) and (max-height:560px) {
+  :host .online-shell[data-in-room=true]:not([data-playing=true]) main { grid-template-columns:minmax(0,1fr) 210px; padding:8px; gap:8px; }
+  :host .online-shell[data-in-room=true]:not([data-playing=true]) .room-header > .room-heading { width:100%; max-width:none; }
+  :host .online-shell[data-playing=true] .room-chat { top:8px; max-height:170px; }
+  :host .online-shell[data-playing=true][data-chat-expanded=false] .room-chat { max-height:100px; }
+  :host .online-shell[data-in-room=true]:not([data-playing=true]) #room-view { grid-template-columns:minmax(0,1fr); grid-template-rows:44px minmax(92px,1fr) 44px 60px; gap:6px; }
+  :host .online-shell[data-in-room=true] .room-arena { grid-column:1; grid-row:2; padding:4px 8px; gap:4px; }
+  :host .online-shell[data-in-room=true] .room-arena>.spectator-hint { display:none; }
+  :host .online-shell[data-in-room=true] .room-zone-heading { min-height:24px; padding-bottom:2px; }
+  :host .online-shell[data-in-room=true] .room-spectators { grid-column:1; grid-row:3; flex-direction:row; align-items:center; padding:2px 6px; gap:6px; }
+  :host .online-shell[data-in-room=true] .spectator-panel-heading { border:0; padding:0; min-height:24px; flex:none; }
+  :host .online-shell[data-in-room=true] .room-spectators .spectator-hint { display:none; }
+  :host .online-shell[data-in-room=true] #spectator-list { display:flex; flex-direction:row; align-items:center; gap:6px; overflow:auto; }
+  :host .online-shell[data-in-room=true] #spectator-list .spectator-name { padding:2px 6px; min-height:32px; flex:none; }
+  :host .online-shell[data-in-room=true] .spectator-name .spectator-avatar { display:none; }
+  :host .online-shell[data-in-room=true] .spectator-details strong { max-width:84px; }
+  :host .online-shell[data-in-room=true] .room-bottom { grid-column:1; grid-row:4; padding:4px; }
+}
+
+/* Match the local menus: warm paper, quieter borders and a clear input cursor. */
+.online-shell { --line:#dfcdb9; --paper:#fffdf6; --green-soft:#f7e2e7; }
+.online-shell:not([data-playing=true]) main { border-width:1px; box-shadow:0 8px 0 #b9a18c19,0 16px 40px #6550440d; }
+.online-shell .brand-title { border-width:1px; border-radius:20px; box-shadow:0 3px 0 #c7b49d40; }
+.online-shell button:not(.touch-controls button):not(.touch-preview button),
+.online-shell .button, .online-shell .lobby-tabs a, .online-shell .back {
+  border-width:1px; border-radius:16px;
+  transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease;
+}
+.online-shell .primary { background:#f4c9d2; border-color:#bd929a; box-shadow:0 3px 0 #b7798933; }
+.online-shell .secondary { background:#fffdf6; color:var(--ink); border-color:#cfbca7; }
+.online-shell .lobby-tabs a[aria-current=page] { background:#f7dce2; border-color:#b77989; }
+.online-shell .room-row { border-width:1px; border-radius:18px; background:#fffaf1; }
+.online-shell .profile-score { border-width:1px; background:#fbefcf; }
+.online-shell .card, .online-shell input, .online-shell select, .online-shell dialog { border-width:1px; }
+.online-shell :is(button,a,input,select,textarea,summary):focus-visible {
+  outline:3px solid #a56b86; outline-offset:3px;
+  box-shadow:0 0 0 6px #fffaf0d9;
+  scroll-margin:12px;
+}
+.online-shell :is(button,a,summary):focus-visible { background-color:#f7dce2; color:#573d46; }
+.online-shell :is(button,a,summary):active { transform:translateY(1px); }
+.online-shell .online-navigation-hint {
+  flex:none; grid-column:1/-1; margin-top:auto; padding:8px 12px;
+  border-top:1px solid #dfcdb980; text-align:center; color:#786356;
+  font-size:11px; line-height:1.6; text-wrap:balance;
+}
+.online-navigation-hint kbd { font:inherit; font-weight:700; color:#655044; }
+.online-navigation-hint span { margin:0 5px; color:#ba9d8b; }
+.online-shell[data-playing=true] .online-navigation-hint { display:none; }
+.online-shell dialog { border-radius:24px; padding:24px; }
+.online-shell dialog::backdrop { background:#51423755; backdrop-filter:blur(3px); }
+@media (hover:hover) {
+  .online-shell :is(button,a,summary):not(:disabled):hover { border-color:#b88b78; background-color:#faeade; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .online-shell button,.online-shell a { transition:none!important; }
+}

@@ -24,7 +24,10 @@
     "check:online-budget": "node scripts/check-online-budget.mjs",
     "check:build": "node scripts/check-build.mjs",
     "check:release": "node scripts/check-release.mjs",
-    "assets:sync": "node scripts/prepare-pages-assets.mjs"
+    "assets:sync": "node scripts/prepare-pages-assets.mjs",
+    "compare:network": "node scripts/compare-state-stream.mjs",
+    "compare:batches": "node scripts/compare-input-batches.mjs",
+    "compare:batches-storage": "node scripts/compare-batch-storage.mjs"
   },
   "dependencies": {
     "ws": "^8.22.0"

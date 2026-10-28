@@ -17,9 +17,9 @@ import { RULES_VERSION } from '../src/engine/rules.js';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.webp': 'image/webp', '.json': 'application/json', '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.md': 'text/plain; charset=utf-8' };
 
-export function createOnlineServer({ origins = [], profiles = createProfileStore(), serveStatic = true, cloudflareURL } = {}) {
+export function createOnlineServer({ origins = [], profiles = createProfileStore(), serveStatic = true, cloudflareURL, onFrame } = {}) {
   if (!serveStatic && !origins.length) throw new Error('운영 서버의 허용 origin이 필요합니다.');
-  const lobby = createRooms({ profiles });
+  const lobby = createRooms({ profiles, allowStatePrototype: serveStatic && !cloudflareURL, allowBatchExperiments: serveStatic && !cloudflareURL, onFrame });
   const editVoices = serveStatic ? createVoiceEditor({ root }) : null;
   const editMusic = serveStatic ? createMusicEditor({ root }) : null;
   const server = createServer(async (req, res) => {

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeRoomCode, roomInviteCode, roomInviteURL } from '../src/net/room-invite.js';
+import { normalizeRoomCode, roomInviteCode, roomInviteURL, roomInviteDecision } from '../src/net/room-invite.js';
 
 test('초대 링크는 Pages 하위 경로를 유지하고 방 코드만 포함한다', () => {
   const invite = roomInviteURL('https://example.com/game/index.html?token=secret&password=hidden#new-room', 'a1b2c3d4');
@@ -24,4 +24,27 @@ test('잘못된 방 코드는 참가하지 않고, 링크에 인증 정보를 �
   const link = roomInviteURL('https://name:secret@example.com/game/', 'A1B2C3D4');
   assert.equal(link, 'https://example.com/game/index.html?room=A1B2C3D4#play');
   assert.throws(() => roomInviteURL('file:///tmp/index.html', 'A1B2C3D4'));
+});
+
+test('초대는 빈 대전석에 참가하고 만석·선택 중·경기 중이면 관전 선택을 제안한다', () => {
+  const room = { phase: 'waiting', capacity: 2, memberCapacity: 6, players: [{}], spectators: 0 };
+  assert.equal(roomInviteDecision(room).action, 'join');
+  assert.equal(roomInviteDecision({ ...room, players: [] }).action, 'join');
+  for (const phase of ['waiting', 'selecting', 'playing']) {
+    const fullSeats = { ...room, phase, players: [{}, {}] };
+    assert.equal(roomInviteDecision(fullSeats).action, 'offer-watch');
+    assert.equal(roomInviteDecision({ ...fullSeats, spectators: 4 }).action, 'full');
+  }
+  assert.match(roomInviteDecision({ ...room, phase: 'selecting' }).message, /캐릭터/);
+  assert.match(roomInviteDecision({ ...room, phase: 'playing' }).message, /경기/);
+});
+
+test('전체 정원·사라진 방은 입장을 막고 비밀번호 방도 동일한 역할 선택을 따른다', () => {
+  const room = { phase: 'waiting', capacity: 2, memberCapacity: 6, players: [{}], spectators: 5, locked: true };
+  assert.equal(roomInviteDecision(room).action, 'full');
+  assert.equal(roomInviteDecision({ ...room, players: [], spectators: 6 }).action, 'full');
+  assert.equal(roomInviteDecision({ ...room, spectators: 4 }).action, 'join');
+  assert.equal(roomInviteDecision({ ...room, players: [{}, {}], spectators: 3 }).action, 'offer-watch');
+  assert.equal(roomInviteDecision(undefined).action, 'missing');
+  assert.equal(roomInviteDecision(null).action, 'missing');
 });
