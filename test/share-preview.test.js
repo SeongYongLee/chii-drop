@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {roomInviteURL} from '../src/net/room-invite.js';
 
-test('초대 미리보기는 JavaScript 실행 없이 현재 타이틀 PNG와 공개 절대 주소를 제공한다',async()=>{
+test('공유 미리보기는 게임을 소개하고 방 초대 주소는 유지한다',async()=>{
  const html=await readFile('index.html','utf8');
  const head=html.match(/<head>([\s\S]*?)<\/head>/)[1];
  const tags=new Map([...head.matchAll(/<meta\s+(?:property|name)="([^"]+)"\s+content="([^"]*)"\s*\/>/g)].map(m=>[m[1],m[2]]));
@@ -19,7 +19,10 @@ test('초대 미리보기는 JavaScript 실행 없이 현재 타이틀 PNG와 �
  assert.equal(tags.get('og:image:type'),'image/png');
  assert.equal(tags.get('twitter:card'),'summary_large_image');
  assert.equal(tags.get('twitter:image'),image.href);
- assert.ok(tags.get('og:title')?.includes('대전 초대'));
+ assert.equal(tags.get('og:title'),'치와치와');
+ assert.doesNotMatch(tags.get('og:title'),/초대/);
+ assert.equal(tags.get('og:description'),'귀여운 캐릭터와 즐기는 낙하 퍼즐 대전 게임입니다.');
+ assert.equal(tags.get('description'),tags.get('og:description'));
  assert.ok(tags.get('og:description')?.length>10);
  assert.equal(tags.get('twitter:title'),tags.get('og:title'));
  assert.equal(tags.get('twitter:description'),tags.get('og:description'));

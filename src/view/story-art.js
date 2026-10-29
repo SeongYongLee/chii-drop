@@ -185,7 +185,7 @@ function drawStoryArt(ctx, app, script, visual, guests = [], shot = {}) {
     for (let i = 0; i < 5; i++) {
       const y = 147 + i * 35;
       ctx.strokeStyle = '#b4a994'; ctx.beginPath(); ctx.moveTo(300, y); ctx.lineTo(610, y); ctx.stroke();
-      caption(ctx, visual === 'invitation' ? '·' : '— — —', y - 11);
+      caption(ctx, visual === 'invitation' ? '·' : '· · ·', y - 11);
       if (visual === 'register') { ctx.fillStyle = '#a26c7e'; ctx.fillText('○', 650, y - 11); }
     }
   } else if (visual === 'tower') {

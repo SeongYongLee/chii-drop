@@ -37,6 +37,21 @@ test('하단 캐릭터 버튼은 애니메이션 중 재생성되지 않고 최�
  assert.equal(host.style.left,'16px');
 });
 
+test('메뉴와 온라인 앵커 높이가 바뀌어도 캐릭터는 하단 안내 위 같은 위치를 유지한다',()=>{
+ const root=new Element('div'),body=new Element('body'),footer=new Element('footer');
+ let bottom=400;
+ root.getBoundingClientRect=()=>({left:20,bottom,width:320});
+ footer.getBoundingClientRect=()=>({top:600});
+ const doc={body,documentElement:{clientWidth:360},getElementById:()=>footer,createElement:tag=>new Element(tag)};
+ const component=createMenuCompanions(doc,root,()=>{});
+ const entries=[{id:'a',name:'배우',draw(){}}];
+ component.sync(entries);const host=body.children[0],placement={...host.style};
+ assert.equal(host.style.top,'484px');
+ bottom=590;component.sync(entries);assert.deepEqual(host.style,placement);
+ component.sync(entries,{getBoundingClientRect:()=>({left:0,bottom:620,width:360})});
+ assert.deepEqual(host.style,placement,'온라인 메뉴도 같은 안내 기준을 사용한다');
+});
+
 test('메인 메뉴의 세 캐릭터는 각자 대기·기쁨 시간을 유지하고 72프레임 뒤 대기로 돌아간다',t=>{
  const previous=globalThis.window;globalThis.window={matchMedia:()=>({matches:false})};
  t.after(()=>{globalThis.window=previous});

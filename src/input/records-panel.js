@@ -38,7 +38,7 @@ export function renderRecordsPanel(document, container, records) {
     const line = make('tr', ''), name = make('th', '', row.label); name.scope = 'row';
     const played = row.win + row.lose;
     line.append(name, make('td', 'record-wins', format(row.win)), make('td', '', format(row.lose)),
-      make('td', 'record-rate', played ? `${Math.round(row.win / played * 100)}%` : '—'));
+      make('td', 'record-rate', played ? `${Math.round(row.win / played * 100)}%` : '기록 없음'));
     body.append(line);
   });
   table.append(head, body); section.append(heading, table);

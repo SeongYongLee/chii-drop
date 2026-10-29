@@ -1148,7 +1148,7 @@
   :host(#online-mode) .online-shell:not([data-playing=true]) .room-chat { padding:4px 8px; }
 }
 @media(max-width:600px) and (max-height:600px) {
-  :host(#online-mode) .online-shell:not([data-playing=true]) { --online-floor:32px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) { --online-floor:64px; }
 }
 @media(max-width:600px) {
   :host(#online-mode) .online-shell:not([data-playing=true]) .profile-popover {

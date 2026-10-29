@@ -1,4 +1,4 @@
-// Background characters sit outside the menu card, anchored just below its controls.
+// Background characters keep their own strip above the page notice across menus.
 export const COMPANION_SPRITE_SIZE=112;
 export const COMPANION_HEADROOM=24;
 export function createMenuCompanions(document, parent, onUnlock) {
@@ -22,9 +22,9 @@ export function createMenuCompanions(document, parent, onUnlock) {
         const viewport=document.documentElement?.clientWidth??rect.width;
         width=Math.max(0,viewport-32);
         const left=Math.max(16,Math.min(viewport-width-16,rect.left+(rect.width-width)/2));
-        const footer=anchor===parent?document.getElementById?.('fan-notice'):null;
+        const footer=document.getElementById?.('fan-notice');
         const floor=footer&&!footer.hidden?footer.getBoundingClientRect?.().top:null;
-        const top=Math.max(rect.bottom+8,Number.isFinite(floor)?floor-size-12:0);
+        const top=Number.isFinite(floor)?floor-size-12:rect.bottom+8;
         const placement={left:`${left}px`,top:`${top}px`,width:`${width}px`};
         for(const [key,value] of Object.entries(placement))if(host.style[key]!==value)host.style[key]=value;
       }

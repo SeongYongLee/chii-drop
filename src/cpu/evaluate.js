@@ -226,7 +226,7 @@ function fieldScore(field, { potential = true } = {}) {
   return value;
 }
 
-// ctx: { incoming, danger } — danger는 놓기 전 필드가 높을 때 true
+// ctx: { incoming, danger }. danger는 놓기 전 필드가 높을 때 true
 function chainReward(sim, ctx) {
   if (sim.chains === 0) {
     return 0;

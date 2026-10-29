@@ -25,7 +25,7 @@ test('읽기 전용 전적표는 점수 구분자·승률·미플레이 상태�
   const nodes=descendants(container), texts=nodes.map(node=>node.textContent);
   assert.ok(texts.includes('123,456,789'));
   assert.ok(texts.includes('67%'));
-  assert.ok(texts.includes('—'));
+  assert.ok(texts.includes('기록 없음'));
   assert.equal(nodes.filter(node=>node.tag==='table').length,1);
   assert.equal(nodes.filter(node=>node.scope==='row').length,2);
   assert.equal(nodes.filter(node=>node.tag==='button').length,0);
