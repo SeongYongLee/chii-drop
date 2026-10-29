@@ -65,8 +65,8 @@ test('안내는 자동으로 닫히지 않고 선택 키 해제 후 새 확인 �
     assert.equal(started, 0);
     key('keydown', 'Enter');
     assert.equal(started, 0); // 게임 설명에서 조작 방법으로 이동해도 경기는 시작하지 않는다.
-    assert.equal(dialog.children[1].hidden, true);
-    assert.equal(dialog.children[3].hidden, false);
+    assert.equal(dialog.children[1].children[1].hidden, true);
+    assert.equal(dialog.children[1].children[3].hidden, false);
     assert.equal(hasSeenGuide(view.localStorage, 'solo:keyboard'), false);
     key('keyup', 'Enter'); key('keydown', 'Enter');
     assert.equal(started, 1); assert.equal(dialog.open, false);
@@ -80,13 +80,13 @@ test('안내는 자동으로 닫히지 않고 선택 키 해제 후 새 확인 �
     app.scene.update();
     const reopened = body.children.at(-1);
     assert.equal(reopened.children[0].children[0].textContent, '게임 방법');
-    assert.equal(reopened.children[1].hidden, false); // 다시 열 때도 같은 게임 설명에서 시작한다.
-    assert.equal(reopened.children[1].children.length, 3);
+    assert.equal(reopened.children[1].children[1].hidden, false); // 다시 열 때도 같은 게임 설명에서 시작한다.
+    assert.equal(reopened.children[1].children[1].children.length, 3);
     key('keydown', 'Enter');
     const actions = reopened.children.at(-1), groups = actions.children[1];
     assert.equal(groups.hidden, false);
     groups.dispatchEvent(new Event('click'));
-    assert.equal(reopened.children[3].children.length, 2); // 메인 메뉴에서는 로컬 2인 키도 확인한다.
+    assert.equal(reopened.children[1].children[3].children.length, 2); // 메인 메뉴에서는 로컬 2인 키도 확인한다.
     key('keydown', 'Escape');
     assert.equal(started, 3); assert.equal(reopened.open, false); key('keyup', 'Escape');
     const settings = { draw() {} };
@@ -111,4 +111,61 @@ test('온라인 안내는 싱글·로컬 확인 기록과 별개이며 입력 �
   rememberGuide(storage,guideContext('online',false));
   assert.equal(hasSeenGuide(storage,guideContext('online',false)),true);
   assert.equal(hasSeenGuide(storage,guideContext('online',true)),false);
+});
+
+test('좁은 화면은 규칙 하나씩 표시하고 탭 선택·회전·닫기에서도 모든 설명에 접근한다',async()=>{
+  const {withControlsGuide}=await import('../src/app/controls-guide.js');
+  const {createKeyboard}=await import('../src/input/keyboard.js');
+  class Element extends EventTarget {
+    children=[]; attrs={}; open=false;
+    append(...nodes){this.children.push(...nodes);} replaceChildren(...nodes){this.children=nodes;}
+    setAttribute(key,value){this.attrs[key]=value;}
+    showModal(){this.open=true;} close(){this.open=false;} remove(){} focus(){}
+  }
+  const old=globalThis.window,view=new EventTarget(),media=new EventTarget(),body=new Element();
+  media.matches=true;view.matchMedia=()=>media;view.document={body,createElement:()=>new Element()};
+  globalThis.window=view;
+  try{
+    const background={draw(){}},app={keyboard:createKeyboard(),setScene(scene){this.scene=scene;}};
+    withControlsGuide(app,{force:true,background,next:()=>background});app.scene.update();
+    const dialog=body.children[0],content=dialog.children[1],tabs=content.children[0],rules=content.children[1];
+    assert.deepEqual(rules.children.map(card=>card.hidden),[false,true,true]);
+    assert.equal(dialog.children.at(-1).children[2].textContent,'다음 설명');
+    dialog.children.at(-1).children[2].dispatchEvent(new Event('click'));
+    assert.deepEqual(rules.children.map(card=>card.hidden),[true,false,true]);
+    tabs.children[2].dispatchEvent(new Event('click'));
+    assert.deepEqual(rules.children.map(card=>card.hidden),[true,true,false]);
+    assert.equal(tabs.children[2].attrs['aria-pressed'],'true');
+    dialog.children[0].children[1].children[1].dispatchEvent(new Event('click'));
+    assert.equal(tabs.hidden,true);
+    assert.equal(content.children[3].hidden,false);
+    dialog.children[0].children[1].children[0].dispatchEvent(new Event('click'));
+    assert.equal(tabs.hidden,false);
+    media.matches=false;media.dispatchEvent(new Event('change'));
+    assert.deepEqual(rules.children.map(card=>card.hidden),[false,false,false]);assert.equal(tabs.hidden,true);
+    const key=new Event('keydown',{cancelable:true});Object.assign(key,{code:'Escape'});view.dispatchEvent(key);
+    assert.equal(dialog.open,false);assert.equal(app.scene,background);
+  }finally{globalThis.window=old;}
+});
+
+test('온라인 첫 안내 취소는 false로 끝나며 재확인하기 전 캐릭터를 확정하지 않는다',async()=>{
+  const {showOnlineControls}=await import('../src/app/controls-guide.js');
+  const {createKeyboard}=await import('../src/input/keyboard.js');
+  class Element extends EventTarget {
+    children=[]; open=false;
+    append(...nodes){this.children.push(...nodes);} replaceChildren(...nodes){this.children=nodes;}
+    setAttribute(){} showModal(){this.open=true;} close(){this.open=false;} remove(){} focus(){}
+  }
+  const old=globalThis.window,view=new EventTarget(),body=new Element();
+  view.document={body,createElement:()=>new Element()};globalThis.window=view;
+  try{
+    const keyboard=createKeyboard();
+    const cancelled=showOnlineControls({keyboard});await Promise.resolve();
+    const event=new Event('keydown',{cancelable:true});Object.assign(event,{code:'Escape'});view.dispatchEvent(event);
+    assert.equal(await cancelled,false);assert.equal(body.children.at(-1).open,false);
+    const accepted=showOnlineControls({keyboard});await Promise.resolve();
+    const dialog=body.children.at(-1),confirm=dialog.children.at(-1).children[2];
+    confirm.dispatchEvent(new Event('click'));confirm.dispatchEvent(new Event('click'));
+    assert.equal(await accepted,true);assert.equal(dialog.open,false);
+  }finally{globalThis.window=old;}
 });

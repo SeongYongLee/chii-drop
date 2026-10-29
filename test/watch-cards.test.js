@@ -115,7 +115,8 @@ test('펼친 선택 목록은 준비 중 항목을 표시하고 키보드 이동
   }
   document = { body: new Element('body'), createElement: tag => new Element(tag) };
   const chosen = [], closed = []; let opened = 0;
-  const picker = createSetupPicker({ document }, { opened: () => opened++, choose: (...args) => chosen.push(args), closed: index => closed.push(index) });
+  const media = { matches: false }, view = { document, matchMedia: () => media };
+  const picker = createSetupPicker(view, { opened: () => opened++, choose: (...args) => chosen.push(args), closed: index => closed.push(index) });
   picker.open(1, { label: 'CPU 캐릭터', choiceLabels: ['첫째','준비 중','셋째'], choiceDisabled: [false,true,false], choiceIndex: 0 });
   const dialog = document.body.children[0], list = dialog.children[1];
   assert.equal(picker.isOpen, true); assert.equal(opened, 1);
@@ -124,6 +125,15 @@ test('펼친 선택 목록은 준비 중 항목을 표시하고 키보드 이동
   assert.equal(document.activeElement, list.children[2]);
   list.children[2].events.click();
   assert.equal(picker.isOpen, false); assert.deepEqual(chosen, [[1,2]]); assert.deepEqual(closed, [1]);
+  media.matches = true;
+  picker.open(0, { label: '난이도', choiceLabels: ['1','2','3','4','5','6'], choiceIndex: 0 });
+  const compact = dialog.children[1];
+  const move = key => dialog.events.keydown({ key, preventDefault() {}, stopPropagation() {} });
+  move('ArrowDown'); assert.equal(document.activeElement, compact.children[2]);
+  move('ArrowRight'); assert.equal(document.activeElement, compact.children[3]);
+  move('ArrowUp'); assert.equal(document.activeElement, compact.children[1]);
+  move('ArrowLeft'); assert.equal(document.activeElement, compact.children[0]);
+  dialog.children.at(-1).events.click(); assert.equal(picker.isOpen, false);
 });
 
 test('게임 선택창을 쓰면 네이티브 select를 만들지 않아 Safari의 이중 목록을 방지한다', async () => {

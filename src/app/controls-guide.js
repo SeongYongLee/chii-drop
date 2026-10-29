@@ -48,7 +48,7 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
       rulesTab.type = controlsTab.type = 'button'; rulesTab.textContent = '게임 규칙'; controlsTab.textContent = '조작 방법';
       tabs.append(rulesTab, controlsTab); header.append(heading, tabs);
       const rules = doc.createElement('div'); rules.className = 'game-guide-rules';
-      const pictures = [];
+      const pictures = [], ruleCards = [];
       for (const [title, description, picture] of [
         ['같은 색 4개 연결', '같은 색을 가로·세로로 4개 이상 이으면 사라져요.', 'connect'],
         ['이어서 지우면 연쇄', '빈자리로 떨어진 블록이 다시 연결되면 연쇄가 이어져요.', 'chain'],
@@ -58,8 +58,17 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
         h.textContent = title; image.className = `game-guide-picture game-guide-picture-${picture}`; pictures.push({ element: image, kind: picture }); image.setAttribute('aria-hidden', 'true');
         text.textContent = description;
         if (picture === 'attack') text.className = 'game-guide-attack-description';
-        card.append(image, h, text); rules.append(card);
+        card.append(image, h, text); rules.append(card); ruleCards.push(card);
       }
+      const ruleTabs = doc.createElement('div'); ruleTabs.className = 'game-guide-rule-tabs';
+      ruleTabs.setAttribute('role', 'group'); ruleTabs.setAttribute('aria-label', '규칙 설명 선택');
+      const ruleButtons = ['연결', '연쇄', '공격·상쇄'].map((label, index) => {
+        const tab = doc.createElement('button'); tab.type = 'button'; tab.textContent = label;
+        tab.addEventListener('click', () => { ruleIndex = index; updateRuleLayout(); illustrations.restart(); });
+        ruleTabs.append(tab); return tab;
+      });
+      const rulesMedia = view.matchMedia?.('(max-width: 540px), (max-height: 600px)');
+      let ruleIndex = 0;
       const illustrations = createGuideBlocks(view, app.skin, pictures);
       const warning = doc.createElement('p'); warning.className = 'game-guide-warning';
       warning.textContent = '위쪽 입구(왼쪽에서 세 번째 칸)가 막히면 패배해요. 연습 모드에서는 혼자 연쇄를 연습할 수 있어요.';
@@ -89,7 +98,19 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
       const actions = doc.createElement('div'); actions.className = 'game-guide-actions';
       const previous = doc.createElement('button'), button = doc.createElement('button'); previous.type = button.type = 'button'; previous.textContent = '게임 설명';
 
+      const content = doc.createElement('div'); content.className = 'game-guide-content';
+      content.append(ruleTabs, rules, warning, cards, note);
       let page = 'rules', local = mode === 'versus';
+      function updateRuleLayout() {
+        const compact = Boolean(rulesMedia?.matches);
+        dialog.setAttribute('data-compact-rules', String(compact));
+        ruleTabs.hidden = !compact || page !== 'rules';
+        ruleCards.forEach((card, index) => { card.hidden = compact && index !== ruleIndex; });
+        ruleButtons.forEach((tab, index) => tab.setAttribute('aria-pressed', String(index === ruleIndex)));
+        content.scrollTop = 0;
+        if (page === 'rules') button.textContent = compact && ruleIndex < 2 ? '다음 설명' : '조작 방법 보기';
+      }
+      rulesMedia?.addEventListener?.('change', updateRuleLayout);
       const groupButton = doc.createElement('button'); groupButton.type = 'button'; groupButton.className = 'game-guide-group';
       groupButton.addEventListener('click', () => {
         local = !local; cards.replaceChildren();
@@ -99,18 +120,20 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
         groupButton.textContent = local ? '1인 조작 보기' : '로컬 2인 조작 보기';
       });
       groupButton.textContent = local ? '1인 조작 보기' : '로컬 2인 조작 보기';
-      const cancel = doc.createElement('button'); cancel.type = 'button'; cancel.textContent = '설정으로'; cancel.hidden = force;
+      const cancel = doc.createElement('button'); cancel.type = 'button'; cancel.textContent = mode === 'online' ? '선택으로' : '설정으로'; cancel.hidden = force;
       cancel.addEventListener('click', () => finish(undefined, true));
       button.className = 'game-guide-primary';
       actions.append(previous, groupButton, button, cancel);
       function showPage(value) {
         page = value; const controls = page === 'controls';
         illustrations.show(!controls);
+        updateRuleLayout();
         rules.hidden = warning.hidden = controls; cards.hidden = note.hidden = !controls;
         groupButton.hidden = !controls || !force || touch; previous.hidden = !controls && !force;
         previous.textContent = controls ? '게임 규칙' : '닫기';
         rulesTab.setAttribute('aria-pressed', String(!controls)); controlsTab.setAttribute('aria-pressed', String(controls));
-        button.textContent = controls ? (force ? '닫기' : '확인하고 시작') : '조작 방법 보기';
+        button.textContent = controls ? (force ? '닫기' : '확인하고 시작')
+          : rulesMedia?.matches && ruleIndex < 2 ? '다음 설명' : '조작 방법 보기';
       }
       rulesTab.addEventListener('click', () => showPage('rules')); controlsTab.addEventListener('click', () => showPage('controls'));
       previous.addEventListener('click', () => { if (force && page === 'rules') finish(); else showPage('rules'); });
@@ -128,20 +151,23 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
           view.addEventListener('keydown', block, { capture: true }); view.addEventListener('keyup', release, { capture: true }); view.addEventListener('blur', cleanup);
         }
         analytics.track('controls_guide', { mode: analyticsMode(mode), action: cancelled ? 'cancelled' : 'completed', input_method: touch ? 'touch' : 'keyboard' });
+        rulesMedia?.removeEventListener?.('change', updateRuleLayout);
         illustrations.dispose(); dialog.close(); dialog.remove(); clear();
         if (!force && !cancelled) { app.controlsGuidesSeen.add(context); rememberGuide(storage, context); }
         app.setScene(cancelled ? background : next());
       }
       function advance(code) {
         if (openingKeys.size) return;
-        if (page === 'rules') showPage('controls'); else finish(code);
+        if (page === 'rules' && rulesMedia?.matches && ruleIndex < 2) {
+          ruleIndex++; updateRuleLayout(); illustrations.restart();
+        } else if (page === 'rules') showPage('controls'); else finish(code);
       }
       function onKey(event) {
         if (event.code === 'Tab' || event.ctrlKey || event.metaKey || event.altKey) return;
         event.stopImmediatePropagation(); event.preventDefault();
         if (event.repeat || openingKeys.size) return;
         if (event.code === 'ArrowUp' || event.code === 'ArrowDown') {
-          const available = [rulesTab, controlsTab, previous, groupButton, button, cancel].filter(entry => !entry.hidden);
+          const available = [rulesTab, controlsTab, ...(!ruleTabs.hidden ? ruleButtons : []), previous, groupButton, button, cancel].filter(entry => !entry.hidden);
           const selected = available.indexOf(doc.activeElement);
           const direction = event.code === 'ArrowUp' ? -1 : 1;
           available[(selected + direction + available.length) % available.length]?.focus();
@@ -150,7 +176,7 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
         else if (event.code === 'Escape') finish(event.code, !force);
         else if (['Enter', 'Space'].includes(event.code)) {
           const target = event.target;
-          if ([rulesTab, controlsTab, previous, groupButton, cancel].includes(target)) target.click();
+          if ([rulesTab, controlsTab, ...ruleButtons, previous, groupButton, cancel].includes(target)) target.click();
           else advance(event.code);
         }
       }
@@ -164,9 +190,9 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
       button.addEventListener('click', () => advance());
       dialog.addEventListener('cancel', event => { event.preventDefault(); finish(undefined, !force); });
       showPage('rules');
-      dialog.append(header, rules, warning, cards, note, actions); doc.body.append(dialog); clear(); dialog.showModal();
+      dialog.append(header, content, actions); doc.body.append(dialog); clear(); dialog.showModal();
       // 선택에 쓴 Space를 놓을 때 확인 버튼의 기본 클릭이 발생하는 것을 막는다.
-      if (openingKeys.size) { dialog.tabIndex = -1; dialog.focus(); } else button.focus();
+      if (openingKeys.size) { dialog.tabIndex = -1; dialog.focus({ preventScroll: true }); } else button.focus({ preventScroll: true });
     },
   }, { stamps });
 }
@@ -175,9 +201,9 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
 // 온라인은 준비 패킷을 보내기 전에 같은 안내를 확인한다. 엔진 시간은 진행하지 않는다.
 export function showOnlineControls({ keyboard, skin, touch = false, force = false }) {
   return new Promise(resolve => {
-    const done = {};
+    const done = {}, cancelled = { draw() {} };
     const app = { keyboard, skin, mobile: { visible: touch, clear() {} },
-      setScene(scene) { if (scene === done) resolve(); else queueMicrotask(() => scene.update()); } };
-    withControlsGuide(app, { mode: 'online', force, background: { draw() {} }, next: () => done });
+      setScene(scene) { if (scene === done) resolve(true); else if (scene === cancelled) resolve(false); else queueMicrotask(() => scene.update()); } };
+    withControlsGuide(app, { mode: 'online', force, background: cancelled, next: () => done });
   });
 }

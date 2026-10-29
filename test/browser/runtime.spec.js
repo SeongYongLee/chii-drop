@@ -107,6 +107,8 @@ test('기본 음성·음악과 실제 서비스 워커: 지연 로딩·경기 �
     await page.getByRole('button', { name: '대전 시작', exact: true }).click();
     const next = page.getByRole('button', { name: '조작 방법 보기', exact: true });
     await expect(page.getByRole('heading', { name: '게임 방법', exact: true })).toBeVisible();
+    const step = page.getByRole('button', { name: '다음 설명', exact: true });
+    for (let i = 0; i < 2 && await step.isVisible(); i++) await step.click();
     if (await next.isVisible()) await next.click();
     await page.getByRole('button', { name: '확인하고 시작', exact: true }).click();
     await expect.poll(async () => (await audioState(page)).elements.some(audio =>

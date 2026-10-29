@@ -206,6 +206,7 @@ function updateCharacterButtons() {
 const panelRoutes = { play: 'play', 'new-room': 'create', leaderboard: 'rankings' };
 function selectPanel({ scroll = false } = {}) {
   const panel = panelRoutes[location.hash.slice(1)] ?? 'play';
+  shell.dataset.panel = panel;
   if (!room) $('online-menu-title').textContent = { play: '온라인 대전', create: '방 만들기', rankings: '랭킹' }[panel];
   for (const name of ['play', 'create', 'rankings']) {
     $(`panel-${name}`).hidden = name !== panel;
@@ -661,6 +662,9 @@ $('name-form').onsubmit = (event) => {
   profileSaving = true; buttons(); send({ type: 'rename', name: $('nickname').value, charId: profileCharId });
 };
 $('close-profile').onclick = () => { root.querySelector('.profile-edit').open = false; root.querySelector('.profile-edit > summary').focus({ preventScroll: true }); };
+root.querySelector('.profile-edit').addEventListener('toggle', () => {
+  if (root.host) root.host.dataset.profileOpen = String(root.querySelector('.profile-edit').open);
+});
 async function copyRoomInvite(link) {
   if (!room) return;
   const value = link ? roomInviteURL(location.href, room.code) : room.code;
@@ -713,9 +717,9 @@ $('refresh').onclick = () => send({ type: 'list' });
 $('matchmake').onclick = () => { if (AUTOMATIC_MATCHMAKING) send({ type: 'queue', rated: $('queue-mode').value === 'rated' }); };
 $('cancel-match').onclick = $('queue-banner-cancel').onclick = () => send({ type: 'cancelQueue' });
 async function explainControls(force = false) {
-  if (guiding) return;
+  if (guiding) return false;
   guiding = true; buttons(); keyboard.held.clear(); touch.clear();
-  try { await showOnlineControls({ keyboard, skin, touch: window.matchMedia('(pointer: coarse)').matches, force }); }
+  try { return await showOnlineControls({ keyboard, skin, touch: window.matchMedia('(pointer: coarse)').matches, force }); }
   finally { guiding = false; buttons(); }
 }
 $('online-guide').onclick = () => { void explainControls(true); };
@@ -727,8 +731,8 @@ $('ready').onclick = async () => {
 $('confirm-character').onclick = async () => {
   if (!connected || spectating || room?.phase !== 'selecting' || guiding) return;
   const selectionId = room.selectionId;
-  await explainControls();
-  if (connected && room?.selectionId === selectionId) send({ type: 'confirmCharacter', selectionId });
+  const accepted = await explainControls();
+  if (accepted && connected && room?.selectionId === selectionId) send({ type: 'confirmCharacter', selectionId });
 };
 $('cancel-character').onclick = () => send({ type: 'cancelSelection', selectionId: room?.selectionId });
 function leaveRoom() {

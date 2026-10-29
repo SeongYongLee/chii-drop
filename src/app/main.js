@@ -171,6 +171,7 @@ app.mobile = attachMobileControls({ view: window, canvas, container: document.ge
     onlineActive: Boolean(app.onlineActive),
     onlineMenu: Boolean(app.onlineActive && app.onlineCompanionsVisible?.()),
     heading: app.scene?.touchHeading,
+    compactMenu: Boolean(app.scene?.touchCompact),
     backSelected: app.scene?.touchBackSelected?.(),
     fanNotice: app.skin?.branding?.fanNotice,
     versionLabel: app.versionLabel,

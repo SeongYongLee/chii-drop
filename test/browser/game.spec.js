@@ -22,6 +22,8 @@ async function title(page) {
 }
 async function controls(page) {
   await expect(page.getByRole('heading', { name: '게임 방법', exact: true })).toBeVisible();
+  const step = page.getByRole('button', { name: '다음 설명', exact: true });
+  for (let i = 0; i < 2 && await step.isVisible(); i++) await step.click();
   const next = page.getByRole('button', { name: '조작 방법 보기', exact: true });
   if (await next.isVisible()) await next.click();
   await page.getByRole('button', { name: '확인하고 시작', exact: true }).click();

@@ -127,6 +127,7 @@ export function createGuideBlocks(view, skin, pictures) {
   doc.addEventListener?.('visibilitychange', refresh); media?.addEventListener?.('change', refresh);
   return {
     show(value) { active = value; refresh(); },
+    restart() { age = 0; refresh(); },
     dispose() { disposed = true; stop(); doc.removeEventListener?.('visibilitychange', refresh); media?.removeEventListener?.('change', refresh); },
   };
 }

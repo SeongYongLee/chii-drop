@@ -1,14 +1,15 @@
 .controls-guide {
-  box-sizing:border-box; width:min(820px,calc(100vw - 32px)); max-height:calc(100dvh - 32px);
-  margin:auto; padding:28px; overflow-y:auto; overscroll-behavior:contain;
-  border:1px solid #cfb59e; border-radius:28px;
+  box-sizing:border-box; width:min(820px,calc(100vw - 32px));
+  max-height:calc(var(--menu-visible-height,100dvh) - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  margin:auto; padding:0; overflow:hidden; border:1px solid #cfb59e; border-radius:28px;
   color:#59473e; background:#fffaf1; font:15px/1.5 system-ui,sans-serif;
   box-shadow:0 8px 0 #5c473522,0 24px 80px #34251e38;
 }
+.controls-guide[open] { display:flex; flex-direction:column; }
 .controls-guide::backdrop { background:#473a3266; backdrop-filter:blur(4px); }
 .controls-guide [hidden] { display:none!important; }
-.controls-guide header { margin-bottom:22px; }
-.controls-guide h2 { margin:0 0 20px; font-size:26px; line-height:1.3; text-align:center; letter-spacing:-.5px; }
+.controls-guide header { flex:none; padding:24px 28px 18px; }
+.controls-guide h2 { margin:0 0 16px; font-size:26px; line-height:1.3; text-align:center; letter-spacing:-.5px; }
 .controls-guide h3 { margin:0 0 10px; font-size:17px; line-height:1.4; text-wrap:balance; }
 .controls-guide button {
   min-height:48px; min-width:0; padding:10px 16px; border:1px solid #cfbca7; border-radius:16px;
@@ -16,80 +17,77 @@
   font:700 14px/1.3 system-ui,sans-serif; text-align:center; touch-action:manipulation; cursor:pointer;
   transition:background-color .15s,border-color .15s;
 }
+.controls-guide :focus-visible { outline:3px solid #a56b86; outline-offset:2px; }
+.controls-guide button:active { transform:translateY(1px); }
 .game-guide-tabs { display:flex; gap:6px; padding:5px; background:#f0e7db; border-radius:20px; }
 .game-guide-tabs button { flex:1; box-shadow:none; border-color:transparent; background:transparent; }
 .game-guide-tabs button[aria-pressed=true] { background:#fffdf7; border-color:#d4b7a4; box-shadow:0 2px 4px #79614b12; color:#84536a; }
+.game-guide-content { flex:1 1 auto; min-height:0; min-width:0; overflow-x:hidden; overflow-y:auto; padding:2px 28px 16px; touch-action:pan-y; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
 .game-guide-rules { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
-.game-guide-rules section { padding:16px; border:1px solid #e2d4c3; border-radius:20px; background:#fffdf7; }
-.game-guide-picture { display:grid; place-items:center; margin-bottom:16px; border-radius:14px; background:#f8eee9; }
+.game-guide-rules section { min-width:0; padding:16px; border:1px solid #e2d4c3; border-radius:20px; background:#fffdf7; }
+.game-guide-picture { display:grid; justify-items:center; min-width:0; margin-bottom:16px; border-radius:14px; background:#f8eee9; }
 .game-guide-picture-chain { background:#f0f3e4; }
 .game-guide-picture-attack { background:#f6eedc; }
-.controls-guide p { font-size:13px; line-height:1.65; margin:16px 0; color:#7b6657; }
+.game-guide-picture canvas { display:block; width:100%; max-width:240px; min-width:0; height:auto; aspect-ratio:240/152; }
+.game-guide-phase { display:block; min-height:24px; padding:0 5px 6px; font-size:11px; line-height:1.5; font-weight:600; color:#806654; text-align:center; }
+.controls-guide p { font-size:13px; line-height:1.65; margin:16px 0; color:#7b6657; overflow-wrap:anywhere; }
 .controls-guide .game-guide-rules p { margin:0; }
-.controls-guide .game-guide-warning { padding:12px 16px; border:1px solid #e4cfa9; border-radius:14px; background:#fcf0d6; color:#776044; }
+.controls-guide .game-guide-attack-description { font-size:12px; white-space:pre-line; }
+.controls-guide .game-guide-warning { margin:14px 0 0; padding:10px 14px; border:1px solid #e4cfa9; border-radius:14px; background:#fcf0d6; color:#776044; }
+.game-guide-rule-tabs { display:flex; gap:6px; margin:0 0 10px; }
+.game-guide-rule-tabs button { flex:1; min-height:36px; padding:7px 8px; font-size:12px; border-radius:12px; box-shadow:none; }
+.game-guide-rule-tabs button[aria-pressed=true] { background:#f5dce4; border-color:#b77989; }
 .controls-guide-cards { display:flex; gap:16px; }
 .controls-guide-cards section { flex:1; min-width:0; padding:20px; border:1px solid #e2d4c3; border-radius:20px; background:#fffdf7; }
 .controls-guide-cards h3 { text-align:center; margin-bottom:18px; color:#84536a; }
 .controls-guide dl { display:grid; grid-template-columns:minmax(72px,auto) minmax(0,1fr); gap:12px 18px; margin:0; align-items:center; }
 .controls-guide dt { padding:9px 14px; border:1px solid #d6c3ae; border-bottom-width:3px; border-radius:12px; background:#f7f0e5; text-align:center; font-weight:750; white-space:pre-wrap; }
 .controls-guide dd { margin:0; font-size:14px; }
-.controls-guide .game-guide-note { text-align:center; }
-.game-guide-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; padding-top:18px; border-top:1px solid #e6d7c5; }
+.controls-guide-cards section:only-child dl { max-width:420px; margin-inline:auto; }
+.controls-guide .game-guide-note { text-align:center; margin-bottom:0; }
+.controls-guide-pad { display:flex; justify-content:space-around; align-items:center; padding:14px; margin-bottom:18px; border-radius:16px; background:#f4e4eb; color:#775565; font-size:28px; font-weight:700; text-align:center; }
+.game-guide-actions { flex:none; display:flex; flex-wrap:wrap; gap:10px; padding:16px 28px 22px; border-top:1px solid #e6d7c5; }
 .game-guide-actions button { flex:1 1 100px; }
 .game-guide-actions .game-guide-primary { flex:2 1 160px; background:#f4c9d2; border-color:#bd929a; font-size:16px; }
-.controls-guide :focus-visible { outline:3px solid #a56b86; outline-offset:3px; }
-.controls-guide button:active { transform:translateY(1px); }
-.controls-guide-pad { display:flex; justify-content:space-around; align-items:center; padding:14px; margin-bottom:18px; border-radius:16px; background:#f4e4eb; color:#775565; font-size:28px; font-weight:700; text-align:center; }
+/* Compact screens show one complete explanation, including its animation. */
+.controls-guide[data-compact-rules=true] { width:min(540px,calc(100vw - 24px)); border-radius:24px; max-height:calc(var(--menu-visible-height,100dvh) - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+.controls-guide[data-compact-rules=true] header { padding:16px 16px 12px; }
+.controls-guide[data-compact-rules=true] h2 { font-size:22px; margin-bottom:10px; }
+.controls-guide[data-compact-rules=true] .game-guide-tabs button { min-height:40px; padding:8px; }
+.controls-guide[data-compact-rules=true] .game-guide-content { padding:2px 16px 12px; }
+.controls-guide[data-compact-rules=true] .game-guide-rules { grid-template-columns:minmax(0,1fr); }
+.controls-guide[data-compact-rules=true] .game-guide-rules section { padding:12px; border-radius:16px; }
+.controls-guide[data-compact-rules=true] .game-guide-picture { margin:0 0 10px; }
+.controls-guide[data-compact-rules=true] .game-guide-picture canvas { width:auto; height:clamp(76px,calc((var(--menu-visible-height,100dvh) - 430px) * .6),142px); max-width:100%; }
+.controls-guide[data-compact-rules=true] .game-guide-rules h3 { margin-bottom:6px; font-size:16px; }
+.controls-guide[data-compact-rules=true] .game-guide-rules p { font-size:12px; line-height:1.55; }
+.controls-guide[data-compact-rules=true] .game-guide-warning { margin-top:10px; padding:8px 10px; font-size:11px; line-height:1.45; }
+.controls-guide[data-compact-rules=true] .game-guide-actions { gap:8px; padding:12px 16px 16px; }
+.controls-guide[data-compact-rules=true] .game-guide-actions button { min-height:44px; padding:8px 10px; font-size:13px; flex-basis:80px; }
+.controls-guide[data-compact-rules=true] .controls-guide-cards { gap:10px; }
+.controls-guide[data-compact-rules=true] .controls-guide-cards section { padding:12px; }
+.controls-guide[data-compact-rules=true] .controls-guide-cards h3 { font-size:16px; margin-bottom:12px; }
+.controls-guide[data-compact-rules=true] dl { gap:7px 10px; }
+.controls-guide[data-compact-rules=true] dt { font-size:12px; padding:6px 8px; }
+.controls-guide[data-compact-rules=true] dd { font-size:12px; }
+.controls-guide[data-compact-rules=true] .controls-guide-pad { font-size:23px; padding:8px; margin-bottom:10px; }
+@media (max-height:600px) {
+  .controls-guide[data-compact-rules=true] header { padding:10px 12px 8px; }
+  .controls-guide[data-compact-rules=true] h2 { font-size:20px; margin-bottom:6px; }
+  .controls-guide[data-compact-rules=true] .game-guide-content { padding:2px 12px 8px; }
+  .controls-guide[data-compact-rules=true] .game-guide-actions { padding:8px 12px 10px; }
+  .controls-guide[data-compact-rules=true] .game-guide-note { font-size:11px; margin-top:8px; }
+  .controls-guide[data-compact-rules=true] .controls-guide-pad { font-size:20px; line-height:1.2; padding:6px; margin-bottom:8px; }
+}
+@media (max-height:450px) and (min-width:541px) {
+  .controls-guide[data-compact-rules=true] { width:min(720px,calc(100vw - 24px)); }
+  .controls-guide[data-compact-rules=true] header { display:flex; align-items:center; gap:16px; }
+  .controls-guide[data-compact-rules=true] h2 { flex:none; margin:0; }
+  .controls-guide[data-compact-rules=true] .game-guide-tabs { flex:1; padding:2px; }
+  .controls-guide[data-compact-rules=true] .game-guide-rules section { display:grid; grid-template-columns:180px minmax(0,1fr); gap:8px 12px; }
+  .controls-guide[data-compact-rules=true] .game-guide-picture { grid-row:span 2; margin:0; }
+  .controls-guide[data-compact-rules=true] .game-guide-rules h3 { align-self:end; margin:0; }
+  .controls-guide[data-compact-rules=true] .game-guide-actions { padding-top:6px; padding-bottom:8px; }
+}
 @media (hover:hover) { .controls-guide button:hover { background-color:#f7e2e7; border-color:#b98d99; } }
-@media (max-width:540px) {
-  .controls-guide { width:calc(100vw - 24px); padding:18px; border-radius:24px; max-height:calc(100dvh - 24px); }
-  .controls-guide h2 { font-size:23px; margin-bottom:14px; }
-  .controls-guide header { margin-bottom:16px; }
-  .game-guide-rules { grid-template-columns:1fr; gap:10px; }
-  .game-guide-rules section { display:grid; grid-template-columns:88px minmax(0,1fr); gap:6px 12px; padding:12px; border-radius:16px; }
-  .game-guide-picture { grid-row:span 2; margin:0; min-height:88px; }
-  .controls-guide .game-guide-rules h3 { margin:0; font-size:15px; }
-  .controls-guide .game-guide-rules p { font-size:12px; line-height:1.55; }
-  .controls-guide .game-guide-warning { padding:10px 12px; font-size:12px; }
-  .controls-guide-cards { gap:10px; }
-  .controls-guide-cards section { padding:14px 10px; }
-  .controls-guide dl { grid-template-columns:minmax(0,1fr); gap:5px; text-align:center; }
-  .controls-guide dd { margin-bottom:10px; font-size:12px; }
-  .controls-guide-cards:has(section:only-child) dl { grid-template-columns:minmax(88px,auto) minmax(0,1fr); gap:10px; text-align:left; }
-  .controls-guide-cards:has(section:only-child) dd { margin-bottom:0; }
-  .game-guide-actions { gap:8px; margin-top:14px; padding-top:14px; }
-  .game-guide-actions button { flex:1 1 100px; padding-inline:10px; font-size:13px; }
-}
-@media (max-height:500px) and (min-width:541px) {
-  .controls-guide { padding:16px 20px; max-height:calc(100dvh - 16px); }
-  .controls-guide header { display:grid; grid-template-columns:120px 1fr; align-items:center; gap:16px; margin-bottom:12px; }
-  .controls-guide h2 { margin:0; font-size:22px; }
-  .game-guide-picture { margin-bottom:8px; }
-  .game-guide-rules section { padding:10px; }
-  .controls-guide h3 { font-size:15px; margin-bottom:6px; }
-  .controls-guide p { margin:10px 0; font-size:12px; }
-  .game-guide-actions { margin-top:12px; padding-top:12px; }
-  .controls-guide button { min-height:44px; }
-  .controls-guide-cards section { padding:12px; }
-  .controls-guide dl { gap:6px 12px; }
-  .controls-guide dt { padding:4px 12px; }
-}
 @media (prefers-reduced-motion:reduce) { .controls-guide button { transition:none; } }
-.controls-guide-cards section:only-child dl { max-width:420px; margin-inline:auto; }
-.game-guide-picture canvas { display:block; width:100%; max-width:240px; height:auto; aspect-ratio:240/152; }
-@media(max-width:540px) {
-  .game-guide-rules section { grid-template-columns:112px minmax(0,1fr); }
-  .game-guide-picture { min-height:88px; align-self:center; }
-}
-@media(max-height:500px) and (min-width:541px) {
-  .game-guide-picture canvas { max-height:100px; width:auto; max-width:100%; }
-}
-
-.game-guide-phase { display:block; min-height:24px; padding:0 5px 6px; font-size:11px; line-height:1.5; font-weight:600; color:#806654; text-align:center; }
-@media(max-width:540px) { .game-guide-phase { font-size:10px; min-height:30px; } }
-@media(max-width:540px) {
-  .game-guide-rules section:has(.game-guide-picture-attack) { grid-template-columns:1fr; }
-  .game-guide-picture-attack { grid-row:auto; width:min(100%,220px); justify-self:center; }
-}
-
-.controls-guide .game-guide-attack-description { font-size:12px; white-space:pre-line; }

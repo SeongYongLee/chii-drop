@@ -11,6 +11,7 @@ export function attachRoomChat(root, shell, { send, onFocusChange = () => {}, vi
     $('room-chat').hidden = !code;
     const open = expanded && !locked();
     shell.dataset.chatExpanded = String(open);
+    if (root.host) root.host.dataset.chatExpanded = String(open);
     shell.dataset.chatLocked = String(locked());
     $('chat-toggle').disabled = locked();
     $('chat-toggle').hidden = locked();
@@ -78,7 +79,7 @@ export function attachRoomChat(root, shell, { send, onFocusChange = () => {}, vi
       if (state.playing && (!wasPlaying || state.spectating !== spectating || (finished && !state.finished))) expanded = state.spectating;
       if (state.finished && !finished) expanded = true;
       spectating = state.spectating; finished = state.finished;
-      if (!state.playing && wasPlaying) expanded = true;
+      if (!state.playing && wasPlaying) expanded = !portrait.matches;
       wasPlaying = state.playing;
       readingOnly = state.playing && !state.finished && !state.spectating;
       if (!connected) pending = null;

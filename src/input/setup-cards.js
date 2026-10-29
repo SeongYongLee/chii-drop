@@ -94,13 +94,15 @@ function createSetupPicker(view, { choose, opened, closed }) {
   dialog.addEventListener('close', () => closed(field));
   dialog.addEventListener('keydown', event => {
     event.stopPropagation();
-    if (!['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+    if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
     event.preventDefault();
     const buttons = [...dialog.querySelectorAll('[data-choice-index]:not(:disabled)')];
     if (!buttons.length) return;
     const current = buttons.indexOf(doc.activeElement);
+    const columns = view.matchMedia?.('(max-width: 760px), (max-height: 600px)').matches ? 2 : 1;
+    const step = event.key === 'ArrowUp' ? -columns : event.key === 'ArrowDown' ? columns : event.key === 'ArrowLeft' ? -1 : 1;
     const index = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1
-      : (current + (event.key === 'ArrowUp' ? -1 : 1) + buttons.length) % buttons.length;
+      : (Math.max(0, current) + step + buttons.length) % buttons.length;
     buttons[index].focus();
   });
   dialog.addEventListener('keyup', event => event.stopPropagation());

@@ -41,3 +41,9 @@ test('result unlocks player chat; switching from player to observer opens the ch
   f.chat.update({...f.state,finished:true});assert.equal(f.get('chat-toggle').disabled,false);assert.equal(f.get('chat-toggle').hidden,false);assert.equal(f.get('chat-form').hidden,false);
   f.chat.update(f.state);assert.equal(f.shell.dataset.chatExpanded,'false');f.chat.update({...f.state,spectating:true});assert.equal(f.shell.dataset.chatExpanded,'true');
 });
+test('portrait return to room collapses chat so seats and ready controls remain visible',()=>{
+  const f=fixture();f.portrait(true);f.chat.update(f.state);
+  f.chat.update({...f.state,finished:true});assert.equal(f.shell.dataset.chatExpanded,'true');
+  f.chat.update({...f.state,playing:false,finished:false});assert.equal(f.shell.dataset.chatExpanded,'false');
+  f.get('chat-toggle').onclick();assert.equal(f.shell.dataset.chatExpanded,'true');
+});

@@ -60,10 +60,12 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
     onOpen: clearEditorInput, onClose: () => { clearEditorInput(); sync(); } }) : null;
   function renderItems() {
     const items = context.items ?? [];
-    const signature = JSON.stringify([context.layout, context.records, context.setup, context.columns, items.map(({ label, value, disabled, selected, adjustable, previewKey, compactLabel, sectionLabel }) =>
+    const signature = JSON.stringify([context.layout, context.compactMenu, context.records, context.setup, context.columns, items.map(({ label, value, disabled, selected, adjustable, previewKey, compactLabel, sectionLabel }) =>
       [label, value, disabled, selected, adjustable, previewKey, compactLabel, sectionLabel])]);
     if (signature === itemsKey) return;
     itemsKey = signature;
+    nativeItems.dataset.compactMenu = String(Boolean(context.compactMenu));
+    nativeItems.dataset.denseMenu = String(context.layout === 'list-menu' && items.length > 5 && !context.records);
     if (context.records) {
       setupItemsKey = ''; renderRecordsPanel(view.document, nativeItems, context.records); return;
     }
@@ -208,6 +210,20 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
       if (playerButton.textContent !== playerText) playerButton.textContent = playerText;
     }
     renderItems();
+    const bodyStyle = view.document.body?.style;
+    const visibleHeight = view.visualViewport?.height ?? view.innerHeight;
+    if (bodyStyle?.setProperty && Number.isFinite(visibleHeight)) {
+      container.dataset.shortMenu = String(visibleHeight < 560);
+      const height = `${Math.round(visibleHeight)}px`;
+      if (bodyStyle.getPropertyValue('--menu-visible-height') !== height) bodyStyle.setProperty('--menu-visible-height', height);
+      if ((context.onlineMenu || ['list-menu', 'match-setup'].includes(context.layout)) && fanNotice && !fanNotice.hidden) {
+        const rect = fanNotice.getBoundingClientRect?.();
+        if (rect) {
+          const reserve = `${Math.ceil(visibleHeight - rect.top + 8)}px`;
+          if (bodyStyle.getPropertyValue('--menu-footer-reserve') !== reserve) bodyStyle.setProperty('--menu-footer-reserve', reserve);
+        }
+      }
+    }
     companions.sync(context.companions, context.companionAnchor);
     if (departure) { clearEditorInput(); titleTransition.start(departure, context.companions ?? []); }
     if (context.layout === 'match-setup') animateSetupCards(nativeItems, context.items ?? [], context.animationFrame ?? 0);
@@ -281,7 +297,9 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
   });
   for (const name of ['pointercancel', 'lostpointercapture']) canvas.addEventListener(name, () => { start = null; });
   view.addEventListener('blur', () => { titleTransition.cancel(); start = null; clear(); });
-  view.addEventListener('resize', () => { titleTransition.cancel(); start = null; clear(); sync(); });
+  const resizeMenu = () => { titleTransition.cancel(); start = null; clear(); sync(); };
+  view.addEventListener('resize', resizeMenu);
+  view.visualViewport?.addEventListener('resize', resizeMenu);
   view.document.addEventListener('visibilitychange', () => { if (view.document.hidden) { titleTransition.cancel(); start = null; clear(); } });
   media.addEventListener('change', sync);
   sync();

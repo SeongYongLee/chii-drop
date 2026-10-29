@@ -82,6 +82,7 @@ function createListMenu({ title, items, onBack, notice, noticeSummary, columns =
     touchBackSelected: () => Boolean(onBack && index === itemsLength),
     touchDirect: true,
     touchColumns: columns,
+    touchCompact: compact,
     touchNotice: (app) => notice?.(app),
     touchNoticeSummary: app => noticeSummary?.(app),
     touchItems: (app) => { const list = items(app); itemsLength = list.length; return list.map((item, i) => ({ label: item.label,

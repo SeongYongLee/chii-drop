@@ -1092,3 +1092,118 @@
   :host(#online-mode) .online-shell:not([data-playing=true]) .selection-player h3 { font-size:15px; margin:2px 0; }
   :host(#online-mode) .online-shell:not([data-playing=true]) .selection-player p { font-size:10px; margin:0; }
 }
+/* Mobile lobby reserves the measured notice once and gives forms a complete card. */
+@media(max-width:600px) {
+  :host(#online-mode) .online-shell:not([data-playing=true]) {
+    --online-floor:64px; --online-notice:var(--menu-footer-reserve,120px);
+    padding:8px 12px calc(var(--online-floor) + var(--online-notice) + 8px);
+  }
+  :host(#online-mode) .online-shell:not([data-playing=true]) main { height:100%; padding:8px; gap:4px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .online-menu-heading { min-height:24px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .online-menu-heading h1 { font-size:18px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .profile { min-height:32px; padding:2px 4px; gap:6px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .profile .player-avatar { width:28px; height:28px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .profile h2 { font-size:12px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .profile-edit>summary { min-height:32px; padding:5px 8px; font-size:11px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) #lobby-view { gap:6px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .lobby-tabs { min-height:36px; gap:6px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .lobby-tabs a { min-height:36px; padding:6px; font-size:12px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .rooms-card { flex:1; height:auto; min-height:0; padding:6px; gap:4px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .rooms-card>.section-head { min-height:36px; gap:4px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .rooms-card>.section-head h3 { font-size:12px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .rooms-card>.section-head :is(button,a) { min-height:36px; padding:6px; font-size:11px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-tools { gap:4px; padding-bottom:4px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-filters button { min-height:32px; padding:5px 10px; font-size:11px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-search input { min-height:32px; padding:5px 8px; font-size:16px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-list { min-height:24px; padding:2px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .empty { min-height:0; padding:4px; gap:0; font-size:11px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .empty :is(p,.empty-symbol),
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-list-footer>.hint { display:none; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-list-footer { min-height:32px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-list-footer button { min-height:32px; padding:5px 8px; font-size:11px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .status-bar { min-height:14px; font-size:10px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .online-menu-actions { padding-top:6px; gap:6px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .online-menu-actions :is(#online-back,#touch-options) { min-height:44px; padding:7px 10px; }
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-panel=create] :is(#player-panel,#lobby-tabs),
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-panel=rankings] #player-panel { display:none; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) :is(.lobby-panel,#room-view,#character-select-view) { touch-action:pan-y; -webkit-overflow-scrolling:touch; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .create-card { padding:8px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .create-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .create-form>label { min-width:0; font-size:12px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .create-form>label:first-child,
+  :host(#online-mode) .online-shell:not([data-playing=true]) .create-form :is(.form-actions,.form-error) { grid-column:1/-1; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .create-form :is(input,select) { min-height:40px; padding:7px; font-size:16px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .create-form :is(.field-hint,.form-summary) { display:none; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .create-form .form-actions :is(button,a) { min-height:44px; padding:8px; font-size:13px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-header { padding-bottom:4px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) #room-title { font-size:15px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-invite { margin-top:3px; gap:4px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-invite button { min-height:30px; padding:4px 8px; font-size:11px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-arena { min-height:100px; padding:5px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .seats { min-height:60px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-arena .seat canvas { width:40px; height:40px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-spectators:has(.spectator-empty) { display:none; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-bottom { position:sticky; bottom:0; min-height:44px; padding:4px; background:#fffaf0; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) #room-view { gap:6px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-chat { padding:4px 8px; }
+}
+@media(max-width:600px) and (max-height:600px) {
+  :host(#online-mode) .online-shell:not([data-playing=true]) { --online-floor:32px; }
+}
+@media(max-width:600px) {
+  :host(#online-mode) .online-shell:not([data-playing=true]) .profile-popover {
+    top:calc((var(--visible-height,100dvh) - var(--online-notice)) / 2);
+    max-height:calc(var(--visible-height,100dvh) - var(--online-notice) - 24px); padding:12px;
+  }
+}
+@media(max-width:600px) {
+  :host(#online-mode) .online-shell #touch-options-dialog { padding:12px; }
+  :host(#online-mode) .online-shell #touch-options-dialog h2 { font-size:19px; }
+  :host(#online-mode) .online-shell #touch-options-dialog .touch-preview { zoom:.6; }
+}
+@media(max-width:600px) {
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true] main { grid-template-rows:24px minmax(0,1fr) auto auto auto; gap:4px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) #room-view { gap:4px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) :is(#room-title,#room-info) { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) #room-info { font-size:10px; line-height:1.3; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-invite { flex-wrap:nowrap; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) #room-code { min-width:0; padding:4px 6px; font-size:12px; letter-spacing:.5px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-invite button { min-width:0; min-height:28px; padding:4px; font-size:10px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-arena>.room-zone-heading { display:none; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .seats { min-height:84px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-arena .participant-details h3 { font-size:12px; line-height:1.2; margin:2px 0; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-arena .participant-details p { font-size:9px; line-height:1.2; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-bottom { min-height:44px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-bottom button { min-height:36px; }
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-chat-expanded=false] .room-chat { height:40px; min-height:0; padding:2px 6px; gap:0; }
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-chat-expanded=false] .chat-heading { min-height:32px; height:32px; border:0; }
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-chat-expanded=false] .chat-heading h3 { font-size:12px; }
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-chat-expanded=false] .chat-heading button { min-height:32px; padding:4px; font-size:11px; }
+}
+@media(max-width:600px) and (max-height:650px) {
+  :host(#online-mode) .online-shell:not([data-playing=true]) #character-select-view { padding:4px; gap:4px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .selection-header { min-height:32px; justify-content:flex-end; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .selection-header>div { display:none; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .selection-header button { min-height:32px; padding:4px 8px; font-size:11px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .selection-players { flex:none; min-height:80px; gap:6px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .selection-player { padding:4px; gap:1px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .selection-player canvas { width:28px; height:28px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .selection-player .eyebrow { font-size:9px; line-height:12px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .selection-player h3 { font-size:13px; line-height:16px; margin:0; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .selection-player p { font-size:9px; line-height:11px; margin:0; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .selection-choices { padding:4px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) #character-options { gap:4px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) #character-options button { min-height:44px; padding:4px; gap:2px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) #character-options button canvas { width:22px; height:22px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) #character-options button span { font-size:10px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .selection-footer { display:grid; grid-template-columns:72px minmax(0,1fr); gap:6px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .selection-footer button { min-width:0; min-height:44px; padding:6px; font-size:13px; }
+}
+@media(max-width:600px) {
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-chat-expanded=true] .room-chat {
+    position:fixed; grid-row:auto; top:calc((var(--visible-height,100dvh) - var(--online-notice)) / 2); left:50%; transform:translate(-50%,-50%);
+    width:calc(100% - 32px); height:min(320px,calc(var(--visible-height,100dvh) - var(--online-notice) - 24px)); max-height:none;
+    padding:12px; z-index:20; background:#fffaf0; box-shadow:0 12px 32px #4f423844;
+  }
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-chat-expanded=true] .chat-body { flex:1; min-height:0; overflow:auto; }
+}
