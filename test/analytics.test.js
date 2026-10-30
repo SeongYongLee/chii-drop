@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createAnalytics, cleanURL } from '../src/analytics/client.js';
+import { ANALYTICS_CONFIG } from '../src/analytics/config.js';
 import { eventParams } from '../src/analytics/events.js';
 import { createRoundTracker } from '../src/analytics/round.js';
 import { createOnlineTelemetry } from '../src/analytics/online.js';
@@ -15,6 +16,29 @@ function fixture() {
   return { scripts, view, config };
 }
 const info = { version: '0.1.0', dirty: false, deployment: 'production' };
+
+test('deployed development and production builds send page and play events to the existing GA property', () => {
+  for (const deployment of ['development', 'production']) {
+    const f = fixture();
+    f.view.location = new URL('https://seongyonglee.github.io/chii-drop/');
+    const client = createAnalytics({ view: f.view });
+    client.track('game_ready', { load_ms: 100 });
+    client.start({ ...info, deployment });
+    assert.equal(f.scripts.length, 1);
+    assert.equal(f.scripts[0].src, `https://www.googletagmanager.com/gtag/js?id=${ANALYTICS_CONFIG.production}`);
+    f.scripts[0].onload();
+    const rounds = createRoundTracker({ track: (...args) => client.track(...args) });
+    rounds.begin('test-round', { mode: 'cpu', role: 'player' });
+    rounds.end('test-round', { winner: 0 });
+    assert.equal(client.state, 'ready');
+    const events = f.view.dataLayer.map(args => [...args]).filter(call => call[0] === 'event');
+    assert.deepEqual(events.map(call => call[1]), ['page_view', 'game_ready', 'round_started', 'round_ended']);
+    for (const [, , params] of events) {
+      assert.equal(params.send_to, 'G-99S8RZ03E0');
+      assert.equal(params.environment, deployment);
+    }
+  }
+});
 
 test('GA is off on local, dirty, unconfigured, opted-out and privacy-controlled sessions', () => {
   for (const mutate of [f => { f.config.production = ''; }, f => { f.view.location.hostname = 'localhost'; },
