@@ -1,4 +1,4 @@
-export const ONLINE_PORTRAIT_QUERY = '(max-width: 760px) and (orientation: portrait)';
+export const ONLINE_PORTRAIT_QUERY = '(max-width: 960px) and (orientation: portrait)';
 
 // 표시 영역 안에 게임판을 맞춘다. 경기 상태·입력·난수에는 관여하지 않는다.
 export function fitStage(width, height, focused = false, portrait = false) {

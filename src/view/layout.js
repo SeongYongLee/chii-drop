@@ -38,8 +38,12 @@ function gameTransform() {
 }
 
 // 세로 화면에서도 두 필드의 여섯 열과 열두 행을 같은 비율로 유지한다.
+function portraitHeaderHeight(height) {
+  return Math.min(410, Math.max(250, height * .3 - 50));
+}
+
 function portraitGameLayout(height, count) {
-  const gap = 24, margin = 20, header = 410, footer = 40;
+  const gap = 24, margin = 20, header = portraitHeaderHeight(height), footer = 40;
   const maxWidth = count === 1 ? 660 : (SCREEN_WIDTH - margin * 2 - gap) / 2;
   const scale = Math.min(maxWidth / FIELD_WIDTH, Math.max(1, height - header - footer) / 432);
   const totalWidth = count * FIELD_WIDTH * scale + (count - 1) * gap;
@@ -64,4 +68,5 @@ export {
   SIDES,
   gameTransform,
   portraitGameLayout,
+  portraitHeaderHeight,
 };

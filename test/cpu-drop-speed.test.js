@@ -85,6 +85,31 @@ test('달인은 대기 편차와 무관하게 즉시 연속 낙하한다', () =>
   }
 });
 
+test('달인은 조작 시작 전 36프레임 판단한 뒤 정렬된 쌍을 추가 대기 없이 내린다', () => {
+  let match = createMatch({ seed: 12, playerCount: 1 });
+  let cpu = createCpu({ level: 'grandmaster', seed: 7 });
+  for (let frame = 0; frame < 30 && !cpu.planned; frame++) {
+    cpu = stepCpu(cpu, match.players[0], match.table).cpu;
+  }
+  assert.ok(cpu.planned);
+  assert.equal(cpu.wait, 36);
+  const player = match.players[0];
+  player.phase = 'control';
+  player.piece = { ...player.piece, x: cpu.target.x, orient: cpu.target.orient };
+  const initialHeight = player.piece.h;
+  for (let frame = 0; frame < 36; frame++) {
+    const result = stepCpu(cpu, match.players[0], match.table);
+    cpu = result.cpu;
+    assert.equal(result.input, 0, `판단 대기 ${frame + 1}프레임`);
+    assert.equal(cpu.wait, 35 - frame);
+    match = stepMatch(match, [result.input]);
+  }
+  assert.ok(match.players[0].piece.h < initialHeight, '판단 중에도 자연 낙하는 계속된다');
+  const result = stepCpu(cpu, match.players[0], match.table);
+  assert.equal(result.input, INPUT.DOWN);
+  assert.equal(result.cpu.dropWait, 0);
+});
+
 test('같은 시드는 대기 편차도 같고 새 쌍을 계획할 때 이전 낙하 상태를 초기화한다', () => {
   const match = createMatch({ seed: 12 }), before = structuredClone(match);
   for (const { id } of CPU_LEVELS) {

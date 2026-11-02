@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeTouchLayout, defaultTouchLayout, loadTouchLayouts, touchButtonRect, TOUCH_LAYOUT_KEY, TOUCH_BUTTONS } from '../src/input/touch-layout.js';
+import { normalizeTouchLayout, defaultTouchLayout, loadTouchLayouts, touchButtonRect, TOUCH_LAYOUT_KEY, TOUCH_BUTTONS, createTouchLayoutEditor } from '../src/input/touch-layout.js';
 
 test('터치 배치는 손상된 저장값을 거르고 버튼을 48~96px와 패널 안으로 제한한다', () => {
   const layout = normalizeTouchLayout({ 1: { x: -1, y: 4, size: 5 }, 4: { x: NaN, y: .3, size: 300 } });
@@ -36,6 +36,37 @@ test('가로·세로 터치 배치를 따로 불러오고 저장소 실패는 �
   assert.deepEqual(Object.keys(layouts), ['portrait', 'landscape']);
   assert.deepEqual(loadTouchLayouts({ getItem() { throw Error('blocked'); } }), {});
   assert.deepEqual(loadTouchLayouts({ getItem() { return '{'; } }), {});
+});
+
+test('펼친 화면의 낮은 가로 패널에서도 여섯 터치 버튼이 겹치지 않는다',()=>{
+  for(const width of [870,931,864]){
+    const profile=defaultTouchLayout('landscape',width,108);
+    const rects=TOUCH_BUTTONS.map(({bit})=>touchButtonRect(profile[bit],width,108));
+    for(let i=0;i<rects.length;i++){
+      const a=rects[i];assert.ok(a.top>=0&&a.top+a.size<=108&&a.left>=0&&a.left+a.size<=width);
+      for(const b of rects.slice(i+1))assert.ok(a.left+a.size<=b.left||b.left+b.size<=a.left||a.top+a.size<=b.top||b.top+b.size<=a.top);
+    }
+  }
+});
+
+test('회전 이벤트 뒤에 패널 크기가 확정돼도 새 가로 배치로 갱신한다',()=>{
+  const view=new EventTarget();Object.assign(view,{innerWidth:768,innerHeight:884,document:{}});
+  let afterLayout,observed;
+  view.ResizeObserver=class {constructor(fn){afterLayout=fn}observe(target){observed=target}};
+  const buttons=TOUCH_BUTTONS.map(({bit})=>({dataset:{input:String(bit)},style:{}}));
+  const game={clientWidth:580,clientHeight:180,querySelectorAll:()=>buttons,classList:{toggle(){}}};
+  createTouchLayoutEditor({view,game,onOpen(){},onClose(){}});
+  assert.equal(observed,game);
+  view.innerWidth=890;view.innerHeight=626;view.dispatchEvent(new Event('resize'));
+  const pause=buttons.find(b=>b.dataset.input==='256');
+  assert.notEqual(pause.style.left,'calc(50% - 24px)','CSS 패널은 아직 이전 높이다');
+  game.clientWidth=870;game.clientHeight=108;afterLayout();
+  assert.equal(pause.style.left,'calc(50% - 24px)');assert.equal(pause.style.top,'calc(0% - 0px)');
+  const right=buttons.find(b=>b.dataset.input==='2'),expected=defaultTouchLayout('landscape',870,108)[2];
+  assert.equal(right.style.left,`calc(${expected.x*100}% - ${expected.x*expected.size}px)`);
+  view.innerWidth=768;view.innerHeight=884;game.clientWidth=580;game.clientHeight=180;
+  view.dispatchEvent(new Event('resize'));afterLayout();
+  assert.equal(pause.style.left,'calc(50% - 24px)','세로로 돌아와도 중앙 메뉴 위치를 복원한다');
 });
 
 test('세로 기본 패드는 작은 휴대폰에서도 양손 영역·일시정지·내리기를 구분한다', () => {

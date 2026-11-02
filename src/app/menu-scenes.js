@@ -468,6 +468,8 @@ function createSettingsMenu() {
         },
         { label: '터치 영역 편집', select: (a) => a.mobile?.editLayout() },
         { label: '키보드 키 설정', select: (a) => a.keySettings?.open() },
+        { label: '게임패드 버튼 설정', select: (a) => a.gamepads?.openSettings() },
+        { label: '게임패드 조작 안내', select: (a) => a.gamepads?.openGuide() },
       ];
     },
     onBack: (app) => app.goToMenu(),

@@ -2,8 +2,9 @@ import { createPiece, fits, rowOf } from '../engine/control.js';
 import { INPUT } from '../engine/input.js';
 import { nextPairs, warningCount } from '../engine/player.js';
 import { createRng, randomInt } from '../engine/rng.js';
-import { COLS, SPAWN_HEIGHT, UNIT } from '../engine/rules.js';
+import { COLS, DEATH_X, SPAWN_HEIGHT, UNIT } from '../engine/rules.js';
 import { evaluatePlacements } from './evaluate.js';
+import { columnHeight } from '../engine/field.js';
 import { canAbsorb, createBuildSearch, advanceBuildSearch, buildSearchResults } from './planner.js';
 
 const CPU_LEVELS = [
@@ -18,15 +19,16 @@ const CPU_LEVELS = [
 
 // 이동·회전을 마친 뒤 한 번 기다리고 아래 입력을 유지한다. 낙하 중 입력을 끊지 않는다.
 // mistakePercent: 최선 대신 안전한 후보 중 하나를 고를 확률, mistakePool: 그때 고르는 후보 수
+// defenseMistakePercent: 한 줄 이상 예고 또는 생성 열 8단 이상일 때의 실수 선택 확률.
 const LEVEL_PARAMS = {
-  beginner: { thinkDelay: 12, dropDelayFrames: 208, mistakePercent: 40, mistakePool: 8, targetChain: 2, depth: 1, beamWidth: 2, buildWeight: 8 },
-  easy: { thinkDelay: 10, dropDelayFrames: 156, mistakePercent: 40, mistakePool: 14, targetChain: 2, depth: 1, beamWidth: 3, buildWeight: 14 },
-  normal: { thinkDelay: 8, dropDelayFrames: 108, mistakePercent: 45, mistakePool: 14, targetChain: 3, depth: 1, beamWidth: 4, buildWeight: 25 },
-  hard: { thinkDelay: 7, dropDelayFrames: 100, mistakePercent: 42, mistakePool: 14, targetChain: 3, depth: 1, beamWidth: 5, buildWeight: 26, recoverUnderPressure: true, recoveryHeadroom: 2 },
-  expert: { thinkDelay: 5, dropDelayFrames: 84, mistakePercent: 35, mistakePool: 12, targetChain: 4, depth: 2, beamWidth: 7, buildWeight: 30, watchOpponent: true, recoverUnderPressure: true },
-  master: { thinkDelay: 3, dropDelayFrames: 60, mistakePercent: 25, mistakePool: 10, targetChain: 5, depth: 2, beamWidth: 9, buildWeight: 34, watchOpponent: true, recoverUnderPressure: true },
-  // 달인은 기존 최상위 성능을 유지하며 이동·회전 직후 대기 없이 내린다.
-  grandmaster: { thinkDelay: 0, dropDelayFrames: 0, mistakePercent: 0, mistakePool: 1, targetChain: 7, depth: 2, beamWidth: 12, buildWeight: 45, watchOpponent: true, attackCrowdedOpponent: true, recoverUnderPressure: true, recoverCrowdedField: true },
+  beginner: { thinkDelay: 12, dropDelayFrames: 208, mistakePercent: 60, defenseMistakePercent: 45, mistakePool: 8, targetChain: 1, depth: 1, beamWidth: 2, buildWeight: 8 },
+  easy: { thinkDelay: 10, dropDelayFrames: 156, mistakePercent: 50, defenseMistakePercent: 35, mistakePool: 14, targetChain: 1, depth: 1, beamWidth: 3, buildWeight: 14 },
+  normal: { thinkDelay: 8, dropDelayFrames: 108, mistakePercent: 40, defenseMistakePercent: 25, mistakePool: 14, targetChain: 1, depth: 1, beamWidth: 4, buildWeight: 25 },
+  hard: { thinkDelay: 7, dropDelayFrames: 100, mistakePercent: 30, defenseMistakePercent: 15, mistakePool: 14, targetChain: 2, depth: 1, beamWidth: 5, buildWeight: 26, recoverUnderPressure: true, recoveryHeadroom: 2 },
+  expert: { thinkDelay: 5, dropDelayFrames: 84, mistakePercent: 20, defenseMistakePercent: 8, mistakePool: 12, targetChain: 4, depth: 2, beamWidth: 7, buildWeight: 30, watchOpponent: true, recoverUnderPressure: true, recoveryHeadroom: 1 },
+  master: { thinkDelay: 3, dropDelayFrames: 60, mistakePercent: 10, defenseMistakePercent: 3, mistakePool: 10, targetChain: 5, depth: 2, beamWidth: 9, buildWeight: 34, watchOpponent: true, recoverUnderPressure: true },
+  // 달인은 조작 시작 전 36프레임 판단하고, 이동·회전을 마치면 대기 없이 내린다.
+  grandmaster: { thinkDelay: 36, dropDelayFrames: 0, mistakePercent: 0, defenseMistakePercent: 0, mistakePool: 1, targetChain: 7, depth: 2, beamWidth: 12, buildWeight: 45, watchOpponent: true, attackCrowdedOpponent: true, recoverUnderPressure: true, recoverCrowdedField: true },
 };
 
 const MAX_STALL = 3;
@@ -98,7 +100,8 @@ function plan(cpu, player, table, ranked = rankFeverPlacements(player, table), i
     }
   }
 
-  const mistake = rollPercent(rng, params.mistakePercent);
+  const defending = incoming >= COLS || columnHeight(player.board.cells, DEATH_X) >= 8;
+  const mistake = rollPercent(rng, defending ? params.defenseMistakePercent : params.mistakePercent);
   rng = mistake.rng;
   if (mistake.hit && safe.length > 0) {
     // 선행 탐색이 후보를 하나로 줄여도 실수 설정이 무효가 되지 않도록 한다.

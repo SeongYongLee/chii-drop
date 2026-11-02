@@ -40,7 +40,7 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
   const notice = container.querySelector('[data-mobile-notice]');
   const backButton = menu.querySelector?.('[data-input="128"]');
   const companions = createMenuCompanions(view.document, container, onUnlock);
-  const media = view.matchMedia('(pointer: coarse), (max-width: 760px), (max-height: 500px) and (max-width: 960px)');
+  const media = view.matchMedia('(pointer: coarse), (max-width: 960px)');
   let context = {}, key = '', queued = 0, localPlayer = 0, start = null, enabled = false, itemsKey = '';
   let setupItemsKey = '', noticeKey = '', backWasSelected = false;
   let chromeState = [];

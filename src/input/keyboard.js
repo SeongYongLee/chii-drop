@@ -77,6 +77,8 @@ function attachKeyboard(keyboard, target) {
     keyboard.touchHeld?.clear();
     keyboard.touchPressed?.clear();
     keyboard.rotationInputs?.clear();
+    keyboard.gamepadPressed?.clear();
+    keyboard.gamepadPlayers = [null, null];
   });
 }
 
@@ -85,6 +87,9 @@ function readInput(keyboard, keymap) {
   let rotationsPressed = 0;
   const group = Object.keys(KEYMAPS).find((id) => KEYMAPS[id] === keymap);
   const physical = keyboard.bindings?.[group] ?? keymap;
+  const pad = group === 'solo' ? keyboard.gamepadPlayers?.find(Boolean) : keyboard.gamepadPlayers?.[group === 'p2' ? 1 : 0];
+  input |= pad?.held ?? 0;
+  rotationsPressed |= pad?.pressed ?? 0;
   for (const [name, codes] of Object.entries(keymap)) {
     if (physical[name].some((code) => keyboard.held.has(code)) || codes.some((code) => keyboard.touchHeld?.has(code))) {
       input |= INPUT[name];
@@ -104,12 +109,14 @@ function readInput(keyboard, keymap) {
 
 function wasPressed(keyboard, codes) {
   const physical = codes === MENU_KEYS.pause && keyboard.bindings?.pause ? ['Escape', ...keyboard.bindings.pause] : codes;
-  return physical.some((code) => keyboard.pressed.has(code)) || codes.some((code) => keyboard.touchPressed?.has(code));
+  return physical.some((code) => keyboard.pressed.has(code)) || codes.some((code) => keyboard.touchPressed?.has(code) || keyboard.gamepadPressed?.has(code));
 }
 
 function clearPressed(keyboard) {
   keyboard.pressed.clear();
   keyboard.touchPressed?.clear();
+  keyboard.gamepadPressed?.clear();
+  for (const pad of keyboard.gamepadPlayers ?? []) if (pad) pad.pressed = 0;
   for (const state of keyboard.rotationInputs?.values() ?? []) state.pressed = 0;
 }
 

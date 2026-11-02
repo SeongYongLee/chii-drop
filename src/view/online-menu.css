@@ -289,8 +289,11 @@
 }
 :host([hidden]) { display:none!important; }
 .online-shell { position:absolute; inset:0; width:100%; height:100%; }
-@media (max-width:760px) and (orientation:portrait) {
+@media (max-width:960px) and (orientation:portrait) {
   :host { width:100vw; height:var(--visible-height,100dvh); top:var(--visible-top,0px); }
+}
+@media (max-width:960px) {
+  :host([data-playing=true]) { width:100vw; height:var(--visible-height,100dvh); top:var(--visible-top,0px); }
 }
 
 /* 대전은 싱글과 같은 게임 영역 전체를 쓰고 메뉴는 그 위에 띄운다. */
@@ -312,7 +315,7 @@
 .battle-menu .network-details p { position:static; width:auto; }
 .online-result { display:none; position:absolute; z-index:7; bottom:12px; left:50%; transform:translateX(-50%); width:max-content; max-width:95%; padding:10px 16px; border:2px solid var(--line); border-radius:16px; background:var(--paper); text-align:center; }
 .online-result:has(#return-room:not([hidden])) { display:grid; gap:8px; }
-@media(max-width:760px),(pointer:coarse),(max-height:500px) and (max-width:960px) {
+@media(max-width:960px),(pointer:coarse) {
   .online-shell[data-playing=true][data-match-active=true] #game-view { grid-template-rows:minmax(0,1fr) var(--touch-controlHeight,146px); }
   .online-shell[data-playing=true] #touch-controls { grid-column:1; grid-row:2; }
 }
@@ -906,7 +909,7 @@
 .online-shell[data-playing=true] .chat-log { flex:1; gap:4px; padding:0; }
 .online-shell[data-playing=true] .chat-log strong { display:inline; margin-right:5px; }
 .online-shell[data-playing=true] .chat-heading { min-height:28px; }
-@media not all and (max-width:760px) and (orientation:portrait) {
+@media not all and (max-width:960px) and (orientation:portrait) {
   :host .online-shell[data-playing=true] .room-chat { top:var(--chat-stage-top,44%); left:var(--chat-stage-center,50%); width:var(--chat-stage-width,23%); height:var(--chat-stage-height,36%); max-height:none; padding:5px; gap:4px; border-radius:12px; }
   :host .online-shell[data-playing=true][data-chat-expanded=false] .room-chat { width:var(--chat-stage-width,23%); height:auto; max-height:none; padding:0 4px; }
   .online-shell[data-playing=true] .chat-heading h3 { font-size:11px; }
@@ -914,7 +917,7 @@
   .online-shell[data-playing=true] .chat-form input { min-height:48px; width:100%; padding:3px; }
   .online-shell[data-playing=true] .chat-form button { padding:3px; }
 }
-@media (max-width:760px) and (orientation:portrait) {
+@media (max-width:960px) and (orientation:portrait) {
   :host .online-shell[data-playing=true] #game-view { grid-template-rows:minmax(0,1fr) calc(var(--touch-controlHeight,146px) + 48px); }
   :host .online-shell[data-playing=true] #touch-controls { grid-row:2; padding-top:48px; }
   :host .online-shell[data-playing=true] .room-chat { top:auto; bottom:0; left:0; transform:none; width:100%; height:calc(var(--touch-controlHeight,146px) + 48px); max-height:none; padding:5px 8px max(5px,env(safe-area-inset-bottom)); gap:4px; border-radius:12px 12px 0 0; background:#fffaf0f5; }
@@ -1032,7 +1035,7 @@
 :host(#online-mode) .online-menu-heading .connection { top:50%; bottom:auto; transform:translateY(-50%); }
 
 /* 가로의 접힌 채팅은 풍뎅이가 걷는 중앙 하단 띠만 사용한다. */
-@media not all and (max-width:760px) and (orientation:portrait) {
+@media not all and (max-width:960px) and (orientation:portrait) {
   :host .online-shell[data-playing=true][data-chat-expanded=false] .room-chat {
     top:var(--chat-collapsed-top,69%); height:var(--chat-strip-height,36px); min-height:0;
     padding:0 4px; gap:0; border-radius:8px; background:#fffaf0d9;
@@ -1093,6 +1096,9 @@
   :host(#online-mode) .online-shell:not([data-playing=true]) .selection-player p { font-size:10px; margin:0; }
 }
 /* Mobile lobby reserves the measured notice once and gives forms a complete card. */
+@media (max-width:960px) {
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-panel=create] :is(#player-panel,#lobby-tabs) { display:none; }
+}
 @media(max-width:600px) {
   :host(#online-mode) .online-shell:not([data-playing=true]) {
     --online-floor:64px; --online-notice:var(--menu-footer-reserve,120px);
@@ -1206,4 +1212,108 @@
     padding:12px; z-index:20; background:#fffaf0; box-shadow:0 12px 32px #4f423844;
   }
   :host(#online-mode) .online-shell:not([data-playing=true])[data-chat-expanded=true] .chat-body { flex:1; min-height:0; overflow:auto; }
+}
+
+/* Selection owns its navigation; keep its confirm button above the shared footer. */
+@media (max-width:960px) {
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-selecting=true] main {
+    grid-template-columns:minmax(0,1fr); grid-template-rows:30px minmax(0,1fr); gap:6px;
+  }
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-selecting=true] :is(.room-chat,.status-bar,.online-menu-actions) { display:none; }
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-selecting=true] #character-select-view {
+    display:grid; grid-column:1; grid-row:2; padding:6px; gap:6px;
+    grid-template-rows:auto minmax(80px,1fr) auto auto;
+  }
+  :host(#online-mode) .online-shell[data-selecting=true] .selection-header { min-height:44px; justify-content:flex-end; }
+  :host(#online-mode) .online-shell[data-selecting=true] .selection-header>div { display:none; }
+  :host(#online-mode) .online-shell[data-selecting=true] .selection-header button { min-height:44px; padding:6px 10px; }
+  :host(#online-mode) .online-shell[data-selecting=true] .selection-players { min-height:80px; gap:6px; }
+  :host(#online-mode) .online-shell[data-selecting=true] .selection-player { padding:4px; gap:1px; }
+  :host(#online-mode) .online-shell[data-selecting=true] .selection-player canvas { width:clamp(28px,8vh,64px); height:clamp(28px,8vh,64px); flex:none; }
+  :host(#online-mode) .online-shell[data-selecting=true] .selection-player .eyebrow { font-size:10px; line-height:12px; }
+  :host(#online-mode) .online-shell[data-selecting=true] .selection-player h3 { font-size:14px; line-height:16px; margin:0; }
+  :host(#online-mode) .online-shell[data-selecting=true] .selection-player p { font-size:10px; line-height:12px; margin:0; }
+  :host(#online-mode) .online-shell[data-selecting=true] .selection-choices { padding:4px; }
+  :host(#online-mode) .online-shell[data-selecting=true] #character-options { gap:4px; }
+  :host(#online-mode) .online-shell[data-selecting=true] #character-options button { min-height:44px; padding:4px; gap:2px; }
+  :host(#online-mode) .online-shell[data-selecting=true] #character-options button canvas { width:24px; height:24px; }
+  :host(#online-mode) .online-shell[data-selecting=true] #character-options button span { font-size:11px; }
+  :host(#online-mode) .online-shell[data-selecting=true] .selection-footer { display:grid; grid-template-columns:100px minmax(0,1fr); gap:6px; }
+  :host(#online-mode) .online-shell[data-selecting=true] .selection-footer button { min-width:0; min-height:44px; padding:6px; font-size:14px; }
+}
+@media (max-width:960px) and (max-height:560px) and (orientation:landscape) {
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-selecting=true] #character-select-view {
+    grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:44px minmax(44px,1fr) 44px; gap:4px; padding:4px;
+  }
+  :host(#online-mode) .online-shell[data-selecting=true] .selection-header { grid-column:2; grid-row:1; }
+  :host(#online-mode) .online-shell[data-selecting=true] .selection-players { grid-column:1; grid-row:1/3; }
+  :host(#online-mode) .online-shell[data-selecting=true] .selection-player canvas { width:28px; height:28px; }
+  :host(#online-mode) .online-shell[data-selecting=true] .selection-choices { grid-column:2; grid-row:2; padding:0; }
+  :host(#online-mode) .online-shell[data-selecting=true] #character-options { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  :host(#online-mode) .online-shell[data-selecting=true] #character-options button { flex-direction:row; }
+  :host(#online-mode) .online-shell[data-selecting=true] #character-options button canvas { width:20px; height:20px; }
+  :host(#online-mode) .online-shell[data-selecting=true] .selection-footer { grid-column:1/-1; grid-row:3; }
+}
+
+/* Short result screens reserve an action strip instead of covering field scores. */
+@media (max-width:960px) and (max-height:500px) and (orientation:landscape) {
+  :host(#online-mode) .online-shell[data-playing=true][data-match-active=false] #game-view { grid-template-rows:minmax(0,1fr) 72px; }
+  :host(#online-mode) .online-shell[data-playing=true] .online-result:has(#return-room:not([hidden])) {
+    display:grid; grid-template-columns:minmax(0,1fr) minmax(260px,1.2fr); grid-template-rows:auto auto;
+    width:min(760px,calc(100% - 24px)); max-width:none; padding:6px 10px; gap:2px 8px;
+  }
+  :host(#online-mode) .online-shell[data-playing=true] .online-result p { margin:0; padding:0; font-size:10px; line-height:1.3; }
+  :host(#online-mode) .online-shell[data-playing=true] .online-result #settlement { grid-column:1; grid-row:1; align-self:end; }
+  :host(#online-mode) .online-shell[data-playing=true] .online-result #rematch-status { grid-column:1; grid-row:2; align-self:start; }
+  :host(#online-mode) .online-shell[data-playing=true] .online-result .result-actions { grid-column:2; grid-row:1/3; }
+  :host(#online-mode) .online-shell[data-playing=true] .online-result .result-actions button { min-width:0; min-height:44px; padding:6px; font-size:14px; }
+}
+
+/* Room creation keeps its fields and actions together when a device unfolds. */
+@media (max-width:960px) {
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-panel=create] .create-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  :host(#online-mode) .online-shell[data-panel=create] .create-form>label { min-width:0; }
+  :host(#online-mode) .online-shell[data-panel=create] .create-form>label:first-child,
+  :host(#online-mode) .online-shell[data-panel=create] .create-form :is(.form-actions,.form-error) { grid-column:1/-1; }
+  :host(#online-mode) .online-shell[data-panel=create] .create-form :is(.field-hint,.form-summary) { display:none; }
+}
+@media (max-width:960px) and (orientation:landscape) {
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true]:not([data-selecting=true]) #room-view {
+    display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-rows:auto minmax(64px,1fr) 44px; gap:4px;
+  }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-header { grid-column:1/-1; padding-bottom:0; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-arena { grid-column:1; grid-row:2; min-height:64px; padding:4px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-arena>.room-zone-heading { display:none; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .seats { min-height:54px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-arena .seat { padding:4px; gap:4px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-arena .seat canvas { width:32px; height:32px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-spectators { grid-column:2; grid-row:2; width:100px; min-height:0; flex-direction:column; padding:4px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-spectators:has(.spectator-empty) { display:none; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .spectator-panel-heading { min-height:18px; padding:0; gap:4px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .spectator-panel-heading h3 { font-size:11px; white-space:nowrap; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .spectator-panel-heading .spectator-total { font-size:10px; white-space:nowrap; padding:1px 3px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) #spectator-list { flex-direction:column; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .spectator-name { min-height:28px; padding:3px; gap:3px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .spectator-details strong { font-size:10px; margin:0; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .spectator-details small { display:none; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-bottom { grid-column:1/-1; grid-row:3; min-height:44px; padding:0; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-bottom button { min-height:44px; padding:6px; }
+}
+@media (max-width:960px) and (max-height:500px) and (orientation:landscape) {
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true]:not([data-selecting=true]) main { grid-template-rows:24px minmax(0,1fr) 44px; gap:4px 8px; padding:6px; }
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true]:not([data-selecting=true]) .status-bar { display:none; }
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true]:not([data-selecting=true]) .online-menu-actions { grid-row:3; padding:0; border:0; }
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true] .online-menu-actions :is(#online-back,#touch-options) { min-height:44px; padding:6px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-invite { margin-top:0; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-invite button { min-height:32px; padding:4px 6px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .room-code-badge { min-height:32px; padding:4px; }
+}
+@media (max-width:960px) and (max-height:500px) and (orientation:landscape) {
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-panel=create] :is(.status-bar,.online-menu-actions) { display:none; }
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-panel=create] .create-card { padding:6px; }
+  :host(#online-mode) .online-shell:not([data-playing=true])[data-panel=create] .create-form { grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+  :host(#online-mode) .online-shell[data-panel=create] .create-form>label:first-child { grid-column:auto; }
+  :host(#online-mode) .online-shell[data-panel=create] .create-form>label { font-size:12px; }
+  :host(#online-mode) .online-shell[data-panel=create] .create-form :is(input,select) { min-height:44px; padding:6px; font-size:16px; }
+  :host(#online-mode) .online-shell[data-panel=create] .form-actions { margin:0; }
 }

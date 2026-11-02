@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { SCREEN_HEIGHT, SCREEN_WIDTH, setupScreen } from '../src/app/screen.js';
-import { portraitGameLayout } from '../src/view/layout.js';
+import { portraitGameLayout, portraitHeaderHeight } from '../src/view/layout.js';
 
 test('setupScreen은 논리 해상도에 기기 배율을 곱한 크기로 캔버스를 맞춘다', () => {
   const calls = [];
@@ -37,12 +37,27 @@ test('320~430px 세로 경기의 필드는 6:12 비율을 유지하고 HUD와 �
     const boxes=portraitGameLayout(logicalHeight,count);
     for(const box of boxes){
       assert.ok(box.x>=0&&box.x+box.width<=960);
-      assert.ok(box.y-32*box.scale>=350-1e-9);
+      assert.ok(box.y-32*box.scale>=portraitHeaderHeight(logicalHeight)-1e-9);
       assert.ok(box.y+(384+16)*box.scale<=logicalHeight+1e-9);
       assert.ok(Math.abs(box.width/(384*box.scale)-.5)<1e-10);
     }
     if(count===2)assert.ok(boxes[0].x+boxes[0].width<boxes[1].x);
   }
+});
+
+test('펼친 화면은 HUD를 줄여 필드를 키우며 두 게임판과 예고 공간을 분리한다',()=>{
+  for(const [width,height] of [[626,890],[669,951],[690,829],[768,884],[853,960]]){
+    const stageWidth=Math.min(width-20,580), stageHeight=height-204;
+    const logicalHeight=960*stageHeight/stageWidth;
+    const boxes=portraitGameLayout(logicalHeight,2), oldScale=(logicalHeight-410-40)/432;
+    assert.ok(boxes[0].scale>oldScale,'기존 고정 높이 HUD보다 필드가 커진다');
+    assert.ok(boxes[0].width*stageWidth/960>=170,'각 필드의 여섯 열을 읽을 수 있는 크기를 확보한다');
+    for(const box of boxes){
+      assert.ok(box.y-32*box.scale>=portraitHeaderHeight(logicalHeight)-1e-9);
+      assert.ok(box.y+400*box.scale<=logicalHeight+1e-9);
+    }
+  }
+  assert.equal(portraitHeaderHeight(1700),410,'긴 휴대폰 화면의 기존 HUD 크기는 유지한다');
 });
 
 test('큰 화면과 화면 밀도 변화에 맞춰 재설정하며 논리 좌표는 유지한다', () => {

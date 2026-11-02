@@ -5,6 +5,7 @@ import { loadOnlineConfig, onlineTokenKey } from './config.js';
 import { AUTOMATIC_MATCHMAKING } from './features.js';
 import { showOnlineControls } from '../app/controls-guide.js';
 import { attachKeyboard, createKeyboard, readInput, KEYMAPS, clearPressed } from '../input/keyboard.js';
+import { attachGamepads, adjustGamepadValue } from '../input/gamepad.js';
 import { loadKeyBindings } from '../input/key-settings.js';
 import { setupScreen } from '../app/screen.js';
 import { loadSettings } from '../app/storage.js';
@@ -85,6 +86,17 @@ const menuNavigation = attachMenuNavigation({ view: window, root,
     if (!room && ['#new-room', '#leaderboard'].includes(location.hash)) { showPlay(); return; }
     if (queued) { $('cancel-match').click(); return; }
     $('online-back').click();
+  },
+});
+const gamepads = attachGamepads({ view: window, keyboard,
+  getContext: () => ({ enabled: opened, key: game ?? room?.id ?? root,
+    mode: game && !matchFinished && !$('battle-menu').open && !root.querySelector('dialog[open]')
+      && (!root.activeElement || root.activeElement === $('screen')) ? 'game' : 'menu' }),
+  onActivity: () => unlockSfx(sfx),
+  onMenu: action => {
+    if (action === 'pause') return menuNavigation.dispatch('back');
+    if (adjustGamepadValue(window, root.activeElement, action)) return true;
+    return menuNavigation.dispatch(action);
   },
 });
 // 폼을 편집하는 동안 게임용 키보드 처리기를 통과하지 않는다.
@@ -786,6 +798,7 @@ function tick(now, { render = !document.hidden } = {}) {
     preview.clearRect(0, 0, 192, 192);
     skin.drawCharacter(preview, button.dataset.charId, 'idle', 8, 8, 176, { frame: Math.floor(now * .06), instance: `online-choice-${button.dataset.charId}`, presentation: 'selection' });
   }
+  gamepads.poll(now);
   accumulator = Math.min(accumulator + now - last, 1000 / 60 * 5); last = now;
   if (game && !spectating) { game.setLatency(rtt); game.reconcile(); }
   while (accumulator >= 1000 / 60) {
@@ -850,6 +863,7 @@ for (const back of root.querySelectorAll('[data-online-exit]')) back.onclick = e
   send({ type: 'leave' });
   telemetry.close();
   opened = false; frameClock.refresh(); departing = true; keyboard.enabled = false;
+  gamepads.clear();
   clearTimeout(reconnectTimer); reconnectTimer = null; ws?.close(); ws = null;
   for (const dialog of root.querySelectorAll('dialog[open]')) dialog.close();
   room = null; queued = false; spectating = false; connected = false; routedRoom = null; chat.clear(); resetGame(); clearControls(); buttons();

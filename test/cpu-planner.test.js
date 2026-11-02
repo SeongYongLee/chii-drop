@@ -64,8 +64,8 @@ test('모든 난이도가 실수하지 않는 턴에는 최상위 동점 배치�
   for (const { id } of CPU_LEVELS) {
     const targets = new Set();
     for (let seed = 1; seed <= 32; seed++) {
-      // 동점 선택 다음의 확률 추첨이 50 이상이면 모든 난이도에서 실수가 없다.
-      if (randomInt(randomInt(seed, 1).state, 100).value < 50) continue;
+      // 동점 선택 다음의 확률 추첨이 60 이상이면 모든 난이도에서 실수가 없다.
+      if (randomInt(randomInt(seed, 1).state, 100).value < 60) continue;
       let cpu = createCpu({ level: id, seed }), ranked;
       for (let frame = 0; frame < 100 && !cpu.planned; frame++) {
         if (cpu.thinking) {
@@ -83,6 +83,29 @@ test('모든 난이도가 실수하지 않는 턴에는 최상위 동점 배치�
     assert.ok(targets.size > 1, `${id}: 동점 선택이 한 위치에 고정되지 않는다`);
   }
   assert.deepEqual(match, before);
+});
+
+test('같은 후보를 평가했을 때 위기에는 최선의 수를 더 자주 선택하고 달인은 정확도를 유지한다', () => {
+  const match = createMatch({ seed: 7, playerCount: 1 });
+  const options = evaluatePlacements(match.players[0].board.cells, match.players[0].piece, 0).filter(option => !option.lethal);
+  // 탐색을 마친 동일한 안전 후보 두 개를 제공해 실수 판단만 비교한다.
+  const beam = options.slice(0, 2).map((option, index) => ({ root: option, value: index ? 50 : 100 }));
+  const best = beam[0].root;
+  for (const { id } of CPU_LEVELS) {
+    const chosenBest = [];
+    for (const incoming of [0, 6]) {
+      let count = 0;
+      const player = { ...match.players[0], stocks: { a: incoming, b: 0, c: 0 } };
+      for (let seed = 1; seed <= 256; seed++) {
+        const cpu = { ...createCpu({ level: id, seed }), thinking: { done: true, beam, incoming } };
+        const target = stepCpu(cpu, player, match.table).cpu.target;
+        if (target.x === best.x && target.orient === best.orient) count++;
+      }
+      chosenBest.push(count);
+    }
+    if (id === 'grandmaster') assert.deepEqual(chosenBest, [256, 256]);
+    else assert.ok(chosenBest[1] > chosenBest[0], `${id}: 평상시와 위기의 최선 선택 횟수 ${chosenBest}`);
+  }
 });
 
 test('쉬움은 NEXT 첫 쌍에 맞춰 배치를 바꾸고 그 이후 쌍과 경기 상태는 건드리지 않는다', () => {
@@ -232,19 +255,25 @@ test('화면에 보이지 않는 세 번째 이후 NEXT를 바꿔도 결정은 �
   for (const level of ['expert', 'master', 'grandmaster']) assert.deepEqual(planned(a, undefined, level).cpu, planned(b, undefined, level).cpu);
 });
 
-test('어려움은 실제 프레임 조작으로 5연쇄 이상을 반복해서 만들고 120쌍 동안 살아남는다', () => {
-  let match = createMatch({ seed: 1, playerCount: 1 }), cpu = createCpu({ level: 'expert', seed: 31 });
-  let locks = 0, largeChains = 0;
-  for (let frame = 0; frame < 30000 && locks < 120 && match.phase !== 'over'; frame++) {
-    const result = stepCpu(cpu, match.players[0], match.table); cpu = result.cpu;
-    match = stepMatch(match, [result.input]);
-    for (const event of match.players[0].events) {
-      if (event.type === 'lock') locks++;
-      if (event.type === 'chainEnd' && event.chain >= 5) largeChains++;
+test('어려움은 여러 블록 순서에서 5연쇄 이상을 반복하며 각 120쌍 동안 살아남는다', () => {
+  const counts = [];
+  // 실수 확률을 조정해도 특정 시드의 한 경로에만 의존하지 않고 연쇄 능력을 검사한다.
+  for (let seed = 1; seed <= 6; seed++) {
+    let match = createMatch({ seed, playerCount: 1 }), cpu = createCpu({ level: 'expert', seed: seed * 31 });
+    let locks = 0, largeChains = 0;
+    for (let frame = 0; frame < 30000 && locks < 120 && match.phase !== 'over'; frame++) {
+      const result = stepCpu(cpu, match.players[0], match.table); cpu = result.cpu;
+      match = stepMatch(match, [result.input]);
+      for (const event of match.players[0].events) {
+        if (event.type === 'lock') locks++;
+        if (event.type === 'chainEnd' && event.chain >= 5) largeChains++;
+      }
     }
+    assert.equal(locks, 120); assert.equal(match.players[0].lost, false);
+    counts.push(largeChains);
   }
-  assert.equal(locks, 120); assert.equal(match.players[0].lost, false);
-  assert.ok(largeChains >= 2, `큰 연쇄 ${largeChains}회`);
+  assert.ok(counts.reduce((sum, count) => sum + count, 0) >= 8, `큰 연쇄 횟수 ${counts}`);
+  assert.ok(counts.filter(count => count > 0).length >= 3, `큰 연쇄 발화 경기 ${counts}`);
 });
 
 test('아주 어려움도 계산을 나눠서 엔진을 보존하고 NEXT가 없을 때 상쇄 수를 찾는다', () => {

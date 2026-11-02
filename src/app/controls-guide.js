@@ -1,3 +1,4 @@
+import { loadGamepadBindings, GAMEPAD_ACTIONS, gamepadButtonLabel } from '../input/gamepad-settings.js';
 import { createGuideBlocks } from '../view/guide-blocks.js';
 import { analytics } from '../analytics/client.js';
 import { analyticsMode } from '../analytics/events.js';
@@ -92,6 +93,12 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
         else addCard('키보드', guideRows(bindings));
       }
       const note = doc.createElement('p');
+      let padStorage;
+      try { padStorage = view.localStorage; } catch { /* 기본 배치를 안내한다. */ }
+      const padBindings = loadGamepadBindings(padStorage);
+      for (const slot of mode === 'versus' ? [0, 1] : [0]) addCard(`게임패드${mode === 'versus' ? ` ${slot + 1}P` : ''}`,
+        [['왼쪽 스틱', '이동 · 아래로 빠르게 내리기'], ...Object.entries(GAMEPAD_ACTIONS).map(([action, label]) =>
+          [padBindings[slot][action].map(gamepadButtonLabel).join(' · '), label]), ['A / ✕ · B / ○', '메뉴 결정 · 뒤로']]);
       note.className = 'game-guide-note';
       note.textContent = mode === 'online' ? '온라인 경기는 일시정지할 수 없어요. 양쪽 모두 안내를 확인하고 준비하면 시작합니다.' : touch ? (mode === 'versus' ? '1P / 2P 버튼으로 조작할 플레이어를 바꿔요. 설정에서 터치 영역을 바꿀 수 있어요.' : '설정에서 터치 영역을 바꿀 수 있어요.')
         : `${(app.keyboard.bindings ?? defaultKeyBindings()).pause.map(keyLabel).join(' / ')}: 일시정지 · 설정에서 키 변경`;

@@ -27,12 +27,16 @@ export function loadTouchLayouts(storage) {
       .map((key) => [key, normalizeTouchLayout(data[key], key)]));
   } catch { return {}; }
 }
-export function defaultTouchLayout(orientation, width) {
+export function defaultTouchLayout(orientation, width, height = TOUCH_AREA_HEIGHT) {
   const layout = normalizeTouchLayout(null, orientation);
   if (orientation === 'landscape') {
     for (const [index, bit] of [1, 4, 2].entries()) layout[bit].x = index * 74 / Math.max(1, width - 64);
     layout[1].y = .65; layout[2].y = .65; layout[4].y = 1;
     layout[16].x = 1 - 74 / Math.max(1, width - 64);
+    if (height <= 120) {
+      for (const bit of [1, 4, 2, 16, 8]) layout[bit].y = 1;
+      layout[256].x = .5; layout[256].y = 0;
+    }
   } else {
     const size = clamp(Math.round(width * .17), 56, 64), edge = 6, gap = 12;
     const positions = { 1: [edge, 48], 2: [edge + size + gap, 48],
@@ -58,10 +62,14 @@ export function createTouchLayoutEditor({ view, game, onOpen, onClose }) {
   let layouts = loadTouchLayouts(storage), dialog = null, editing = false, orientation = '', applied = '';
   const gameButtons = [...game.querySelectorAll('button[data-input]')];
   function currentOrientation() { return view.innerWidth > view.innerHeight ? 'landscape' : 'portrait'; }
+  function landscapeHeight() {
+    const wide=Math.max(view.innerWidth,view.innerHeight), narrow=Math.min(view.innerWidth,view.innerHeight);
+    return wide<=960&&narrow>500 ? 108 : narrow-16;
+  }
   function apply() {
     const next = currentOrientation();
     const width = game.clientWidth || (next === 'portrait' ? Math.min(view.innerWidth - 20, 580) : view.innerWidth - 20);
-    const profile = layouts[next] ?? defaultTouchLayout(next, width);
+    const profile = layouts[next] ?? defaultTouchLayout(next, width, game.clientHeight || (next==='portrait'?TOUCH_AREA_HEIGHT:landscapeHeight()));
     const signature = JSON.stringify([next, profile]);
     if (signature === applied) return;
     applied = signature;
@@ -103,14 +111,14 @@ export function createTouchLayoutEditor({ view, game, onOpen, onClose }) {
     function defaults() {
       const width = orientation === 'portrait' ? Math.min(Math.min(view.innerWidth, view.innerHeight) - 20, 580)
         : Math.max(view.innerWidth, view.innerHeight) - 20;
-      return defaultTouchLayout(orientation, width);
+      return defaultTouchLayout(orientation, width, orientation==='portrait'?TOUCH_AREA_HEIGHT:landscapeHeight());
     }
     function profile() { return draft[orientation] ?? defaults(); }
     function editableProfile() { return draft[orientation] ??= defaults(); }
     function previewSize(item) {
       const wide = Math.max(view.innerWidth, view.innerHeight), narrow = Math.min(view.innerWidth, view.innerHeight);
       const targetWidth = orientation === 'landscape' ? wide - 20 : Math.min(narrow - 20, 580);
-      const targetHeight = orientation === 'landscape' ? narrow - 16 : TOUCH_AREA_HEIGHT;
+      const targetHeight = orientation === 'landscape' ? landscapeHeight() : TOUCH_AREA_HEIGHT;
       return item.size * Math.min(arena.clientWidth / targetWidth, arena.clientHeight / targetHeight);
     }
     const previews = TOUCH_BUTTONS.map((item) => {
@@ -183,5 +191,7 @@ export function createTouchLayoutEditor({ view, game, onOpen, onClose }) {
     dialog.showModal(); render();
   }
   apply(); view.addEventListener('resize', apply);
+  // CSS and visual-viewport updates may settle after the window resize event.
+  if (view.ResizeObserver) new view.ResizeObserver(apply).observe(game);
   return { open, apply, get editing() { return editing; } };
 }

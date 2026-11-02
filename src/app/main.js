@@ -9,6 +9,7 @@ import { configureCharacterVoices } from '../audio/character-voice.js';
 import { configureMusic, syncMusicVisibility } from '../audio/music.js';
 import { mixLevels } from '../audio/mix-levels.js';
 import { attachKeyboard, clearPressed, createKeyboard } from '../input/keyboard.js';
+import { attachGamepads } from '../input/gamepad.js';
 import { attachMobileControls } from '../input/mobile-controls.js';
 import { createKeySettings } from '../input/key-settings.js';
 import { loadSkinScript } from '../story/script.js';
@@ -195,6 +196,12 @@ app.mobile = attachMobileControls({ view: window, canvas, container: document.ge
   }),
   onTap: (point, viewport) => app.scene?.tap?.(app, point, viewport) ?? false,
 });
+app.gamepads = attachGamepads({ view: window, keyboard: app.keyboard,
+  getContext: () => ({ enabled: Boolean(app.scene) && !app.onlineActive, key: app.scene,
+    mode: app.scene?.touchGame?.() && !app.scene?.touchPaused?.() ? 'game' : 'menu' }),
+  onActivity: () => { unlockSfx(app.sfx); titleEntrance.finish(); },
+  onDisconnect: () => { if (!app.onlineActive && app.scene?.touchGame?.()) { app.scene.openPause?.(); app.mobile.sync(); } },
+});
 window.addEventListener('pointerdown', () => unlockSfx(app.sfx));
 window.addEventListener('keydown', () => unlockSfx(app.sfx));
 document.addEventListener('visibilitychange', () => syncMusicVisibility(app.sfx));
@@ -249,6 +256,7 @@ async function startGame() {
 await startGame();
 
 function tick(now) {
+  app.gamepads.poll(now);
   if (!app.backgroundAssetsStarted) {
     app.backgroundAssetsStarted = true;
     // 첫 타이틀을 그린 다음 작업부터 내려받는다. 실패 항목은 경기 시작 때 재시도한다.

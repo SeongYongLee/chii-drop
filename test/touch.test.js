@@ -16,7 +16,7 @@ function harness() {
     const left = ({ 1: 0, 4: 70, 2: 140, 8: 260, 16: 330 })[bit];
     button.getBoundingClientRect = () => ({ left, right: left + 60, top: 100, bottom: 160, width: 60, height: 60 });
   }
-  const doc = new EventTarget(); doc.defaultView = new EventTarget(); doc.hidden = false;
+  const doc = new EventTarget(); doc.defaultView = new EventTarget(); doc.defaultView.visualViewport = new EventTarget(); doc.hidden = false;
   const touch = attachTouchControls({ ownerDocument: doc, querySelectorAll: () => buttons });
   function fire(bit, type, properties = {}) {
     const event = new Event(type, { cancelable: true });
@@ -126,4 +126,20 @@ test('읽기 전에 취소된 터치는 다음 프레임의 유령 입력으로 
   fire(4, 'pointerdown', { pointerId: 10 }); fire(4, 'pointerdown', { pointerId: 11 });
   fire(4, 'pointercancel', { pointerId: 10 }); assert.equal(touch.read(), 4);
   fire(4, 'pointerup', { pointerId: 11 }); assert.equal(touch.read(), 0);
+});
+
+test('접기·펼치기·회전 중의 동시 터치는 취소되고 새 배치에서 다시 누를 수 있다',()=>{
+  for(const [target,type] of [['window','resize'],['window','orientationchange'],['visual','resize']]){
+    const {touch,fire,doc,buttons}=harness();touch.setEnabled(true);
+    fire(1,'pointerdown',{pointerId:10});fire(8,'pointerdown',{pointerId:11});
+    assert.equal(touch.read(),1|8);
+    // Include a pending, not-yet-read tap as well as the two held contacts.
+    fire(4,'pointerdown',{pointerId:12});
+    (target==='window'?doc.defaultView:doc.defaultView.visualViewport).dispatchEvent(new Event(type));
+    assert.equal(touch.read(),0);assert.ok(buttons.every(b=>b.attributes['aria-pressed']==='false'));
+    fire(1,'pointermove',{pointerId:10,clientX:170,clientY:130});
+    fire(8,'pointerup',{pointerId:11});assert.equal(touch.read(),0,'이전 포인터가 새 방향이나 회전을 남기지 않는다');
+    fire(2,'pointerdown',{pointerId:20});assert.equal(touch.read(),2);
+    fire(2,'pointerup',{pointerId:20});assert.equal(touch.read(),0);
+  }
 });

@@ -24,6 +24,7 @@ import {
   SIDES,
   gameTransform,
   portraitGameLayout,
+  portraitHeaderHeight,
 } from './layout.js';
 
 const INK = PALETTE.ink;
@@ -525,9 +526,12 @@ function drawPortraitNext(ctx, skin, effects) {
 
 function drawPortraitGame(ctx, view, height) {
   const { players } = view.match, boxes = portraitGameLayout(height, players.length);
+  const hudScale=(portraitHeaderHeight(height)-30)/380;
   if (!view.result) {
-    paper(ctx,36,20,888,360,{radius:28,fill:'#fffdf5',shadow:false});
+    paper(ctx,36,20*hudScale,888,360*hudScale,{radius:28,fill:'#fffdf5',shadow:false});
+    ctx.save();ctx.translate(480*(1-hudScale),0);ctx.scale(hudScale,hudScale);
     drawPortraitNext(ctx,view.skin,view.effects);
+    ctx.restore();
   }
   players.forEach((player, i) => {
     const effect = view.effects[i], character = view.characters[i], box = boxes[i];
@@ -537,16 +541,16 @@ function drawPortraitGame(ctx, view, height) {
         const presentation = characterPresentation(effect);
         const alpha = fieldChainPresentation(view.skin, character, effect, player).portraitAlpha;
         ctx.save(); ctx.globalAlpha *= alpha;
-        if (alpha > 0) view.skin.drawCharacter(ctx, character.id, presentation.mood, center-108, 80, 216,
+        if (alpha > 0) view.skin.drawCharacter(ctx, character.id, presentation.mood, center-108*hudScale, 80*hudScale, 216*hudScale,
           { frame:presentation.frame, blinkFrame:effect.blinkFrame, chain:effect.characterChain,
             instance:`portrait-${effect.side}`, presentation:'battle' });
         ctx.restore();
       }
-      ctx.fillStyle=INK;ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`bold 30px ${FONT}`;
-      ctx.fillText(character?.name ?? `${i+1}P`, center, 52, 212);
-      ctx.font=`bold 34px ${FONT}`;
+      ctx.fillStyle=INK;ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`bold ${Math.max(24,30*hudScale)}px ${FONT}`;
+      ctx.fillText(character?.name ?? `${i+1}P`, center, 52*hudScale, 212);
+      ctx.font=`bold ${Math.max(26,34*hudScale)}px ${FONT}`;
       const formula = effect.formula && ['pop-start','pop','chain-fall'].includes(player.phase);
-      ctx.fillText(formula ? `${effect.formula.base}×${effect.formula.multiplier}` : String(effect.displayScore).padStart(8,'0'), center, 332, 212);
+      ctx.fillText(formula ? `${effect.formula.base}×${effect.formula.multiplier}` : String(effect.displayScore).padStart(8,'0'), center, 332*hudScale, 212);
     }
 
     // 기존 필드 좌표를 균등하게 확대해 착지·회전·소거의 움직임을 유지한다.
@@ -561,7 +565,10 @@ function drawPortraitGame(ctx, view, height) {
     drawChainLabels(ctx,effect);drawAllClear(ctx,sourceX,effect);drawParticles(ctx,view.skin,effect);
     ctx.restore();
   });
-  if (!view.result) drawMascot(ctx, view, true);
+  if (!view.result) {
+    ctx.save();ctx.translate(480*(1-hudScale),0);ctx.scale(hudScale,hudScale);
+    drawMascot(ctx, view, true);ctx.restore();
+  }
   const project = point => {
     const first=boxes[0], last=boxes.at(-1);
     const xScale = boxes.length>1 ? (last.x+last.width/2-first.x-first.width/2)/384 : first.scale;

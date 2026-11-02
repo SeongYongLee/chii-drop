@@ -81,6 +81,11 @@ export function attachTouchControls(container) {
   for (const type of ['contextmenu', 'selectstart', 'dragstart']) container.addEventListener?.(type, (event) => event.preventDefault());
   const doc = container.ownerDocument;
   doc.defaultView.addEventListener('blur', clear);
+  // A fold/rotation can move a captured button without sending pointercancel.
+  // The old contact must not keep steering the piece in the new layout.
+  doc.defaultView.addEventListener('resize', clear);
+  doc.defaultView.addEventListener('orientationchange', clear);
+  doc.defaultView.visualViewport?.addEventListener('resize', clear);
   doc.addEventListener('visibilitychange', () => { if (doc.hidden) clear(); });
   refresh();
   return {
