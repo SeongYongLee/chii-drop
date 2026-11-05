@@ -27,8 +27,8 @@ const LEVEL_PARAMS = {
   hard: { thinkDelay: 7, dropDelayFrames: 100, mistakePercent: 30, defenseMistakePercent: 15, mistakePool: 14, targetChain: 2, depth: 1, beamWidth: 5, buildWeight: 26, recoverUnderPressure: true, recoveryHeadroom: 2 },
   expert: { thinkDelay: 5, dropDelayFrames: 84, mistakePercent: 20, defenseMistakePercent: 8, mistakePool: 12, targetChain: 4, depth: 2, beamWidth: 7, buildWeight: 30, watchOpponent: true, recoverUnderPressure: true, recoveryHeadroom: 1 },
   master: { thinkDelay: 3, dropDelayFrames: 60, mistakePercent: 10, defenseMistakePercent: 3, mistakePool: 10, targetChain: 5, depth: 2, beamWidth: 9, buildWeight: 34, watchOpponent: true, recoverUnderPressure: true },
-  // 달인은 조작 시작 전 36프레임 판단하고, 이동·회전을 마치면 대기 없이 내린다.
-  grandmaster: { thinkDelay: 36, dropDelayFrames: 0, mistakePercent: 0, defenseMistakePercent: 0, mistakePool: 1, targetChain: 7, depth: 2, beamWidth: 12, buildWeight: 45, watchOpponent: true, attackCrowdedOpponent: true, recoverUnderPressure: true, recoverCrowdedField: true },
+  // 달인은 배치 탐색 후 판단 대기 없이 조작하고, 이동·회전을 마치면 바로 내린다.
+  grandmaster: { thinkDelay: 0, dropDelayFrames: 0, mistakePercent: 0, defenseMistakePercent: 0, mistakePool: 1, targetChain: 7, depth: 2, beamWidth: 12, buildWeight: 45, watchOpponent: true, attackCrowdedOpponent: true, recoverUnderPressure: true, recoverCrowdedField: true },
 };
 
 const MAX_STALL = 3;
