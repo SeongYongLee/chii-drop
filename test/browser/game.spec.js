@@ -130,8 +130,8 @@ test('두 브라우저의 실제 온라인 대전은 접속이 끊겨도 같은 
     await expect(page.locator('#player-count')).toHaveText('2');
     const code = await page.locator('#room-code').textContent();
     await page.locator('#ready').click(); await guest.locator('#ready').click();
-    await page.locator('#confirm-character').click(); await controls(page);
-    await guest.locator('#confirm-character').click(); await controls(guest);
+    await page.locator('#confirm-character').click();
+    await guest.locator('#confirm-character').click();
     await expect(page.locator('.online-shell')).toHaveAttribute('data-playing', 'true');
     await expect(guest.locator('.online-shell')).toHaveAttribute('data-playing', 'true');
     const room = async () => (await (await request.get('/__test/rooms')).json()).find(entry => entry.code === code);

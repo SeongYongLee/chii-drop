@@ -294,7 +294,7 @@ async function loadImageSkin(baseUrl, { onManifest, onImage, progressive = false
     },
     drawBackground(ctx, width, height, scene) {
       const sceneBackground = backgrounds[scene] ?? background;
-      if (sceneBackground && ctx.canvasBackdrop && ctx.pageBackdropUrl === spriteAt(sceneBackground).image.src) {
+      if (sceneBackground && ctx.useCssBackdrop && ctx.pageBackdropUrl === spriteAt(sceneBackground).image.src) {
         // 같은 이미지를 CSS가 이미 표시한다. 투명 캔버스의 이전 프레임만 지운다.
         ctx.clearRect(0, 0, width, height);
       } else if (sceneBackground) {

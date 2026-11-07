@@ -1,4 +1,5 @@
 import { createGamepadSettings, defaultGamepadBindings, GAMEPAD_ACTIONS, gamepadButtonLabel } from './gamepad-settings.js';
+import { gamepadDiagramMarkup } from './gamepad-diagram.js';
 import { INPUT } from '../engine/input.js';
 import { directionalMenuIndex } from './menu-navigation.js';
 
@@ -164,15 +165,42 @@ export function attachGamepads({ view, keyboard, getContext, onMenu, onActivity 
     openGuide() {
       if (guide?.open) return;
       const doc = view.document;
+      settings.reload();
       guide = doc.createElement('dialog'); guide.className = 'gamepad-guide'; guide.setAttribute('aria-label', '게임패드 조작 안내');
-      guide.innerHTML = '<h2>게임패드 조작</h2><p data-gamepad-status></p><dl><dt>방향키 / 왼쪽 스틱</dt><dd>이동 · 아래로 빠르게 내리기</dd><dt>왼쪽 X / □ · 아래 A / ✕</dt><dd>왼쪽 회전 (A: 메뉴 결정)</dd><dt>위 Y / △ · 오른쪽 B / ○</dt><dd>오른쪽 회전 (B: 메뉴 뒤로)</dd><dt>L1 / R1</dt><dd>왼쪽 / 오른쪽 회전</dd><dt>Start / Options</dt><dd>일시정지 · 메뉴에서 결정</dd></dl><p>로컬 대전은 게임패드 두 개 또는 키보드와 함께 조작할 수 있어요. 표준 매핑 기준이며 장치에 따라 버튼 배치가 다를 수 있어요.</p><button type="button">닫기</button>';
-      const list = guide.querySelector('dl'); list.replaceChildren();
-      for (const [slot, profile] of settings.bindings.entries()) for (const [action, label] of Object.entries(GAMEPAD_ACTIONS)) {
-        const dt = doc.createElement('dt'), dd = doc.createElement('dd');
-        dt.textContent = `${slot + 1}P ${label}`; dd.textContent = profile[action].map(gamepadButtonLabel).join(' · '); list.append(dt, dd);
+      guide.innerHTML = `<h2>게임패드 조작</h2><p data-gamepad-status></p>
+        <div class="gamepad-guide-players" role="group" aria-label="플레이어 선택">
+          <button type="button" autofocus>1P</button><button type="button">2P</button>
+        </div>
+        <div class="gamepad-guide-body">
+          <figure class="gamepad-settings-preview">
+            <div data-gamepad-diagram></div>
+            <figcaption>분홍색은 배정된 버튼 · 표준 배치 기준</figcaption>
+          </figure>
+          <dl></dl>
+        </div>
+        <p class="gamepad-guide-note">왼쪽 스틱으로도 이동하거나 빠르게 내릴 수 있어요.<br>메뉴에서는 A / ✕로 결정하고 B / ○로 돌아가요.</p>
+        <button type="button" data-guide-close>닫기</button>`;
+      const players = [...guide.querySelectorAll('.gamepad-guide-players button')];
+      const list = guide.querySelector('dl');
+      const diagram = guide.querySelector('[data-gamepad-diagram]');
+      function showPlayer(slot) {
+        const profile = settings.bindings[slot];
+        players.forEach((button, index) => button.setAttribute('aria-pressed', String(index === slot)));
+        diagram.innerHTML = gamepadDiagramMarkup(Object.keys(GAMEPAD_ACTIONS).flatMap(action => profile[action]));
+        list.replaceChildren();
+        for (const [action, label] of Object.entries(GAMEPAD_ACTIONS)) {
+          const dt = doc.createElement('dt'), dd = doc.createElement('dd');
+          dt.textContent = label;
+          dd.textContent = profile[action].map(gamepadButtonLabel).join(' · ');
+          list.append(dt, dd);
+        }
       }
+      players.forEach((button, slot) => button.addEventListener('click', () => showPlayer(slot)));
+      showPlayer(0);
       guide.querySelector('[data-gamepad-status]').textContent = status();
-      guide.querySelector('button').addEventListener('click', () => guide.close());
+      guide.querySelector('[data-guide-close]').addEventListener('click', () => guide.close());
+      guide.addEventListener('keydown', event => event.stopPropagation());
+      guide.addEventListener('keyup', event => event.stopPropagation());
       guide.addEventListener('close', () => { reset(); guide.remove(); });
       doc.body.append(guide); guide.showModal();
     },

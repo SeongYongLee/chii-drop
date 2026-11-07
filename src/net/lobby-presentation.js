@@ -1,7 +1,5 @@
 // 표시 전용. 메인 메뉴와 같은 배경·캐릭터 스킨을 읽으며 경기 상태는 변경하지 않는다.
-export function createLobbyPresentation(skin, characters, root = document, shell = document.body) {
-  const background = skin.backgroundUrl?.('menu');
-  if (background) shell.style.setProperty('--online-background', `url(${JSON.stringify(background)})`);
+export function createLobbyPresentation(skin, characters, root = document) {
   const avatar = root.getElementById('lobby-avatar');
   const mascots = root.getElementById('lobby-mascots');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');

@@ -78,13 +78,14 @@ export const onlineTemplate = `
     </section>
     <section id="room-chat" class="room-chat" aria-label="방 채팅" hidden>
       <header class="chat-heading"><h3>방 채팅</h3><p id="chat-preview" class="chat-preview"></p><button id="chat-toggle" type="button" class="quiet" aria-expanded="true" aria-controls="chat-body">접기</button></header>
-      <div id="chat-body" class="chat-body"><ol id="chat-log" class="chat-log" role="log" aria-live="polite" aria-relevant="additions" aria-label="채팅 기록"></ol><p id="chat-empty" class="hint">이 방에서 함께 이야기해요.<br>최근 100개 메시지가 유지됩니다.</p></div>
+      <div id="chat-body" class="chat-body"><ol id="chat-log" class="chat-log" role="log" aria-live="polite" aria-relevant="additions" aria-label="채팅 기록"></ol><p id="chat-empty" class="hint">이 방에서 함께 이야기해요.</p></div>
       <form id="chat-form" class="chat-form"><label class="sr-only" for="chat-input">채팅 메시지</label><input id="chat-input" maxlength="160" autocomplete="off" enterkeyhint="send" placeholder="메시지 입력…"><button id="chat-send" class="primary" type="submit">전송</button></form>
       <p id="chat-status" class="hint" role="status"></p>
     </section>
     <footer class="online-menu-actions">
       <a href="#menu" data-online-exit id="online-back" class="button secondary" aria-label="멀티플레이로 돌아가기">뒤로</a>
-      <button id="touch-options" class="quiet" type="button" aria-label="터치 조작 옵션">조작 옵션</button>
+      <button id="room-game-guide" class="quiet" type="button" aria-haspopup="dialog" hidden>게임 방법</button>
+      <button id="touch-options" class="quiet" type="button" aria-haspopup="dialog">조작 옵션</button>
     </footer>
     <p class="online-navigation-hint"><kbd>↑ ↓ ← →</kbd> 이동 <span>·</span> <kbd>Enter</kbd> 선택 <span>·</span> <kbd>Esc</kbd> 뒤로 <span>·</span> <kbd>Tab</kbd> 입력창 이동</p>
     <p id="reconnect-help" class="hint" hidden>자동으로 재접속하고 있어요. <button id="reconnect" class="text-button">다시 접속</button></p>

@@ -46,10 +46,10 @@ test('CSS가 같은 배경을 표시하면 Canvas는 중복 이미지를 그리�
   globalThis.Image = class { width=1600;height=900;set src(url){this.url=url;queueMicrotask(()=>this.onload());}get src(){return this.url;} };
   t.after(()=>{globalThis.Image=previous;});
   const skin = await loadImageSkin('skin'); let draws=0, clears=0;
-  const ctx={canvasBackdrop:true,pageBackdropUrl:'skin/tea.png',drawImage(){draws++;},clearRect(x,y,w,h){assert.deepEqual([x,y,w,h],[0,0,960,540]);clears++;}};
+  const ctx={useCssBackdrop:true,pageBackdropUrl:'skin/tea.png',drawImage(){draws++;},clearRect(x,y,w,h){assert.deepEqual([x,y,w,h],[0,0,960,540]);clears++;}};
   for(let n=0;n<600;n++)skin.drawBackground(ctx,960,540,'game:market');
   assert.equal(draws,0);assert.equal(clears,600);
   // 전환 중 다른 배경이거나 CSS 배경이 없으면 원래 경로로 그린다.
   skin.drawBackground(ctx,960,540,'unknown');assert.equal(draws,1);
-  ctx.canvasBackdrop=false;skin.drawBackground(ctx,960,540,'game:market');assert.equal(draws,2);
+  ctx.useCssBackdrop=false;skin.drawBackground(ctx,960,540,'game:market');assert.equal(draws,2);
 });

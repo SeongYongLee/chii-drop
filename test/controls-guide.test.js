@@ -93,14 +93,10 @@ test('안내는 자동으로 닫히지 않고 선택 키 해제 후 새 확인 �
     withControlsGuide(app, { mode: 'versus', background: settings, next: () => { started++; return {}; } });
     app.scene.update();
     const cancelled = body.children.at(-1);
-    const cancel = cancelled.children.at(-1).children.at(-1);
-    assert.equal(cancel.textContent, '설정으로');
-    cancel.dispatchEvent(new Event('click'));
+    assert.ok(cancelled.children.at(-1).children.every(button => button.textContent !== '설정으로'));
+    key('keydown', 'Escape'); key('keyup', 'Escape');
     assert.equal(app.scene, settings); assert.equal(cancelled.open, false); assert.equal(started, 3);
     assert.equal(hasSeenGuide(view.localStorage, 'versus:keyboard'), false);
-    withControlsGuide(app, { mode: 'versus', background: settings, next: () => { started++; return {}; } });
-    app.scene.update(); key('keydown', 'Escape'); key('keyup', 'Escape');
-    assert.equal(app.scene, settings); assert.equal(started, 3);
   } finally { globalThis.window = previous; }
 });
 
@@ -148,7 +144,7 @@ test('좁은 화면은 규칙 하나씩 표시하고 탭 선택·회전·닫기�
   }finally{globalThis.window=old;}
 });
 
-test('온라인 첫 안내 취소는 false로 끝나며 재확인하기 전 캐릭터를 확정하지 않는다',async()=>{
+test('온라인 안내를 닫거나 경기 시작으로 중단하면 팝업을 정리한다',async()=>{
   const {showOnlineControls}=await import('../src/app/controls-guide.js');
   const {createKeyboard}=await import('../src/input/keyboard.js');
   class Element extends EventTarget {
@@ -167,5 +163,13 @@ test('온라인 첫 안내 취소는 false로 끝나며 재확인하기 전 캐�
     const dialog=body.children.at(-1),confirm=dialog.children.at(-1).children[2];
     confirm.dispatchEvent(new Event('click'));confirm.dispatchEvent(new Event('click'));
     assert.equal(await accepted,true);assert.equal(dialog.open,false);
+    const controller = new AbortController();
+    const interrupted = showOnlineControls({keyboard,force:true,signal:controller.signal});
+    await Promise.resolve();
+    const openGuide = body.children.at(-1);
+    assert.equal(openGuide.open,true);
+    controller.abort();
+    assert.equal(await interrupted,false);
+    assert.equal(openGuide.open,false);
   }finally{globalThis.window=old;}
 });

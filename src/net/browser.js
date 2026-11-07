@@ -5,14 +5,16 @@ import { loadOnlineConfig, onlineTokenKey } from './config.js';
 import { AUTOMATIC_MATCHMAKING } from './features.js';
 import { showOnlineControls } from '../app/controls-guide.js';
 import { attachKeyboard, createKeyboard, readInput, KEYMAPS, clearPressed } from '../input/keyboard.js';
-import { attachGamepads, adjustGamepadValue } from '../input/gamepad.js';
-import { loadKeyBindings } from '../input/key-settings.js';
+import { attachGamepads, adjustGamepadValue, dispatchGamepadDialog } from '../input/gamepad.js';
+import { createKeySettings, loadKeyBindings } from '../input/key-settings.js';
 import { setupScreen } from '../app/screen.js';
+import { GO_FRAMES, READY_FRAMES } from '../app/session.js';
 import { loadSettings } from '../app/storage.js';
 import { createEffects, tickCharacters, observeMatchEffects, animateMatchEffects } from '../view/effects.js';
 import { drawBanner, drawGame } from '../view/renderer.js';
 import { chooseBattleScenery, applyOnlineBackdrop } from '../view/battle-backgrounds.js';
 import { drawFieldResults } from '../view/field-results.js';
+import { drawRoundIntro } from '../view/round-intro.js';
 import { playSfx, prepareSfx, unlockSfx, setSfxOptions } from '../audio/sfx.js';
 import { mixLevels } from '../audio/mix-levels.js';
 import { playBoardSounds } from '../audio/board-sounds.js';
@@ -52,6 +54,7 @@ let spectating = false, matchFinished = false, passwordAction = 'join';
 let rematchPending = false;
 let profileCharId, profileSaving = false;
 let effects = createEffects(2), active = false, rtt = 0, verifiedWinner = null, error = null;
+let introFrames = 0;
 let inputWaitingSince = null;
 const frameStats = createFrameStats();
 let metricsAt = -Infinity;
@@ -59,18 +62,50 @@ const inputBatcher = createInputBatcher({ maxBatch: requestedBatchLimit, adaptiv
 let routedRoom = null, automaticHeartbeat = false, heartbeatSent = 0;
 const ctx = setupScreen($('screen'));
 const keyboard = createKeyboard();
-try { keyboard.bindings = loadKeyBindings(window.localStorage); } catch { /* 저장 차단 시 기본 키를 사용한다. */ }
+const touchPointer = window.matchMedia('(pointer: coarse)');
 const touch = attachTouchControls($('touch-controls'));
 const chat = attachRoomChat(root, shell, { send, onFocusChange: syncBattleControls });
 const mobileViewport = attachMobileViewport(window, { shell, root });
 const stageLayout = attachStageLayout($('board-area'), $('game-stage'));
 const touchLayout = attachTouchLayout({ view: window, surface: shell, dialog: $('touch-options-dialog'), container: $('touch-controls'), preview: $('touch-preview'), onEdit: () => { touch.clear(); keyboard.held.clear(); } });
-$('touch-options').onclick = $('battle-options').onclick = () => { $('battle-menu').open = false; touchLayout.open(); syncBattleControls(); };
+function restoreOptionsFocus() {
+  $(game ? 'screen' : 'touch-options').focus({ preventScroll: true });
+  syncBattleControls();
+}
+const keySettings = createKeySettings({ view: window, keyboard, online: true, onOpen: syncBattleControls, onClose: syncBattleControls });
+const pcOptions = document.createElement('dialog');
+pcOptions.className = 'key-settings online-control-options';
+pcOptions.setAttribute('aria-labelledby', 'online-control-options-title');
+pcOptions.innerHTML = `<h2 id="online-control-options-title">조작 옵션</h2>
+  <div class="key-settings-rows">
+    <button type="button" data-keyboard>키보드 키 설정</button>
+    <button type="button" data-gamepad>게임패드 버튼 설정</button>
+  </div>
+  <button type="button" data-close>닫기</button>`;
+pcOptions.querySelector('[data-keyboard]').onclick = keySettings.open;
+pcOptions.querySelector('[data-gamepad]').onclick = () => gamepads.openSettings();
+pcOptions.querySelector('[data-close]').onclick = () => pcOptions.close();
+pcOptions.addEventListener('close', restoreOptionsFocus);
+pcOptions.addEventListener('keydown', event => {
+  const direction = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' }[event.key];
+  if (!direction) return;
+  event.preventDefault();
+  dispatchGamepadDialog(window, direction);
+});
+$('touch-options').onclick = $('battle-options').onclick = () => {
+  $('battle-menu').open = false;
+  if (touchPointer.matches) touchLayout.open();
+  else {
+    if (!pcOptions.isConnected) document.body.append(pcOptions);
+    pcOptions.showModal();
+  }
+  syncBattleControls();
+};
 $('battle-menu').addEventListener('toggle', () => {
   if (!$('battle-menu').open && game && !root.querySelector('dialog[open]') && root.activeElement?.closest('#battle-menu')) $('screen').focus({ preventScroll: true });
   syncBattleControls();
 });
-$('touch-options-dialog').addEventListener('close', syncBattleControls);
+$('touch-options-dialog').addEventListener('close', restoreOptionsFocus);
 window.addEventListener('resize', clearControls);
 const menuNavigation = attachMenuNavigation({ view: window, root,
   getContext: () => ({ enabled: opened && !guiding && !document.querySelector('dialog[open]'), gameplay: !!game && !matchFinished && !$('battle-menu').open && (!root.activeElement || root.activeElement === $('screen')) }),
@@ -103,7 +138,7 @@ const gamepads = attachGamepads({ view: window, keyboard,
 window.addEventListener('keydown', (event) => {
   const target = event.composedPath()[0];
   if(target.closest?.('.menu-companion'))return;
-  if (opened && ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'A', 'SUMMARY'].includes(target.tagName) && !target.closest('#touch-controls') && !target.closest('.controls-guide')) event.stopImmediatePropagation();
+  if (opened && root.contains(target) && ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'A', 'SUMMARY'].includes(target.tagName) && !target.closest('#touch-controls')) event.stopImmediatePropagation();
 }, true);
 keyboard.enabled = false;
 attachKeyboard(keyboard, window);
@@ -144,6 +179,7 @@ let voiceResultPlayed = false;
 let lastPacket = performance.now(), last = performance.now(), accumulator = 0, lastVerified = 0;
 const hashes = new Map(), checks = new Map();
 let roomList = [], rankings = [], roomFilter = 'all', submitting = false, passwordCode = null, guiding = false;
+let guideController;
 let pendingInvite = null;
 function clearInvite() {
   pendingInvite = null;
@@ -186,7 +222,7 @@ function acceptInvite() {
   joinEntry(entry);
 }
 const playableCharacters = (skin.characterRoster ?? skin.characters).filter(character => character.selectable !== false && character.selectionVisible !== false);
-const lobbyPresentation = createLobbyPresentation(skin, playableCharacters, root, shell);
+const lobbyPresentation = createLobbyPresentation(skin, playableCharacters, root);
 for (const character of playableCharacters) {
   const button = text('button', '', 'profile-character'); button.type = 'button'; button.dataset.charId = character.id;
   button.setAttribute('aria-label', character.name); button.setAttribute('aria-pressed', 'false');
@@ -266,10 +302,12 @@ function send(message) { telemetry.requestStart(message.type, ws?.readyState ===
 function fail(reason) { telemetry.failed(reason); telemetry.connectionIssue(game ? 'playing' : 'initial', 'connection_failed'); error = reason; active = false; touch.setEnabled(false); status(reason); ws?.close(); }
 function text(tag, value, className) { const el = document.createElement(tag); el.textContent = value; if (className) el.className = className; return el; }
 function syncBattleControls() {
+  const preparing = introFrames > 0;
+  shell.dataset.roundIntro = String(preparing);
   const focusedControl = root.activeElement && root.activeElement !== $('screen') && root.activeElement.matches('input, select, textarea, button, a, summary');
-  const blocked = !!root.querySelector('dialog[open]') || (!!game && $('battle-menu').open) || Boolean(focusedControl);
-  keyboard.enabled = opened && !blocked && !spectating;
-  touch.setEnabled(active && !blocked && !spectating);
+  const blocked = pcOptions.open || keySettings.editing || !!root.querySelector('dialog[open]') || (!!game && $('battle-menu').open) || Boolean(focusedControl);
+  keyboard.enabled = opened && !blocked && !spectating && !preparing;
+  touch.setEnabled(active && !blocked && !spectating && !preparing);
   if (blocked) clearControls();
 }
 function buttons() {
@@ -307,6 +345,8 @@ function buttons() {
   $('lobby-view').hidden = !!room;
   const choosing = room?.phase === 'selecting';
   shell.dataset.selecting = String(choosing);
+  $('room-game-guide').hidden = !room || choosing || !!game;
+  $('room-game-guide').disabled = guiding;
   $('room-view').hidden = !room || choosing;
   $('character-select-view').hidden = !choosing;
   const me = room?.players.find(p => p.id === profile?.id);
@@ -490,7 +530,7 @@ function resetGame() {
   setOnlineMusic('menu');
   soundPlayers = null;
   voiceResultPlayed = false;
-  resultFrame = 0; matchFinished = false;
+  resultFrame = 0; introFrames = 0; matchFinished = false;
   active = false; paused = false; pauseUntil = 0; game = null; matchId = null; verifiedWinner = null; error = null;
   rematchPending = false; $('rematch').hidden = true; $('rematch-status').hidden = true;
   $('game-view').hidden = true; $('return-room').hidden = true; $('settlement').textContent = ''; keyboard.held.clear(); touch.clear(); touch.setEnabled(false);
@@ -550,7 +590,7 @@ function connect() {
       if (msg.type === 'joined') {
         telemetry.joined();
         mobileViewport.dismissKeyboard();
-        chat.enter(msg.code, { collapsed: true });
+        chat.enter(msg.code);
         submitting = false; queued = false; side = msg.side; spectating = msg.role === 'spectator'; $('password-dialog').close(); $('code-dialog').close(); $('invite-choice-dialog').close(); root.querySelector('.profile-edit').open = false; resetGame(); showPlay(); status(spectating ? '관전으로 입장했습니다. 경기를 기다려 주세요.' : '방에 참가했습니다. 상대와 함께 준비해 주세요.');
       }
       if (msg.type === 'chatHistory') chat.history(msg);
@@ -567,6 +607,10 @@ function connect() {
       }
       if (msg.type === 'matched') status('상대를 찾았습니다! 양쪽 모두 준비하면 캐릭터를 선택합니다.');
       if (msg.type === 'start' || msg.type === 'snapshot' || msg.type === 'spectatorSnapshot') {
+        const freshSpectatorRound = msg.type === 'spectatorSnapshot' && msg.matchId !== matchId
+          && msg.state.frame === 0 && !msg.paused && !msg.finished;
+        introFrames = msg.type === 'start' || freshSpectatorRound ? READY_FRAMES : 0;
+        guideController?.abort();
         inputBatcher.reset();
         setOnlineMusic('intense');
         mobileViewport.dismissKeyboard();
@@ -583,6 +627,7 @@ function connect() {
         paused = spectating ? !!msg.paused : msg.type === 'snapshot' && !matchFinished;
         pauseUntil = paused ? performance.now() + msg.remaining : 0;
         effects = createEffects(2);
+        if (introFrames > 0) observeMatchEffects(effects, game.state);
         soundPlayers = game.confirmedState.players;
         voiceResultPlayed = false;
         hashes.clear(); checks.clear(); lastVerified = 0; verifiedWinner = matchFinished ? game.state.winner : null; error = null; active = !paused && !matchFinished; rematchPending = false; accumulator = 0; clearControls();
@@ -728,23 +773,28 @@ $('reconnect').onclick = () => { if (connected) return; clearTimeout(reconnectTi
 $('refresh').onclick = () => send({ type: 'list' });
 $('matchmake').onclick = () => { if (AUTOMATIC_MATCHMAKING) send({ type: 'queue', rated: $('queue-mode').value === 'rated' }); };
 $('cancel-match').onclick = $('queue-banner-cancel').onclick = () => send({ type: 'cancelQueue' });
-async function explainControls(force = false) {
-  if (guiding) return false;
+async function explainControls(event) {
+  if (guiding || game) return;
+  const button = event.currentTarget;
+  guideController = new AbortController();
   guiding = true; buttons(); keyboard.held.clear(); touch.clear();
-  try { return await showOnlineControls({ keyboard, skin, touch: window.matchMedia('(pointer: coarse)').matches, force }); }
-  finally { guiding = false; buttons(); }
+  try {
+    await showOnlineControls({ keyboard, skin, touch: window.matchMedia('(pointer: coarse)').matches, force: true, signal: guideController.signal });
+  } finally {
+    guideController = undefined;
+    guiding = false; buttons();
+    if (!game && button.getClientRects().length) button.focus({ preventScroll: true });
+  }
 }
-$('online-guide').onclick = () => { void explainControls(true); };
+$('online-guide').onclick = $('room-game-guide').onclick = explainControls;
 $('ready').onclick = async () => {
   if (!room || guiding || spectating) return;
   if (room.players.find(player => player.id === profile.id)?.ready) { send({ type: 'ready', ready: false }); return; }
   if (connected && room.phase === 'waiting') send({ type: 'ready', ready: true });
 };
-$('confirm-character').onclick = async () => {
-  if (!connected || spectating || room?.phase !== 'selecting' || guiding) return;
-  const selectionId = room.selectionId;
-  const accepted = await explainControls();
-  if (accepted && connected && room?.selectionId === selectionId) send({ type: 'confirmCharacter', selectionId });
+$('confirm-character').onclick = () => {
+  if ($('confirm-character').disabled || spectating) return;
+  send({ type: 'confirmCharacter', selectionId: room.selectionId });
 };
 $('cancel-character').onclick = () => send({ type: 'cancelSelection', selectionId: room?.selectionId });
 function leaveRoom() {
@@ -802,6 +852,22 @@ function tick(now, { render = !document.hidden } = {}) {
   accumulator = Math.min(accumulator + now - last, 1000 / 60 * 5); last = now;
   if (game && !spectating) { game.setLatency(rtt); game.reconcile(); }
   while (accumulator >= 1000 / 60) {
+    // 준비 연출 동안 경기 프레임과 입력 전송은 시작하지 않는다.
+    if (introFrames > 0) {
+      if (active) {
+        tickCharacters(effects);
+        introFrames -= 1;
+        if (render && introFrames > GO_FRAMES && introFrames % 30 === 0) playSfx(sfx, 'count');
+        else if (render && introFrames === GO_FRAMES) playSfx(sfx, 'go');
+        if (introFrames === 0) {
+          clearControls();
+          gamepads.clear();
+          syncBattleControls();
+        }
+      }
+      accumulator -= 1000 / 60;
+      continue;
+    }
     if (game && !spectating && active) game.reservePrediction();
     if (verifiedWinner !== null) resultFrame += 1;
     if (game && !paused) {
@@ -826,18 +892,19 @@ function tick(now, { render = !document.hidden } = {}) {
     }
     clearPressed(keyboard); accumulator -= 1000 / 60;
   }
-  if (game && !spectating && active && !game.canAdvance) {
+  if (game && !spectating && active && introFrames === 0 && !game.canAdvance) {
     // 멈춘 상태에서는 다음 프레임이 생기지 않으므로 남은 묶음을 즉시 보낸다.
     const batch = inputBatcher.flush();
     if (batch) send({ ...batch, matchId, epoch });
     inputWaitingSince ??= now;
   } else inputWaitingSince = null;
   const drawStart = performance.now();
+  if (render) applyOnlineBackdrop(ctx, skin, game ? (battleScenery ? `game:${battleScenery}` : 'game') : 'menu');
   if (game && render) {
-    applyOnlineBackdrop(ctx, skin, battleScenery ? `game:${battleScenery}` : 'game');
     drawGame(ctx, { skin, scenery: battleScenery, match: game.state, effects, characters: participants.map((p, i) => ({ id: (participants[i]?.charId ?? skin.characters[i % skin.characters.length].id), name: p.name })), showGhost: true, result: verifiedWinner !== null });
     if (error) drawBanner(ctx, '연결 종료', error);
     else if (paused) drawBanner(ctx, '재접속 대기', `경기 일시 정지 · 남은 유예 ${Math.max(0, Math.ceil((pauseUntil - now) / 1000))}초`);
+    else if (introFrames > 0) drawRoundIntro(ctx, introFrames);
     else if (verifiedWinner !== null) drawFieldResults(ctx, {
       skin, match: { ...game.state, winner: verifiedWinner }, age: resultFrame,
       characters: participants.map((participant, index) => ({
@@ -871,6 +938,7 @@ for (const back of root.querySelectorAll('[data-online-exit]')) back.onclick = e
 };
 return { menu: menuNavigation, open() {
   opened = true; frameClock.refresh(); departing = false; keyboard.enabled = true;
+  try { keyboard.bindings = loadKeyBindings(window.localStorage); } catch { /* 저장 차단 시 현재 키를 사용한다. */ }
   pendingInvite = roomInviteCode(location.href);
   reconnectAttempt = 0; error = null; last = performance.now();
   selectPanel(); stageLayout.update(); setOnlineMusic('menu'); connect(); menuNavigation.sync();

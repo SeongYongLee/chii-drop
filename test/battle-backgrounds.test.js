@@ -55,25 +55,30 @@ test('가로·세로 배경 동기화는 재시작과 다른 캔버스에서 복
   assert.equal(value, 'none');
 });
 
-test('Canvas 배경을 직접 지정해 흰 게임 프레임에도 보이며 다른 장면과 기본 스킨으로 복귀한다', () => {
+test('온라인 경기와 로비가 페이지 배경을 공유하고 이미지가 없으면 Canvas로 돌아간다', () => {
   const style = {}, ctx = { canvas: { style } }, skin = { backgroundUrl: scene => scene === 'basic' ? null : `${scene}.png` };
-  const doc = { body: { dataset: {}, style: { setProperty() {}, getPropertyValue() {} } } };
+  const properties = new Map();
+  const doc = { body: { dataset: {}, style: {
+    setProperty: properties.set.bind(properties), getPropertyValue: properties.get.bind(properties),
+  } } };
   applyOnlineBackdrop(ctx, skin, 'game:market', doc);
   assert.equal(ctx.pageBackdrop, true);
-  assert.equal(style.backgroundImage, 'url("game:market.png")');
-  assert.equal(style.backgroundSize, 'cover'); assert.equal(style.backgroundPosition, 'center');
-  applyOnlineBackdrop(ctx, skin, 'game:grove', doc);
-  assert.equal(style.backgroundImage, 'url("game:grove.png")');
+  assert.equal(ctx.useCssBackdrop, true);
+  assert.equal(properties.get('--page-backdrop'), 'url("game:market.png")');
+  applyOnlineBackdrop(ctx, skin, 'menu', doc);
+  assert.equal(properties.get('--page-backdrop'), 'url("menu.png")');
+  assert.equal(style.backgroundImage, undefined);
   applyOnlineBackdrop(ctx, skin, 'basic', doc);
-  assert.equal(ctx.pageBackdrop, false); assert.equal(style.backgroundImage, 'none');
-  const noSurface = {}; applyOnlineBackdrop(noSurface, skin, 'game:market', doc);
-  assert.equal(noSurface.pageBackdrop, false, 'CSS 배경을 보장할 수 없으면 Canvas 그리기를 생략하지 않는다');
+  assert.equal(ctx.pageBackdrop, false);
+  assert.equal(ctx.useCssBackdrop, false);
+  const noPage = {}; applyOnlineBackdrop(noPage, skin, 'game:market', {});
+  assert.equal(noPage.pageBackdrop, false, 'CSS 배경을 보장할 수 없으면 Canvas 그리기를 생략하지 않는다');
 });
 
 test('타이틀·싱글 배경은 온라인용 Canvas 배경을 만들지 않는다', () => {
   const style = {}, ctx = { canvas: { style } };
   applyPageBackdrop(ctx, { backgroundUrl: () => 'title.png' }, 'title', {});
   assert.equal(ctx.pageBackdrop, true);
-  assert.equal(ctx.canvasBackdrop, undefined);
+  assert.equal(ctx.useCssBackdrop, undefined);
   assert.equal(style.backgroundImage, undefined);
 });

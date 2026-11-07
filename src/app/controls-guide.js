@@ -23,7 +23,7 @@ export function guideRows(bindings = defaultKeyBindings(), group = 'solo') {
 }
 
 // 다음 장면은 확인 이후에 생성한다. 안내 중에는 경기 시간과 난수가 진행되지 않는다.
-export function withControlsGuide(app, { mode = 'solo', next, background, force = false, stamps = [] }) {
+export function withControlsGuide(app, { mode = 'solo', next, background, force = false, stamps = [], signal }) {
   const view = window, touch = app.mobile?.touchInput ?? (app.mobile?.visible === true), context = guideContext(mode, touch);
   let storage;
   try { storage = view.localStorage; } catch { /* 메모리 내에서도 안내를 기억한다. */ }
@@ -37,6 +37,7 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
     update() {
       if (opened) return;
       opened = true;
+      if (signal?.aborted) { app.setScene(background); return; }
       analytics.track('controls_guide', { mode: analyticsMode(mode), action: 'shown', input_method: touch ? 'touch' : 'keyboard' });
       const openingKeys = new Set(app.keyboard.held);
       const doc = view.document, dialog = doc.createElement('dialog');
@@ -100,7 +101,7 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
         [['왼쪽 스틱', '이동 · 아래로 빠르게 내리기'], ...Object.entries(GAMEPAD_ACTIONS).map(([action, label]) =>
           [padBindings[slot][action].map(gamepadButtonLabel).join(' · '), label]), ['A / ✕ · B / ○', '메뉴 결정 · 뒤로']]);
       note.className = 'game-guide-note';
-      note.textContent = mode === 'online' ? '온라인 경기는 일시정지할 수 없어요. 양쪽 모두 안내를 확인하고 준비하면 시작합니다.' : touch ? (mode === 'versus' ? '1P / 2P 버튼으로 조작할 플레이어를 바꿔요. 설정에서 터치 영역을 바꿀 수 있어요.' : '설정에서 터치 영역을 바꿀 수 있어요.')
+      note.textContent = mode === 'online' ? '온라인 경기는 일시정지할 수 없어요. 두 사람 모두 캐릭터를 결정하면 시작해요.' : touch ? (mode === 'versus' ? '1P / 2P 버튼으로 조작할 플레이어를 바꿔요. 설정에서 터치 영역을 바꿀 수 있어요.' : '설정에서 터치 영역을 바꿀 수 있어요.')
         : `${(app.keyboard.bindings ?? defaultKeyBindings()).pause.map(keyLabel).join(' / ')}: 일시정지 · 설정에서 키 변경`;
       const actions = doc.createElement('div'); actions.className = 'game-guide-actions';
       const previous = doc.createElement('button'), button = doc.createElement('button'); previous.type = button.type = 'button'; previous.textContent = '게임 설명';
@@ -127,10 +128,8 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
         groupButton.textContent = local ? '1인 조작 보기' : '로컬 2인 조작 보기';
       });
       groupButton.textContent = local ? '1인 조작 보기' : '로컬 2인 조작 보기';
-      const cancel = doc.createElement('button'); cancel.type = 'button'; cancel.textContent = mode === 'online' ? '선택으로' : '설정으로'; cancel.hidden = force;
-      cancel.addEventListener('click', () => finish(undefined, true));
       button.className = 'game-guide-primary';
-      actions.append(previous, groupButton, button, cancel);
+      actions.append(previous, groupButton, button);
       function showPage(value) {
         page = value; const controls = page === 'controls';
         illustrations.show(!controls);
@@ -146,7 +145,8 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
       previous.addEventListener('click', () => { if (force && page === 'rules') finish(); else showPage('rules'); });
       function clear() { app.mobile?.clear(); for (const name of ['held', 'pressed', 'touchHeld', 'touchPressed']) app.keyboard[name]?.clear(); }
       function finish(code, cancelled = false) {
-        if (!dialog.open || openingKeys.size) return;
+        if (!dialog.open || (openingKeys.size && !signal?.aborted)) return;
+        signal?.removeEventListener('abort', closeOnAbort);
         view.removeEventListener('keydown', onKey, { capture: true });
         view.removeEventListener('keyup', onRelease, { capture: true });
         view.removeEventListener('blur', releaseOpeningKeys);
@@ -163,6 +163,7 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
         if (!force && !cancelled) { app.controlsGuidesSeen.add(context); rememberGuide(storage, context); }
         app.setScene(cancelled ? background : next());
       }
+      const closeOnAbort = () => finish(undefined, true);
       function advance(code) {
         if (openingKeys.size) return;
         if (page === 'rules' && rulesMedia?.matches && ruleIndex < 2) {
@@ -174,7 +175,7 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
         event.stopImmediatePropagation(); event.preventDefault();
         if (event.repeat || openingKeys.size) return;
         if (event.code === 'ArrowUp' || event.code === 'ArrowDown') {
-          const available = [rulesTab, controlsTab, ...(!ruleTabs.hidden ? ruleButtons : []), previous, groupButton, button, cancel].filter(entry => !entry.hidden);
+          const available = [rulesTab, controlsTab, ...(!ruleTabs.hidden ? ruleButtons : []), previous, groupButton, button].filter(entry => !entry.hidden);
           const selected = available.indexOf(doc.activeElement);
           const direction = event.code === 'ArrowUp' ? -1 : 1;
           available[(selected + direction + available.length) % available.length]?.focus();
@@ -183,7 +184,7 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
         else if (event.code === 'Escape') finish(event.code, !force);
         else if (['Enter', 'Space'].includes(event.code)) {
           const target = event.target;
-          if ([rulesTab, controlsTab, ...ruleButtons, previous, groupButton, cancel].includes(target)) target.click();
+          if ([rulesTab, controlsTab, ...ruleButtons, previous, groupButton].includes(target)) target.click();
           else advance(event.code);
         }
       }
@@ -198,6 +199,7 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
       dialog.addEventListener('cancel', event => { event.preventDefault(); finish(undefined, !force); });
       showPage('rules');
       dialog.append(header, content, actions); doc.body.append(dialog); clear(); dialog.showModal();
+      signal?.addEventListener('abort', closeOnAbort, { once: true });
       // 선택에 쓴 Space를 놓을 때 확인 버튼의 기본 클릭이 발생하는 것을 막는다.
       if (openingKeys.size) { dialog.tabIndex = -1; dialog.focus({ preventScroll: true }); } else button.focus({ preventScroll: true });
     },
@@ -206,11 +208,11 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
 
 
 // 온라인은 준비 패킷을 보내기 전에 같은 안내를 확인한다. 엔진 시간은 진행하지 않는다.
-export function showOnlineControls({ keyboard, skin, touch = false, force = false }) {
+export function showOnlineControls({ keyboard, skin, touch = false, force = false, signal }) {
   return new Promise(resolve => {
     const done = {}, cancelled = { draw() {} };
     const app = { keyboard, skin, mobile: { visible: touch, clear() {} },
       setScene(scene) { if (scene === done) resolve(true); else if (scene === cancelled) resolve(false); else queueMicrotask(() => scene.update()); } };
-    withControlsGuide(app, { mode: 'online', force, background: cancelled, next: () => done });
+    withControlsGuide(app, { mode: 'online', force, signal, background: cancelled, next: () => done });
   });
 }

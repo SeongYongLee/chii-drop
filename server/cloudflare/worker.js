@@ -2,15 +2,26 @@ import { createDiagnostics } from './diagnostics.js';
 const logDiagnostic = createDiagnostics('worker');
 import { PROTOCOL } from '../../src/net/rollback.js';
 import { RULES_VERSION } from '../../src/engine/rules.js';
+import { handleFeedback } from '../feedback.js';
+import { sendFeedbackEmail } from './feedback-email.js';
 export { Directory } from './directory.js';
 export { GameRoom } from './room.js';
+export { FeedbackInbox } from './feedback-inbox.js';
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/health') return Response.json({ status: 'ok', protocol: PROTOCOL, rulesVersion: RULES_VERSION, backend: 'cloudflare' });
-    if (url.pathname !== '/socket') return new Response('Not found', { status: 404 });
     const origins = (env.ALLOWED_ORIGINS ?? '').split(',').map(x => x.trim());
+    if (url.pathname === '/feedback' || url.pathname === '/feedback/inbox') {
+      const onAccepted = env.FEEDBACK_EMAIL && env.FEEDBACK_EMAIL_FROM && env.FEEDBACK_EMAIL_TO
+        ? entry => ctx.waitUntil(sendFeedbackEmail(env, entry).catch(() => logDiagnostic('server_error', null, 'feedback_email')))
+        : undefined;
+      return handleFeedback(request, {
+        origins, store: env.FEEDBACK.getByName('inbox'), password: env.FEEDBACK_INBOX_PASSWORD, onAccepted,
+      });
+    }
+    if (url.pathname !== '/socket') return new Response('Not found', { status: 404 });
     if (!origins.includes(request.headers.get('Origin'))) return new Response('Forbidden', { status: 403 });
     if (request.headers.get('Upgrade')?.toLowerCase() !== 'websocket') return new Response('WebSocket required', { status: 426 });
     const code = url.searchParams.get('room');

@@ -40,7 +40,7 @@ export function loadKeyBindings(storage) {
   } catch { return defaultKeyBindings(); }
 }
 
-export function createKeySettings({ view, keyboard, onOpen, onClose }) {
+export function createKeySettings({ view, keyboard, onOpen, onClose, online = false }) {
   let storage, editing = false;
   try { storage = view.localStorage; } catch { /* 저장 차단 환경에서는 기본 키로 실행한다. */ }
   keyboard.bindings = loadKeyBindings(storage);
@@ -57,13 +57,18 @@ export function createKeySettings({ view, keyboard, onOpen, onClose }) {
       <div class="key-settings-actions"><button type="button" data-reset>전체 초기화</button><button type="button" data-cancel>취소</button><button type="button" data-save>저장</button></div>`;
     let draft = structuredClone(keyboard.bindings), group = 'solo', waiting = null;
     const status = dialog.querySelector('.key-settings-status'), rows = dialog.querySelector('.key-settings-rows');
+    const tabList = dialog.querySelector('.key-settings-tabs');
+    tabList.hidden = online;
+    if (online) status.textContent = '온라인 경기는 키를 설정하는 동안에도 계속 진행돼요.';
     const buttons = new Map(), tabs = new Map();
-    for (const [id, label] of Object.entries(KEY_GROUPS)) {
+    for (const [id, label] of online ? [] : Object.entries(KEY_GROUPS)) {
       const button = doc.createElement('button'); button.type = 'button'; button.textContent = label;
       button.addEventListener('click', () => { group = id; waiting = null; render(); });
-      tabs.set(id, button); dialog.querySelector('.key-settings-tabs').append(button);
+      tabs.set(id, button); tabList.append(button);
     }
-    for (const [action, label] of [...Object.entries(KEY_ACTIONS), ['pause', '일시정지']]) {
+    const actions = Object.entries(KEY_ACTIONS);
+    if (!online) actions.push(['pause', '일시정지']);
+    for (const [action, label] of actions) {
       const button = doc.createElement('button'); button.type = 'button';
       button.addEventListener('click', () => { waiting = action; status.textContent = `${label}: 사용할 키를 누르세요. Esc로 입력 취소`; render(); });
       buttons.set(action, { button, label }); rows.append(button);
@@ -96,7 +101,9 @@ export function createKeySettings({ view, keyboard, onOpen, onClose }) {
     });
     dialog.addEventListener('keyup', (event) => event.stopPropagation());
     dialog.querySelector('[data-reset]').addEventListener('click', () => {
-      draft = defaultKeyBindings(); waiting = null; status.textContent = '모든 키를 기본값으로 되돌렸습니다. 저장하면 적용됩니다.'; render();
+      if (online) draft.solo = defaultKeyBindings().solo;
+      else draft = defaultKeyBindings();
+      waiting = null; status.textContent = '키를 기본값으로 되돌렸습니다. 저장하면 적용됩니다.'; render();
     });
     dialog.querySelector('[data-cancel]').addEventListener('click', () => dialog.close());
     dialog.querySelector('[data-save]').addEventListener('click', () => {

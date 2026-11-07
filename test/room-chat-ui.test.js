@@ -33,6 +33,7 @@ test('observer defaults open, may collapse, and can chat in either orientation',
   assert.equal(f.shell.dataset.chatExpanded,'true');assert.equal(f.get('chat-toggle').disabled,false);assert.equal(f.get('chat-toggle').hidden,false);
   assert.equal(f.get('chat-form').hidden,false);f.get('chat-input').value='안녕하세요';f.get('chat-form').onsubmit({preventDefault(){}});
   assert.deepEqual(f.sent,[{type:'chat',text:'안녕하세요'}]);
+  assert.equal(f.get('chat-status').textContent,'');
   f.get('chat-toggle').onclick();assert.equal(f.shell.dataset.chatExpanded,'false');
   f.portrait(false);assert.equal(f.shell.dataset.chatExpanded,'false');
 });
@@ -41,9 +42,10 @@ test('result unlocks player chat; switching from player to observer opens the ch
   f.chat.update({...f.state,finished:true});assert.equal(f.get('chat-toggle').disabled,false);assert.equal(f.get('chat-toggle').hidden,false);assert.equal(f.get('chat-form').hidden,false);
   f.chat.update(f.state);assert.equal(f.shell.dataset.chatExpanded,'false');f.chat.update({...f.state,spectating:true});assert.equal(f.shell.dataset.chatExpanded,'true');
 });
-test('portrait return to room collapses chat so seats and ready controls remain visible',()=>{
+test('returning to the room keeps chat open without a collapse control',()=>{
   const f=fixture();f.portrait(true);f.chat.update(f.state);
   f.chat.update({...f.state,finished:true});assert.equal(f.shell.dataset.chatExpanded,'true');
-  f.chat.update({...f.state,playing:false,finished:false});assert.equal(f.shell.dataset.chatExpanded,'false');
+  f.chat.update({...f.state,playing:false,finished:false});assert.equal(f.shell.dataset.chatExpanded,'true');
+  assert.equal(f.get('chat-toggle').hidden,true);
   f.get('chat-toggle').onclick();assert.equal(f.shell.dataset.chatExpanded,'true');
 });

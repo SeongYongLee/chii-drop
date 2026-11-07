@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createServer } from 'node:net';
@@ -20,6 +20,11 @@ const reserved = createServer(); reserved.listen(0, '127.0.0.1'); await once(res
 const port = reserved.address().port; await new Promise(r => reserved.close(r));
 const base = `http://127.0.0.1:${port}`, origin = 'http://127.0.0.1:5180';
 const stateDir = await mkdtemp(join(tmpdir(), 'chii-cf-test-'));
+const envFile = join(stateDir, '.env');
+const feedbackPassword = 'cloudflare-test-only-inbox-password';
+await writeFile(envFile, `FEEDBACK_INBOX_PASSWORD=${feedbackPassword}\n`, { mode: 0o600 });
+const inboxURL = base + '/feedback/inbox';
+const inboxAuth = { Authorization: 'Basic ' + btoa(`operator:${feedbackPassword}`) };
 let child, logs = '', checks = 0;
 const sockets = [];
 const proxy = createOnlineServer({ cloudflareURL: base });
@@ -27,7 +32,7 @@ proxy.server.listen(0, '127.0.0.1'); await once(proxy.server, 'listening');
 const browserBase = `http://127.0.0.1:${proxy.server.address().port}`;
 async function start() {
   child = spawn('node_modules/.bin/wrangler', ['dev', '--local', '--port', String(port), '--persist-to', stateDir,
-    '--var', `ALLOWED_ORIGINS:${origin}`, '--var', 'RECONNECT_GRACE_MS:10000'],
+    '--env-file', envFile, '--var', `ALLOWED_ORIGINS:${origin}`, '--var', 'RECONNECT_GRACE_MS:10000'],
   { env: { ...process.env, WRANGLER_LOG_PATH: join(stateDir, 'wrangler.log'), WRANGLER_SEND_METRICS: 'false' }, stdio: ['ignore', 'pipe', 'pipe'] });
   child.stdout.on('data', b => { logs = (logs + b).slice(-12000); });
   child.stderr.on('data', b => { logs = (logs + b).slice(-12000); });
@@ -71,6 +76,13 @@ async function confirmSelection(...clients) {
 async function goRoom(c, code) { const next = await client(c.token, code); c.ws.close(); await identity(next); await take(next, 'joined'); return next; }
 try {
   await start();
+  const feedbackResponse = await fetch(base + '/feedback', { method: 'POST',
+    headers: { Origin: origin, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: 'a'.repeat(32), category: 'idea', message: 'Worker 의견 저장 검사' }) });
+  assert.equal(feedbackResponse.status, 201);
+  assert.equal(feedbackResponse.headers.get('access-control-allow-origin'), origin);
+  assert.equal((await fetch(inboxURL)).status, 401);
+  checks++;
   assert.equal((await fetch(base + '/health').then(r => r.json())).protocol, PROTOCOL);
   assert.equal((await fetch(base + '/socket', { headers: { origin: 'https://untrusted.example' } })).status, 403); checks++;
   const old = await client(undefined, undefined, PROTOCOL - 1); await take(old, 'incompatible'); old.ws.close(); checks++;
@@ -134,6 +146,14 @@ try {
   // 연결을 끊은 뒤 런타임을 재시작해 같은 SQLite에서 경기 상태·기한을 복원한다.
   a.ws.terminate(); await take(b, 'paused'); b.ws.terminate(); await delay(100);
   await stop(); await start();
+  const persistedFeedback = await fetch(inboxURL, { headers: inboxAuth });
+  assert.equal(persistedFeedback.status, 200);
+  assert.match(await persistedFeedback.text(), /Worker 의견 저장 검사/);
+  const removedFeedback = await fetch(`${inboxURL}?delete=${'a'.repeat(32)}`, {
+    method: 'POST', redirect: 'manual', headers: { ...inboxAuth, Origin: base },
+  });
+  assert.equal(removedFeedback.status, 303);
+  checks++;
   a = await client(tokenA); await identity(a); assert.equal((await take(a, 'route')).code, code);
   a = await goRoom(a, code);
   assert.deepEqual((await take(a, 'chatHistory')).messages.map(m => m.text), ['방 기록 유지 검사', '관전 중 응원']); checks++;
@@ -186,6 +206,9 @@ try {
   a.ws.close(); b.ws.close();
   let winner = await client(tokenB); assert.equal((await identity(winner)).rating, 1516);
   await stop(); await start();
+  const afterDelete = await fetch(inboxURL, { headers: inboxAuth });
+  assert.equal(afterDelete.status, 200);
+  assert.doesNotMatch(await afterDelete.text(), /Worker 의견 저장 검사/);
   winner = await client(tokenB); assert.equal((await identity(winner)).rating, 1516);
   const loser = await client(tokenA); assert.equal((await identity(loser)).rating, 1484); checks++;
   winner.ws.close(); loser.ws.close();

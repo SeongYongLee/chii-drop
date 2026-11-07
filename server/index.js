@@ -1,9 +1,12 @@
 import { allMusicTracks } from '../src/audio/music-config.js';
 import { createServer, request as httpRequest } from 'node:http';
 import { networkInterfaces } from 'node:os';
+import { chmodSync } from 'node:fs';
 import { readFile, realpath } from 'node:fs/promises';
 import { dirname, extname, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { DatabaseSync } from 'node:sqlite';
+import { Readable } from 'node:stream';
 import { WebSocketServer } from 'ws';
 import { createRooms } from './rooms.js';
 import { createProfileStore } from './profiles.js';
@@ -12,13 +15,14 @@ import { createVoiceEditor } from './voice-editor.js';
 import { createMusicEditor } from './music-editor.js';
 import { buildInfo } from '../scripts/build-info.mjs';
 import { runtimeConfig } from './runtime-config.js';
+import { createFeedbackStore, handleFeedback } from './feedback.js';
 import { PROTOCOL } from '../src/net/rollback.js';
 import { RULES_VERSION } from '../src/engine/rules.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.webp': 'image/webp', '.json': 'application/json', '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.md': 'text/plain; charset=utf-8' };
 
-export function createOnlineServer({ origins = [], profiles = createProfileStore(), serveStatic = true, cloudflareURL, onFrame } = {}) {
+export function createOnlineServer({ origins = [], profiles = createProfileStore(), serveStatic = true, cloudflareURL, onFrame, feedback, feedbackPassword } = {}) {
   if (!serveStatic && !origins.length) throw new Error('운영 서버의 허용 origin이 필요합니다.');
   const lobby = createRooms({ profiles, allowStatePrototype: serveStatic && !cloudflareURL, allowBatchExperiments: serveStatic && !cloudflareURL, onFrame });
   const editVoices = serveStatic ? createVoiceEditor({ root }) : null;
@@ -26,6 +30,19 @@ export function createOnlineServer({ origins = [], profiles = createProfileStore
   const server = createServer(async (req, res) => {
     try {
       const path = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+      if (feedback && (path === '/feedback' || path === '/feedback/inbox')) {
+        const requestURL = new URL(req.url, `http://${req.headers.host}`);
+        const method = req.method;
+        const body = method === 'POST' && path === '/feedback' ? Readable.toWeb(req) : undefined;
+        const request = new Request(requestURL, { method, headers: req.headers, body, duplex: 'half' });
+        const loopback = ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress)
+          && ['127.0.0.1', 'localhost', '[::1]'].includes(requestURL.hostname);
+        const reply = await handleFeedback(request, { origins: origins.length ? origins : [requestURL.origin],
+          store: feedback, password: feedbackPassword, inboxAllowed: loopback });
+        res.writeHead(reply.status, Object.fromEntries(reply.headers));
+        res.end(await reply.text());
+        return;
+      }
       if (editVoices && await editVoices(req, res, path)) return;
       if (editMusic && await editMusic(req, res, path)) return;
       if (serveStatic && path === '/online-config.json') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify({ enabled: true, ...(cloudflareURL ? { identityScope: 'cloudflare-local-v1' } : {}) })); return; }
@@ -143,7 +160,14 @@ export function createOnlineServer({ origins = [], profiles = createProfileStore
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const config = runtimeConfig();
-  const { server, wss } = createOnlineServer({ origins: config.origins, serveStatic: config.serveStatic, cloudflareURL: config.cloudflareURL, profiles: createNodeProfileStore({ file: config.file }) });
+  const profiles = createNodeProfileStore({ file: config.file });
+  const feedbackFile = `${config.file}.feedback.sqlite`;
+  const feedbackDb = new DatabaseSync(feedbackFile);
+  chmodSync(feedbackFile, 0o600);
+  const feedback = createFeedbackStore((query, ...params) => feedbackDb.prepare(query).all(...params));
+  const { server, wss } = createOnlineServer({ origins: config.origins, serveStatic: config.serveStatic,
+    cloudflareURL: config.cloudflareURL, profiles, feedback, feedbackPassword: process.env.FEEDBACK_INBOX_PASSWORD });
+  server.once('close', () => feedbackDb.close());
   const { port, host } = config;
   for (const signal of ['SIGTERM', 'SIGINT']) process.once(signal, () => {
     server.close();

@@ -9,18 +9,18 @@ export function attachRoomChat(root, shell, { send, onFocusChange = () => {}, vi
   const locked = () => readingOnly && portrait.matches;
   function controls() {
     $('room-chat').hidden = !code;
-    const open = expanded && !locked();
+    const open = !!code && expanded && !locked();
     shell.dataset.chatExpanded = String(open);
     if (root.host) root.host.dataset.chatExpanded = String(open);
     shell.dataset.chatLocked = String(locked());
-    $('chat-toggle').disabled = locked();
-    $('chat-toggle').hidden = locked();
+    $('chat-toggle').disabled = !wasPlaying || locked();
+    $('chat-toggle').hidden = !wasPlaying || locked();
     $('chat-toggle').setAttribute('aria-expanded', String(open));
     $('chat-toggle').textContent = open ? '접기' : `펼치기${messages.length ? ` · ${messages.length}` : ''}`;
     $('chat-form').hidden = readingOnly || !open;
     $('chat-input').disabled = !connected || readingOnly;
     $('chat-send').disabled = !connected || readingOnly || pending !== null || !$('chat-input').value.trim();
-    $('chat-status').textContent = !connected ? '재접속 중… 기록은 유지됩니다.' : pending !== null ? '전송 중…' : '';
+    $('chat-status').textContent = connected ? '' : '재접속 중… 기록은 유지됩니다.';
   }
   portrait.addEventListener('change', controls);
   // 가로 중앙 여백은 레터박스를 뺀 실제 경기판을 기준으로 맞춘다.
@@ -58,7 +58,7 @@ export function attachRoomChat(root, shell, { send, onFocusChange = () => {}, vi
     log.scrollTop = atBottom || !expanded ? log.scrollHeight : previousTop;
     preview(); controls();
   }
-  $('chat-toggle').onclick = () => { if (locked()) return; expanded = !expanded; controls(); $('chat-log').scrollTop = $('chat-log').scrollHeight; };
+  $('chat-toggle').onclick = () => { if (!wasPlaying || locked()) return; expanded = !expanded; controls(); $('chat-log').scrollTop = $('chat-log').scrollHeight; };
   $('chat-input').addEventListener('input', controls);
   $('chat-input').addEventListener('focus', onFocusChange);
   $('chat-input').addEventListener('blur', onFocusChange);
@@ -69,9 +69,9 @@ export function attachRoomChat(root, shell, { send, onFocusChange = () => {}, vi
     pending = text; send({ type: 'chat', text }); controls();
   };
   return {
-    enter(nextCode, { collapsed = false } = {}) {
+    enter(nextCode) {
       if (nextCode === code) return;
-      code = nextCode; messages = []; pending = null; expanded = !collapsed; wasPlaying = false;
+      code = nextCode; messages = []; pending = null; expanded = true; wasPlaying = false;
       $('chat-input').value = ''; render();
     },
     update(state) {
@@ -79,7 +79,7 @@ export function attachRoomChat(root, shell, { send, onFocusChange = () => {}, vi
       if (state.playing && (!wasPlaying || state.spectating !== spectating || (finished && !state.finished))) expanded = state.spectating;
       if (state.finished && !finished) expanded = true;
       spectating = state.spectating; finished = state.finished;
-      if (!state.playing && wasPlaying) expanded = !portrait.matches;
+      if (!state.playing) expanded = true;
       wasPlaying = state.playing;
       readingOnly = state.playing && !state.finished && !state.spectating;
       if (!connected) pending = null;

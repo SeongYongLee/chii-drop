@@ -11,6 +11,7 @@ import { FONT, INK } from '../view/renderer.js';
 import { reducedUiMotion } from '../view/ui-motion.js';
 
 import { withControlsGuide } from './controls-guide.js';
+import { openFeedback } from './feedback.js';
 import { MODES } from './modes.js';
 import { createGameScene } from './game-scene.js';
 import { createStoryFlow } from './story-mode.js';
@@ -466,10 +467,19 @@ function createSettingsMenu() {
           value: app.settings.ghost ? '켬' : '끔',
           change: (a) => update(a, { ghost: !a.settings.ghost }),
         },
-        { label: '터치 영역 편집', select: (a) => a.mobile?.editLayout() },
-        { label: '키보드 키 설정', select: (a) => a.keySettings?.open() },
-        { label: '게임패드 버튼 설정', select: (a) => a.gamepads?.openSettings() },
-        { label: '게임패드 조작 안내', select: (a) => a.gamepads?.openGuide() },
+        {
+          label: '조작 설정',
+          select: (a) => a.setScene(createListMenu({
+            title: '조작 설정',
+            items: () => [
+              { label: '키보드 키 설정', select: (a) => a.keySettings?.open() },
+              { label: '게임패드 버튼 설정', select: (a) => a.gamepads?.openSettings() },
+              { label: '게임패드 조작 안내', select: (a) => a.gamepads?.openGuide() },
+              { label: '터치 영역 편집', select: (a) => a.mobile?.editLayout() },
+            ],
+            onBack: (app) => app.setScene(settingsMenu),
+          })),
+        },
       ];
     },
     onBack: (app) => app.goToMenu(),
@@ -563,6 +573,7 @@ function createMainMenu() {
         const menu = app.scene;
         withControlsGuide(app, { force: true, background: menu, next: () => menu });
       } },
+      { label: '의견 보내기', select: () => openFeedback(app) },
     ],
     onBack: (app) => app.setScene(createTitleScene()),
   });

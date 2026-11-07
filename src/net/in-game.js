@@ -1,5 +1,6 @@
 import { analytics } from '../analytics/client.js';
 import { MODES } from '../app/modes.js';
+import { loadKeyBindings } from '../input/key-settings.js';
 import { AUTOMATIC_MATCHMAKING } from './features.js';
 import { onlineTemplate } from './template.js';
 
@@ -43,6 +44,7 @@ export function createOnlineView(app, canvas) {
   function exit() {
     host.hidden = true; canvas.parentElement.hidden = false;
     app.onlineActive = false; document.body.dataset.onlineActive = 'false'; app.keyboard.enabled = true;
+    try { app.keyboard.bindings = loadKeyBindings(window.localStorage); } catch { /* 저장 차단 시 현재 키를 사용한다. */ }
     app.keyboard.held.clear(); app.keyboard.pressed.clear();
     history.replaceState(null, '', location.pathname + location.search);
     if (app.goToMultiplayer) app.goToMultiplayer(); else app.goToMenu();
