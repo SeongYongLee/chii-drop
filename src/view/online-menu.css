@@ -1424,7 +1424,7 @@
   @container online-screen (height < 320px) {
     :host(#online-mode) .online-shell:not([data-playing=true]) {
       --online-floor:0px;
-      padding: max(8px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) var(--online-notice) max(12px,env(safe-area-inset-left));
+      padding: max(8px,env(safe-area-inset-top)) calc(max(12px,env(safe-area-inset-right)) + var(--menu-side-reserve,0px)) var(--online-notice) max(12px,env(safe-area-inset-left));
     }
   }
   @container online-screen (height < 420px) {

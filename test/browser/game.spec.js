@@ -178,7 +178,17 @@ test.describe('상태바가 있는 가로 메뉴', () => {
     await landscapeClick(menuButton(page, '온라인 대전'));
     await expect(page.locator('.online-shell')).toHaveAttribute('data-connected', 'true');
     await landscapeVisible(page.locator('#online-menu-title'));
+    await page.setViewportSize({ width: 844, height: 320 });
+    const notice = page.locator('#fan-notice');
+    await landscapeVisible(notice);
+    const lobby = await page.locator('.online-shell main').boundingBox();
+    expect(lobby.x + lobby.width).toBeLessThan((await notice.boundingBox()).x);
     await page.setViewportSize({ width: 568, height: 320 });
+    const rights = notice.getByText('제작·권리 안내', { exact: true });
+    await landscapeClick(rights);
+    await landscapeVisible(notice.locator('#fan-notice-expanded'));
+    await expect(notice.locator('#fan-notice-expanded')).toHaveText(await notice.locator('#fan-notice-text').textContent());
+    await landscapeClick(rights);
     await landscapeClick(page.locator('.profile-edit summary'));
     await landscapeVisible(page.locator('#nickname'));
     await landscapeVisible(page.locator('#rename'));

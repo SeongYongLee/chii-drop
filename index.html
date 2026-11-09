@@ -78,7 +78,13 @@
         </div>
       </div>
     </section>
-    <footer id="fan-notice" class="fan-notice" hidden aria-label="제작·권리 안내"></footer>
+    <footer id="fan-notice" class="fan-notice" hidden aria-label="제작·권리 안내">
+      <span id="fan-notice-text"></span>
+      <details class="fan-notice-details">
+        <summary>제작·권리 안내</summary>
+        <div id="fan-notice-expanded"></div>
+      </details>
+    </footer>
     <script>
       // HTML만 새 버전이고 하위 모듈·CSS가 이전 캐시에 남는 배포 전환을 막는다.
       (async () => {

@@ -10,7 +10,7 @@ class Button extends EventTarget {
 }
 function harness({ menuButton, backNavigationButton, onPause, onBack, fanNotice } = {}) {
   const doc = new EventTarget(), view = new EventTarget(), media = new EventTarget();
-  doc.getElementById = id => id === 'fan-notice' ? fanNotice : null;
+  doc.getElementById = id => ['fan-notice', 'fan-notice-text'].includes(id) ? fanNotice : null;
   media.matches = true; view.matchMedia = () => media; view.document = doc; doc.defaultView = view;
   const buttons = Object.values(M).map((bit) => new Button(bit));
   const parts = Object.fromEntries(['menu', 'game', 'label', 'player', 'items', 'confirm'].map((name) => [name, new EventTarget()]));
@@ -145,7 +145,7 @@ test('메뉴는 실제 보이는 높이와 권리 안내 높이를 반영해 공
   h.view.innerHeight=640;
   h.view.document.body={dataset:{},style:{setProperty:(key,value)=>values.set(key,value),getPropertyValue:key=>values.get(key)}};
   h.context({enabled:true,mode:'menu',layout:'list-menu',fanNotice:'권리 안내'});
-  assert.equal(values.get('--menu-visible-height'),'640px');assert.equal(values.get('--menu-footer-reserve'),'168px');
+  assert.equal(values.get('--menu-visible-height'),'640px');assert.equal(values.get('--measured-menu-footer-reserve'),'168px');
   h.view.innerHeight=600;h.view.dispatchEvent(new Event('resize'));
-  assert.equal(values.get('--menu-visible-height'),'600px');assert.equal(values.get('--menu-footer-reserve'),'128px');
+  assert.equal(values.get('--menu-visible-height'),'600px');assert.equal(values.get('--measured-menu-footer-reserve'),'128px');
 });

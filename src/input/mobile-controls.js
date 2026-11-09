@@ -34,6 +34,10 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
   const label = container.querySelector('[data-mobile-label]');
   const heading = container.querySelector('[data-menu-heading]');
   const fanNotice = view.document.getElementById?.('fan-notice');
+  const fanNoticeText = view.document.getElementById?.('fan-notice-text');
+  const fanNoticeExpanded = view.document.getElementById?.('fan-notice-expanded');
+  const fanNoticeDetails = fanNoticeExpanded?.parentElement;
+  fanNoticeDetails?.addEventListener('keydown', event => event.stopPropagation());
   const playerButton = container.querySelector('[data-mobile-player]');
   const nativeItems = container.querySelector('[data-mobile-items]');
   const confirmButton = container.querySelector('[data-mobile-confirm]');
@@ -192,7 +196,9 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
       if (fanNotice) {
         fanNotice.hidden = context.onlineActive ? !context.onlineMenu : !['list-menu', 'title-menu', 'match-setup'].includes(context.layout);
         const text = [context.fanNotice, context.versionLabel].filter(Boolean).join('\n');
-        if (fanNotice.textContent !== text) fanNotice.textContent = text;
+        if (fanNoticeText && fanNoticeText.textContent !== text) fanNoticeText.textContent = text;
+        if (fanNoticeExpanded && fanNoticeExpanded.textContent !== text) fanNoticeExpanded.textContent = text;
+        if (fanNotice.hidden && fanNoticeDetails?.open) fanNoticeDetails.open = false;
       }
       if (backButton) {
         if (context.backSelected) {
@@ -226,7 +232,7 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
         const rect = fanNotice.getBoundingClientRect?.();
         if (rect) {
           const reserve = `${Math.ceil(visibleTop + visibleHeight - rect.top + 8)}px`;
-          if (bodyStyle.getPropertyValue('--menu-footer-reserve') !== reserve) bodyStyle.setProperty('--menu-footer-reserve', reserve);
+          if (bodyStyle.getPropertyValue('--measured-menu-footer-reserve') !== reserve) bodyStyle.setProperty('--measured-menu-footer-reserve', reserve);
         }
       }
     }
@@ -239,7 +245,7 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
     if (titleTransition.active && Object.values(MENU_KEYS).some(codes => codes.includes(event.code))) {
       event.preventDefault(); event.stopImmediatePropagation(); return;
     }
-    if (event.target?.closest?.('.menu-companion')) return;
+    if (event.target?.closest?.('.menu-companion, .fan-notice-details')) return;
     if (enabled && context.records && ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(event.code)) {
       const panel = nativeItems.querySelector?.('.records-panel');
       if (panel) {
