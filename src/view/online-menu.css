@@ -1026,9 +1026,8 @@
   :host(#online-mode) .online-shell:not([data-playing=true]) main { gap:6px; padding:12px; }
 }
 @media (orientation:landscape) and (max-height:500px) {
-  :host(#online-mode) .online-shell:not([data-playing=true]) { --online-floor:52px; --online-notice:70px; }
+  :host(#online-mode) .online-shell:not([data-playing=true]) { --online-floor:52px; --online-notice:var(--menu-footer-reserve,70px); }
   :host(#online-mode) .online-shell:not([data-playing=true]) main { max-width:960px; }
-  :host(#online-mode) .online-shell:not([data-playing=true]) .profile { display:none; }
 }
 :host(#online-mode:not([data-playing=true])) {
   width:100vw; height:var(--visible-height,100dvh); top:var(--visible-top,0px);
@@ -1407,4 +1406,37 @@
   :host(#online-mode) .online-shell[data-panel=create] .create-form>label { font-size:12px; }
   :host(#online-mode) .online-shell[data-panel=create] .create-form :is(input,select) { min-height:44px; padding:6px; font-size:16px; }
   :host(#online-mode) .online-shell[data-panel=create] .form-actions { margin:0; }
+}
+
+@media (orientation:landscape) and (max-height:500px) {
+  .online-shell dialog[open]:not(.controls-guide) {
+    position:fixed; inset:calc(var(--visible-top,0px) + var(--visible-height,100dvh) / 2) auto auto 50%;
+    margin:0; transform:translate(-50%,-50%);
+    max-width:calc(100vw - 2 * max(12px,env(safe-area-inset-left),env(safe-area-inset-right)));
+    max-height:calc(var(--visible-height,100dvh) - max(8px,env(safe-area-inset-top)) - max(8px,env(safe-area-inset-bottom)));
+    touch-action:pan-y;
+  }
+  :host(#online-mode) .online-shell:not([data-playing=true]) .profile-popover {
+    top:calc(var(--visible-top,0px) + var(--visible-height,100dvh) / 2);
+    max-height:calc(var(--visible-height,100dvh) - 24px);
+    touch-action:pan-y;
+  }
+  @container online-screen (height < 320px) {
+    :host(#online-mode) .online-shell:not([data-playing=true]) {
+      --online-floor:0px;
+      padding: max(8px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) var(--online-notice) max(12px,env(safe-area-inset-left));
+    }
+  }
+  @container online-screen (height < 420px) {
+    :host(#online-mode) .online-shell:not([data-playing=true]) main {
+      padding:8px; gap:6px; overflow-y:auto; touch-action:pan-y;
+    }
+    :host(#online-mode) .online-shell:not([data-playing=true]) #lobby-view { flex:none; }
+    :host(#online-mode) .online-shell:not([data-playing=true]) :is(.lobby-panel,.create-card) { overflow:visible; }
+    :host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true] main { grid-template-rows:30px min-content auto auto; }
+    :host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true]:not([data-selecting=true]) main { grid-template-rows:24px min-content auto auto; }
+    :host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true]:not([data-selecting=true]) .online-menu-actions { grid-row:4; }
+    :host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true] :is(#room-view,#character-select-view) { min-height:min-content; overflow:visible; }
+    :host(#online-mode) .online-shell:not([data-playing=true])[data-in-room=true] .room-bottom { position:static; }
+  }
 }

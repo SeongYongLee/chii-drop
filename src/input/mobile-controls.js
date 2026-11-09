@@ -210,16 +210,22 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
       if (playerButton.textContent !== playerText) playerButton.textContent = playerText;
     }
     renderItems();
-    const bodyStyle = view.document.body?.style;
+    const body = view.document.body;
+    const bodyStyle = body?.style;
     const visibleHeight = view.visualViewport?.height ?? view.innerHeight;
+    const visibleTop = view.visualViewport?.offsetTop ?? 0;
     if (bodyStyle?.setProperty && Number.isFinite(visibleHeight)) {
       container.dataset.shortMenu = String(visibleHeight < 560);
+      const shortViewport = String(visibleHeight < 320);
+      if (body.dataset.shortViewport !== shortViewport) body.dataset.shortViewport = shortViewport;
       const height = `${Math.round(visibleHeight)}px`;
       if (bodyStyle.getPropertyValue('--menu-visible-height') !== height) bodyStyle.setProperty('--menu-visible-height', height);
-      if ((context.onlineMenu || ['list-menu', 'match-setup'].includes(context.layout)) && fanNotice && !fanNotice.hidden) {
+      const top = `${visibleTop}px`;
+      if (bodyStyle.getPropertyValue('--menu-visible-top') !== top) bodyStyle.setProperty('--menu-visible-top', top);
+      if (fanNotice && !fanNotice.hidden) {
         const rect = fanNotice.getBoundingClientRect?.();
         if (rect) {
-          const reserve = `${Math.ceil(visibleHeight - rect.top + 8)}px`;
+          const reserve = `${Math.ceil(visibleTop + visibleHeight - rect.top + 8)}px`;
           if (bodyStyle.getPropertyValue('--menu-footer-reserve') !== reserve) bodyStyle.setProperty('--menu-footer-reserve', reserve);
         }
       }
@@ -300,6 +306,7 @@ export function attachMobileControls({ view, canvas, container, keyboard, getCon
   const resizeMenu = () => { titleTransition.cancel(); start = null; clear(); sync(); };
   view.addEventListener('resize', resizeMenu);
   view.visualViewport?.addEventListener('resize', resizeMenu);
+  view.visualViewport?.addEventListener('scroll', sync);
   view.document.addEventListener('visibilitychange', () => { if (view.document.hidden) { titleTransition.cancel(); start = null; clear(); } });
   media.addEventListener('change', sync);
   sync();

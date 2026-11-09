@@ -133,8 +133,8 @@ export function withControlsGuide(app, { mode = 'solo', next, background, force 
       function showPage(value) {
         page = value; const controls = page === 'controls';
         illustrations.show(!controls);
-        updateRuleLayout();
         rules.hidden = warning.hidden = controls; cards.hidden = note.hidden = !controls;
+        updateRuleLayout();
         groupButton.hidden = !controls || !force || touch; previous.hidden = !controls && !force;
         previous.textContent = controls ? '게임 규칙' : '닫기';
         rulesTab.setAttribute('aria-pressed', String(!controls)); controlsTab.setAttribute('aria-pressed', String(controls));

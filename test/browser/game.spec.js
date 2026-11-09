@@ -57,6 +57,223 @@ test('첫 로딩 실패·재시도와 메뉴를 막지 않는 백그라운드 �
   await expect(page.locator('#background-download')).toBeHidden();
 });
 
+const shortViewport = { top: 24, height: 260 };
+
+async function setShortLandscape(page) {
+  await page.setViewportSize({ width: 667, height: 320 });
+  await page.addInitScript(({ top, height }) => {
+    const viewport = window.visualViewport;
+    const getHeight = Object.getOwnPropertyDescriptor(VisualViewport.prototype, 'height').get;
+    Object.defineProperties(viewport, {
+      height: { get: () => innerWidth > innerHeight ? height : getHeight.call(viewport) },
+      offsetTop: { get: () => innerWidth > innerHeight ? top : 0 },
+    });
+  }, shortViewport);
+}
+
+async function shortLandscape(page) {
+  await setShortLandscape(page);
+  await page.goto('/');
+  await title(page);
+  await expect.poll(() => page.locator('body').evaluate(element => {
+    const { top, height } = element.getBoundingClientRect();
+    return { top, height };
+  })).toEqual(shortViewport);
+  await landscapeClick(menuButton(page, '시작'));
+}
+
+const menuButton = (page, name) => page.getByRole('button', { name, exact: typeof name === 'string' });
+async function landscapeVisible(locator) {
+  await expect(async () => {
+    await locator.scrollIntoViewIfNeeded({ timeout: 1000 });
+    await expect(locator).toBeInViewport({ ratio: .98, timeout: 1000 });
+    const box = await locator.boundingBox();
+    expect(box.y, 'top of visible viewport').toBeGreaterThanOrEqual(shortViewport.top - 1);
+    expect(box.y + box.height, 'bottom of visible viewport').toBeLessThanOrEqual(shortViewport.top + shortViewport.height + 1);
+  }).toPass({ timeout: 6000 });
+}
+async function landscapeClick(locator) {
+  await landscapeVisible(locator);
+  await locator.click({ timeout: 5000 });
+}
+
+test.describe('상태바가 있는 가로 메뉴', () => {
+  test.beforeEach(async ({ page }, info) => {
+    test.skip(info.project.name !== 'webkit-mobile');
+    await shortLandscape(page);
+  });
+
+  test('설정, 음량, 터치 편집, 키 설정', async ({ page }) => {
+    await landscapeClick(menuButton(page, '설정'));
+    for (const name of [/효과음/, /배경음악/, /목소리/, /착지 위치 표시/]) {
+      await landscapeClick(menuButton(page, name));
+    }
+    await landscapeClick(menuButton(page, '음량 조절'));
+    for (const name of ['전체', '효과음', '배경음악', '목소리']) {
+      await landscapeVisible(menuButton(page, new RegExp(`^${name} ·`)));
+      await landscapeClick(menuButton(page, `${name} 늘리기`));
+    }
+    await landscapeClick(menuButton(page, '뒤로'));
+    await landscapeClick(menuButton(page, '조작 설정'));
+    for (const name of ['터치 영역 편집', '키보드 키 설정', '게임패드 버튼 설정']) {
+      await landscapeClick(menuButton(page, name));
+      const dialog = page.getByRole('dialog', { name });
+      await landscapeVisible(dialog.getByRole('heading', { name }));
+      await landscapeVisible(menuButton(dialog, '저장'));
+      await landscapeClick(menuButton(dialog, '취소'));
+    }
+    await landscapeClick(menuButton(page, '뒤로'));
+    await landscapeClick(menuButton(page, '뒤로'));
+    await landscapeClick(menuButton(page, '의견 보내기'));
+    const feedback = page.getByRole('dialog', { name: '의견 보내기' });
+    await landscapeVisible(feedback.getByRole('textbox'));
+    await landscapeClick(menuButton(feedback, '닫기'));
+  });
+
+  test('기록과 게임 방법', async ({ page }) => {
+    await landscapeClick(menuButton(page, '기록'));
+    await landscapeVisible(page.locator('.records-practice').getByText(/최고 점수/));
+    await landscapeVisible(page.getByRole('rowheader', { name: '쉬움', exact: true }));
+    await landscapeVisible(page.locator('.records-table tbody th').last());
+    await landscapeClick(menuButton(page, '뒤로'));
+    await landscapeClick(menuButton(page, '게임 방법'));
+    const guide = page.getByRole('dialog', { name: '게임 방법' });
+    for (const label of ['연결', '연쇄', '공격·상쇄', '조작 방법 보기']) {
+      await landscapeClick(menuButton(guide, label));
+    }
+    await landscapeVisible(guide.getByText('일시정지 버튼', { exact: true }));
+    await landscapeClick(menuButton(guide, '닫기'));
+  });
+
+  test('싱글 모드와 로컬 2인 설정', async ({ page }) => {
+    await landscapeClick(menuButton(page, '싱글플레이'));
+    const story = menuButton(page, '스토리 · 준비 중');
+    await landscapeVisible(story);
+    await expect(story).toBeDisabled();
+    for (const mode of ['CPU 대전', 'CPU 관전', '연습']) {
+      await landscapeClick(menuButton(page, mode));
+      await landscapeVisible(page.locator('.setup-start-button'));
+      await landscapeClick(menuButton(page, '뒤로'));
+    }
+    await landscapeClick(menuButton(page, '뒤로'));
+    await landscapeClick(menuButton(page, '멀티플레이'));
+    await landscapeClick(menuButton(page, '로컬 대전'));
+    const players = page.locator('.setup-player-card');
+    await expect(players).toHaveCount(2);
+    for (const player of await players.all()) {
+      await landscapeClick(player.locator('[data-setup-choice]').first());
+      const dialog = page.locator('.setup-choice-dialog[open]');
+      await landscapeVisible(dialog.locator('.setup-choice-list button').first());
+      await landscapeClick(menuButton(dialog, '닫기'));
+    }
+    await landscapeClick(page.locator('.setup-start-button'));
+    await landscapeClick(menuButton(page, '조작 방법'));
+    await landscapeClick(menuButton(page, '확인하고 시작'));
+    await landscapeClick(menuButton(page, '대전 메뉴'));
+    await landscapeClick(menuButton(page, '계속하기'));
+  });
+
+  test('온라인 로비, 프로필, 랭킹, 참가, 대기실과 대전 메뉴', async ({ page, browser }) => {
+    await landscapeClick(menuButton(page, '멀티플레이'));
+    await landscapeClick(menuButton(page, '온라인 대전'));
+    await expect(page.locator('.online-shell')).toHaveAttribute('data-connected', 'true');
+    await landscapeVisible(page.locator('#online-menu-title'));
+    await page.setViewportSize({ width: 568, height: 320 });
+    await landscapeClick(page.locator('.profile-edit summary'));
+    await landscapeVisible(page.locator('#nickname'));
+    await landscapeVisible(page.locator('#rename'));
+    await landscapeClick(page.locator('#close-profile'));
+    await landscapeClick(page.locator('#tab-rankings'));
+    await landscapeVisible(page.locator('#rankings .empty strong'));
+    await landscapeClick(page.locator('#tab-play'));
+    await landscapeClick(page.locator('#open-code'));
+    await landscapeVisible(page.locator('#code'));
+    await landscapeVisible(page.locator('#join'));
+    await landscapeClick(page.locator('#close-code'));
+    await landscapeClick(page.locator('#touch-options'));
+    await landscapeVisible(page.locator('#touch-lift'));
+    await landscapeClick(page.locator('#close-touch-options'));
+    await landscapeClick(page.getByRole('link', { name: /방 만들기/ }));
+    await landscapeVisible(page.locator('#room-password'));
+    await landscapeClick(page.locator('#create'));
+    await landscapeVisible(page.locator('#room-code'));
+    await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { value: undefined }));
+    await landscapeClick(page.locator('#copy-room-link'));
+    await landscapeVisible(page.locator('#share-value'));
+    await landscapeClick(page.locator('#close-share'));
+    await landscapeVisible(page.locator('#ready'));
+    await landscapeClick(page.locator('#watch-instead'));
+    await landscapeVisible(page.locator('#take-seat'));
+    await landscapeClick(page.locator('#take-seat'));
+    await landscapeVisible(page.locator('#chat-input'));
+    await landscapeVisible(page.locator('#chat-send'));
+    await landscapeClick(page.locator('#room-game-guide'));
+    const guide = page.getByRole('dialog', { name: '게임 방법' });
+    await landscapeClick(menuButton(guide, '조작 방법'));
+    await landscapeClick(menuButton(guide, '닫기'));
+    await landscapeClick(page.locator('#online-back'));
+
+    const guest = await browser.newPage({ viewport: { width: 1280, height: 720 }, serviceWorkers: 'block' });
+    try {
+      await guest.addInitScript(seedBrowser);
+      await guest.goto('/#online');
+      await guest.getByRole('link', { name: /방 만들기/ }).click();
+      await guest.locator('#room-name').fill('가로 모드 검증');
+      await guest.locator('#room-password').fill('layout');
+      await guest.locator('#create').click();
+      await landscapeClick(menuButton(page, '가로 모드 검증 비밀번호로 참가'));
+      await landscapeVisible(page.locator('#password-value'));
+      await page.locator('#password-value').fill('layout');
+      await landscapeClick(page.locator('#password-join'));
+      await guest.locator('#ready').click();
+      await landscapeClick(page.locator('#ready'));
+      await landscapeVisible(page.locator('#character-options button').first());
+      await landscapeVisible(page.locator('#cancel-character'));
+      const invitee = await browser.newPage({ isMobile: true, hasTouch: true, serviceWorkers: 'block' });
+      try {
+        await setShortLandscape(invitee);
+        await invitee.addInitScript(seedBrowser);
+        const code = await page.locator('#room-code').textContent();
+        await invitee.goto(`/index.html?room=${code}#play`);
+        await expect(invitee.locator('#invite-choice-dialog')).toBeVisible();
+        await landscapeVisible(invitee.locator('#invite-watch'));
+        await landscapeClick(invitee.locator('#invite-cancel'));
+      } finally {
+        await invitee.close();
+      }
+      await landscapeClick(page.locator('#confirm-character'));
+      await guest.locator('#confirm-character').click();
+      await expect(page.locator('.online-shell')).toHaveAttribute('data-playing', 'true');
+      await landscapeClick(page.locator('#battle-menu summary[aria-label="대전 메뉴"]'));
+      await landscapeClick(page.locator('#battle-options'));
+      await landscapeVisible(page.locator('#touch-lift'));
+      await landscapeClick(page.locator('#close-touch-options'));
+    } finally {
+      await guest.close();
+    }
+  });
+});
+
+test('좁은 가로 화면에서도 메뉴를 열고 세로 조작 안내를 읽을 수 있다', async ({ page }, info) => {
+  test.skip(info.project.name !== 'webkit-mobile');
+  await shortLandscape(page);
+  await page.getByRole('button', { name: '싱글플레이', exact: true }).click();
+  await page.getByRole('button', { name: 'CPU 대전', exact: true }).click();
+  await page.getByRole('button', { name: '대전 시작', exact: true }).click();
+
+  await page.setViewportSize({ width: 320, height: 480 });
+  const guide = page.getByRole('dialog', { name: '게임 방법' });
+  await guide.getByRole('button', { name: '공격·상쇄', exact: true }).click();
+  await guide.getByRole('button', { name: '조작 방법 보기', exact: true }).click();
+  await expect(guide).toBeInViewport({ ratio: 1 });
+  await expect(guide.getByRole('heading', { name: '양손으로 터치하세요' })).toBeInViewport({ ratio: 1 });
+  await expect(guide.getByRole('button', { name: '확인하고 시작' })).toBeInViewport({ ratio: 1 });
+  const content = guide.locator('.game-guide-content');
+  expect(await content.evaluate(element => element.scrollWidth)).toBe(await content.evaluate(element => element.clientWidth));
+  await guide.getByText('일시정지 버튼', { exact: true }).scrollIntoViewIfNeeded();
+  await expect(guide.getByText('일시정지 버튼', { exact: true })).toBeInViewport({ ratio: 1 });
+});
+
 test('손상 기록 복구와 CPU 경기·일시정지·화면 회전·결과 복귀', async ({ page }, info) => {
   await page.addInitScript(() => localStorage.setItem('chii-drop:records', JSON.stringify({ cpu: { normal: null } })));
   await page.goto('/'); await title(page);

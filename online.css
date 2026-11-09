@@ -277,7 +277,7 @@ th:last-child,td:last-child { width:70px}
 .touch-move,.touch-rotate { gap:5px}
 .touch-controls button { min-width:44px; padding:6px 10px}
 .touch-rotate button { min-width:46px}
-dialog[open] { position:fixed; inset:auto 0 auto; top:calc(var(--visible-top,0px) + var(--visible-height,100dvh)); transform:translateY(-100%); margin:0; width:100%; max-width:100vw; border-radius:20px 20px 0 0; padding:18px 18px max(18px,env(safe-area-inset-bottom))}
+dialog[open]:not(.controls-guide) { position:fixed; inset:auto 0 auto; top:calc(var(--visible-top,0px) + var(--visible-height,100dvh)); transform:translateY(-100%); margin:0; width:100%; max-width:100vw; border-radius:20px 20px 0 0; padding:18px 18px max(18px,env(safe-area-inset-bottom))}
 .online-shell[data-keyboard-open=true] dialog { padding-bottom:12px}
 .online-shell[data-editing=true] .lobby-tabs { display:none}
 .online-shell[data-editing=true] #lobby-view { grid-template-rows:minmax(0,1fr)}
